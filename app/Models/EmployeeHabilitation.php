@@ -19,11 +19,14 @@ class EmployeeHabilitation extends Model
         'date_expiration',
         'type',
         'statut',
+        'organisme_formation',       // ← add
+        'date_aptitude_medicale',    // ← add
     ];
-
+    
     protected $casts = [
-        'date_obtention'  => 'date',
-        'date_expiration' => 'date',
+        'date_obtention'         => 'date',
+        'date_expiration'        => 'date',
+        'date_aptitude_medicale' => 'date',  // ← add
     ];
 
     // ── Relations ──────────────────────────────────────────

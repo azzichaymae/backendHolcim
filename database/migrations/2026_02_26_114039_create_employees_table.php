@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('employees', function (Blueprint $table) {
             $table->id();
-            $table->string('matricule')->unique();
+            $table->unsignedInteger('matricule')->unique();
             $table->string('nom');
             $table->string('prenom');
             $table->string('email_pro')->unique();

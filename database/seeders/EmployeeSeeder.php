@@ -16,7 +16,7 @@ class EmployeeSeeder extends Seeder
 
         $employees = [
             [
-                'matricule'  => 'EMP001',
+                'matricule'  => 178,
                 'nom'        => 'Benali',
                 'prenom'     => 'Karim',
                 'email_pro'  => 'k.benali@holcim.ma',
@@ -24,7 +24,7 @@ class EmployeeSeeder extends Seeder
                 'service_id' => $prod->id,
             ],
             [
-                'matricule'  => 'EMP002',
+                'matricule'  => 177,
                 'nom'        => 'El Fassi',
                 'prenom'     => 'Sara',
                 'email_pro'  => 's.elfassi@holcim.ma',
@@ -32,7 +32,7 @@ class EmployeeSeeder extends Seeder
                 'service_id' => $maint->id,
             ],
             [
-                'matricule'  => 'EMP003',
+                'matricule'  => 173,
                 'nom'        => 'Idrissi',
                 'prenom'     => 'Youssef',
                 'email_pro'  => 'y.idrissi@holcim.ma',
@@ -40,7 +40,7 @@ class EmployeeSeeder extends Seeder
                 'service_id' => $secu->id,
             ],
             [
-                'matricule'  => 'EMP004',
+                'matricule'  => 174,
                 'nom'        => 'Tazi',
                 'prenom'     => 'Nadia',
                 'email_pro'  => 'n.tazi@holcim.ma',

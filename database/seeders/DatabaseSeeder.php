@@ -15,6 +15,7 @@ class DatabaseSeeder extends Seeder
             EmployeeSeeder::class,
             VoletSeeder::class,
             HabilitationSeeder::class,
+            SettingSeeder::class
         ]);
     }
 }

@@ -9,6 +9,9 @@ use App\Http\Controllers\Api\EmployeeController;
 use App\Http\Controllers\Api\EmployeeHabilitationController;
 use App\Http\Controllers\Api\DocumentController;
 use App\Http\Controllers\Api\ServiceController;
+use App\Http\Controllers\Api\AlertController;
+use App\Http\Controllers\Api\DashboardController;
+use App\Http\Controllers\Api\SettingController;
 
 
 // ── Public routes ──────────────────────────────────────
@@ -50,16 +53,24 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/habilitations/{habilitation}', [HabilitationController::class, 'update']);
         Route::delete('/habilitations/{habilitation}', [HabilitationController::class, 'destroy']);
     });
-    Route::middleware('role:RRH,RH')->group(function () {
-        Route::get('/employees', [EmployeeController::class, 'index']);
-        Route::get('/employees/{employee}', [EmployeeController::class, 'show']);
-        Route::post('/employees', [EmployeeController::class, 'store']);
-        Route::put('/employees/{employee}', [EmployeeController::class, 'update']);
-    });
+   // ── Employees ──────────────────────────────────────────
 
-    Route::middleware('role:RRH')->group(function () {
-        Route::delete('/employees/{employee}', [EmployeeController::class, 'destroy']);
-    });
+// Manager can read employees (auto-filtered by service in controller)
+Route::middleware('role:RRH,RH,Manager')->group(function () {
+    Route::get('/employees',            [EmployeeController::class, 'index']);
+    Route::get('/employees/{employee}', [EmployeeController::class, 'show']);
+});
+
+// Only RRH and RH can create and update
+Route::middleware('role:RRH,RH')->group(function () {
+    Route::post('/employees',            [EmployeeController::class, 'store']);
+    Route::put('/employees/{employee}',  [EmployeeController::class, 'update']);
+});
+
+// Only RRH can delete
+Route::middleware('role:RRH')->group(function () {
+    Route::delete('/employees/{employee}', [EmployeeController::class, 'destroy']);
+});
 
     // Static route first
     Route::middleware('role:RRH,RH,Manager')->group(function () {
@@ -120,4 +131,23 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/documents', [DocumentController::class, 'store']);
         Route::delete('/documents/{document}', [DocumentController::class, 'destroy']);
     });
+
+    // ── Alerts ──────────────────────────────────────────────
+    Route::middleware('role:RRH,RH,Manager')->group(function () {
+        Route::get('/alerts', [AlertController::class, 'index']);
+        Route::get('/alerts/{alert}', [AlertController::class, 'show']);
+        Route::patch('/alerts/{alert}/vu', [AlertController::class, 'markAsViewed']);
+        Route::post('/alerts/vu-grp', [AlertController::class, 'markManyAsViewed']);
+        Route::delete('/alerts/{alert}', [AlertController::class, 'destroy']);
+    });
+
+    Route::middleware('role:RRH,RH,Manager')->group(function () {
+        Route::get('/dashboard', [DashboardController::class, 'index']);
+    });
+// ── Settings ───────────────────────────────────────────
+Route::middleware('role:RRH')->group(function () {
+    Route::get('/parametres',  [SettingController::class, 'index']);
+    Route::put('/parametres',  [SettingController::class, 'update']);
+});
+
 });

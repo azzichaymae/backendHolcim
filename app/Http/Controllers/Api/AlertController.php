@@ -1,0 +1,125 @@
+<?php
+
+namespace App\Http\Controllers\Api;
+
+use App\Http\Controllers\Controller;
+use App\Models\Alert;
+use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
+
+class AlertController extends Controller
+{
+    // GET /api/alerts
+    public function index(Request $request): JsonResponse
+    {
+        $query = Alert::with([
+            'employeeHabilitation.employee.service.departement',
+            'employeeHabilitation.habilitation.volet',
+        ]);
+
+        // Auto-restrict Manager to their own service
+        if (auth()->check() && auth()->user()->role === 'Manager') {
+            $managerServiceId = auth()->user()->service_id;
+
+            $query->whereHas('employeeHabilitation.employee', function ($q) use ($managerServiceId) {
+                $q->where('service_id', $managerServiceId);
+            });
+        } else {
+            // Optional filters for non-manager roles
+            if ($request->filled('service_id')) {
+                $query->whereHas('employeeHabilitation.employee', function ($q) use ($request) {
+                    $q->where('service_id', $request->service_id);
+                });
+            }
+
+            if ($request->filled('departement_id')) {
+                $query->whereHas('employeeHabilitation.employee.service', function ($q) use ($request) {
+                    $q->where('departement_id', $request->departement_id);
+                });
+            }
+
+            if ($request->filled('employee_id')) {
+                $query->whereHas('employeeHabilitation', function ($q) use ($request) {
+                    $q->where('employee_id', $request->employee_id);
+                });
+            }
+        }
+
+        // Generic filters
+        if ($request->filled('statut')) {
+            $query->where('statut', $request->statut);
+        }
+
+        if ($request->filled('alert_type')) {
+            $query->where('alert_type', $request->alert_type);
+        }
+
+        if ($request->boolean('urgent')) {
+            $query->urgentes();
+        }
+
+        if ($request->boolean('only_active')) {
+            $query->actives();
+        }
+
+        $alerts = $query
+            ->orderBy('alert_date', 'asc')
+            ->orderBy('jours_avant_expiration', 'asc')
+            ->get();
+
+        return response()->json($alerts, 200);
+    }
+
+    // GET /api/alerts/{id}
+    public function show(Alert $alert): JsonResponse
+    {
+        $alert->load([
+            'employeeHabilitation.employee.service.departement',
+            'employeeHabilitation.habilitation.volet',
+        ]);
+
+        return response()->json($alert, 200);
+    }
+
+    // PATCH /api/alerts/{id}/mark-as-viewed
+    public function markAsViewed(Alert $alert): JsonResponse
+    {
+        $alert->marquerVue();
+
+        $alert->load([
+            'employeeHabilitation.employee.service.departement',
+            'employeeHabilitation.habilitation.volet',
+        ]);
+
+        return response()->json($alert, 200);
+    }
+
+    // POST /api/alerts/mark-as-viewed-bulk
+    public function markManyAsViewed(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'ids'   => 'required|array',
+            'ids.*' => 'integer|exists:alerts,id',
+        ]);
+
+        $updatedCount = Alert::whereIn('id', $validated['ids'])
+            ->where('statut', '!=', 'vu')
+            ->update(['statut' => 'vu']);
+
+        return response()->json([
+            'message' => 'Alertes marquées comme vues avec succès.',
+            'count'   => $updatedCount,
+        ], 200);
+    }
+
+    // DELETE /api/alerts/{id}
+    public function destroy(Alert $alert): JsonResponse
+    {
+        $alert->delete();
+
+        return response()->json([
+            'message' => 'Alerte supprimée avec succès.',
+        ], 200);
+    }
+}
+

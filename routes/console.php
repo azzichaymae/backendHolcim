@@ -1,8 +1,8 @@
 <?php
 
-use Illuminate\Foundation\Inspiring;
-use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Schedule;
+use App\Console\Commands\UpdateStatutsExpires;
+use App\Console\Commands\GenererAlertes;
 
-Artisan::command('inspire', function () {
-    $this->comment(Inspiring::quote());
-})->purpose('Display an inspiring quote');
+Schedule::command(UpdateStatutsExpires::class)->dailyAt('00:00');
+Schedule::command(GenererAlertes::class)->dailyAt('00:05');

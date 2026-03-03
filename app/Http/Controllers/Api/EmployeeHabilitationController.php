@@ -79,11 +79,13 @@ class EmployeeHabilitationController extends Controller
      public function store(Request $request): JsonResponse
      {
           $validated = $request->validate([
-               'employee_id' => 'required|exists:employees,id',
-               'habilitation_id' => 'required|exists:habilitations,id',
-               'date_obtention' => 'required|date',
-               'type' => 'required|in:initiale,recyclage',
-          ]);
+               'employee_id'            => 'required|exists:employees,id',
+               'habilitation_id'        => 'required|exists:habilitations,id',
+               'date_obtention'         => 'required|date',
+               'type'                   => 'required|in:initiale,recyclage',
+               'organisme_formation'    => 'required|string|max:150',
+               'date_aptitude_medicale' => 'required|date',
+           ]);
 
           // Fetch habilitation to get duration
           $habilitation = \App\Models\Habilitation::findOrFail($validated['habilitation_id']);

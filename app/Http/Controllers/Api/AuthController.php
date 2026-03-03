@@ -54,14 +54,16 @@ class AuthController extends Controller
 
     public function me(Request $request): JsonResponse
     {
-        $user = $request->user()->load('departement');
-
+        $user = $request->user()->load('service.departement');
+    
         return response()->json([
             'id'          => $user->id,
             'nom'         => $user->nom,
             'email'       => $user->email,
             'role'        => $user->role,
-            'departement' => $user->departement?->nom,
+            'service'     => $user->service?->nom,
+            'departement' => $user->service?->departement?->nom,
+            'service_id'  => $user->service_id,
         ], 200);
     }
 }
