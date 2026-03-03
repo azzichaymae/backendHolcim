@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\ServiceController;
 use App\Http\Controllers\Api\AlertController;
 use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\SettingController;
+use App\Http\Controllers\Api\DocumentGenerationController;
 
 
 // ── Public routes ──────────────────────────────────────
@@ -128,6 +129,12 @@ Route::middleware('role:RRH')->group(function () {
     });
 
     Route::middleware('role:RRH,RH')->group(function () {
+        Route::get('/documents/employees-par-habilitation/{habilitation}',
+        [DocumentGenerationController::class, 'employeesParHabilitation']);
+    Route::post('/documents/generate/individuelle',
+        [DocumentGenerationController::class, 'generateIndividuelle']);
+    Route::post('/documents/generate/note',
+        [DocumentGenerationController::class, 'generateNote']);
         Route::post('/documents', [DocumentController::class, 'store']);
         Route::delete('/documents/{document}', [DocumentController::class, 'destroy']);
     });

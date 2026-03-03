@@ -1,0 +1,320 @@
+/* ── Page ─────────────────────────────────────────────── */
+.employee-form-page {
+     max-width: 1100px;
+   }
+   
+   /* ── Header ───────────────────────────────────────────── */
+   .page-header {
+     display: flex;
+     align-items: center;
+     justify-content: space-between;
+     margin-bottom: 24px;
+   }
+   
+   .header-left {
+     display: flex;
+     align-items: center;
+     gap: 14px;
+   }
+   
+   .btn-back {
+     display: flex;
+     align-items: center;
+     justify-content: center;
+     width: 36px;
+     height: 36px;
+     background: white;
+     border: 1px solid #e8ecf0;
+     border-radius: 8px;
+     cursor: pointer;
+     color: #6b7280;
+     transition: background 0.15s, color 0.15s;
+     flex-shrink: 0;
+   }
+   
+   .btn-back:hover {
+     background: #f4f6f9;
+     color: #1a2e44;
+   }
+   
+   .page-title {
+     font-size: 1.4rem;
+     font-weight: 700;
+     color: #1a2e44;
+     margin: 0 0 4px 0;
+   }
+   
+   .page-subtitle {
+     font-size: 0.85rem;
+     color: #6b7280;
+     margin: 0;
+   }
+   
+   /* ── Loading ──────────────────────────────────────────── */
+   .loading-state {
+     display: flex;
+     justify-content: center;
+     padding: 80px;
+   }
+   
+   .loader {
+     width: 36px;
+     height: 36px;
+     border: 3px solid #e8ecf0;
+     border-top-color: #1a6b8a;
+     border-radius: 50%;
+     animation: spin 0.8s linear infinite;
+   }
+   
+   @keyframes spin { to { transform: rotate(360deg); } }
+   
+   /* ── Layout ───────────────────────────────────────────── */
+   .form-layout {
+     display: grid;
+     grid-template-columns: 1fr 340px;
+     gap: 20px;
+     align-items: start;
+   }
+   
+   /* ── Form card ────────────────────────────────────────── */
+   .form-card {
+     background: white;
+     border-radius: 14px;
+     border: 1px solid #e8ecf0;
+     padding: 24px;
+   }
+   
+   .form-section-title {
+     font-size: 0.85rem;
+     font-weight: 700;
+     color: #9ca3af;
+     text-transform: uppercase;
+     letter-spacing: 1px;
+     margin-bottom: 18px;
+     display: flex;
+     align-items: center;
+     gap: 8px;
+   }
+   
+   .form-section-title.mt {
+     margin-top: 28px;
+   }
+   
+   /* ── Form grid ────────────────────────────────────────── */
+   .form-grid {
+     display: grid;
+     grid-template-columns: 1fr 1fr;
+     gap: 16px;
+   }
+   
+   .field {
+     display: flex;
+     flex-direction: column;
+     gap: 6px;
+   }
+   
+   .field-full {
+     grid-column: span 2;
+   }
+   
+   .field label {
+     font-size: 0.85rem;
+     font-weight: 600;
+     color: #374151;
+   }
+   
+   .required {
+     color: #ef4444;
+   }
+   
+   .field input,
+   .field select {
+     padding: 10px 12px;
+     background: #f8fafc;
+     border: 1.5px solid #e8ecf0;
+     border-radius: 8px;
+     font-size: 0.875rem;
+     color: #1a2e44;
+     outline: none;
+     transition: border-color 0.15s, background 0.15s;
+   }
+   
+   .field input:focus,
+   .field select:focus {
+     background: white;
+     border-color: #1a6b8a;
+   }
+   
+   .field input.input-error,
+   .field select.input-error {
+     border-color: #ef4444;
+   }
+   
+   .field input:disabled,
+   .field select:disabled {
+     background: #f0f4f8;
+     color: #9ca3af;
+     cursor: not-allowed;
+   }
+   
+   .error-msg {
+     font-size: 0.78rem;
+     color: #ef4444;
+   }
+   
+   /* ── Global error ─────────────────────────────────────── */
+   .global-error {
+     margin-top: 16px;
+     background: #fef2f2;
+     border: 1px solid #fecaca;
+     color: #dc2626;
+     padding: 10px 14px;
+     border-radius: 8px;
+     font-size: 0.875rem;
+   }
+   
+   /* ── Form actions ─────────────────────────────────────── */
+   .form-actions {
+     display: flex;
+     justify-content: flex-end;
+     gap: 10px;
+     margin-top: 28px;
+     padding-top: 20px;
+     border-top: 1px solid #f0f4f8;
+   }
+   
+   .btn-cancel {
+     padding: 10px 20px;
+     background: #f4f6f9;
+     color: #374151;
+     border: none;
+     border-radius: 8px;
+     font-size: 0.875rem;
+     font-weight: 500;
+     cursor: pointer;
+     transition: background 0.15s;
+   }
+   
+   .btn-cancel:hover {
+     background: #e8ecf0;
+   }
+   
+   .btn-submit {
+     display: flex;
+     align-items: center;
+     gap: 8px;
+     padding: 10px 22px;
+     background: #1a4a6b;
+     color: white;
+     border: none;
+     border-radius: 8px;
+     font-size: 0.875rem;
+     font-weight: 600;
+     cursor: pointer;
+     transition: background 0.15s;
+   }
+   
+   .btn-submit:hover:not(:disabled) {
+     background: #1a6b8a;
+   }
+   
+   .btn-submit:disabled {
+     opacity: 0.7;
+     cursor: not-allowed;
+   }
+   
+   .spinner {
+     width: 14px;
+     height: 14px;
+     border: 2px solid rgba(255,255,255,0.3);
+     border-top-color: white;
+     border-radius: 50%;
+     animation: spin 0.7s linear infinite;
+   }
+   
+   /* ── Side panel ───────────────────────────────────────── */
+   .side-panel {
+     position: sticky;
+     top: 84px;
+   }
+   
+   .hab-count-badge {
+     background: #eef2f7;
+     color: #1a2e44;
+     font-size: 0.75rem;
+     font-weight: 700;
+     padding: 2px 8px;
+     border-radius: 20px;
+     margin-left: auto;
+   }
+   
+   .hab-empty {
+     font-size: 0.875rem;
+     color: #9ca3af;
+     text-align: center;
+     padding: 20px 0;
+   }
+   
+   .hab-list {
+     display: flex;
+     flex-direction: column;
+     gap: 10px;
+   }
+   
+   .hab-item {
+     display: flex;
+     align-items: flex-start;
+     justify-content: space-between;
+     gap: 10px;
+     padding: 12px;
+     background: #f8fafc;
+     border-radius: 10px;
+     border: 1px solid #f0f4f8;
+   }
+   
+   .hab-name {
+     font-size: 0.875rem;
+     font-weight: 600;
+     color: #1a2e44;
+     margin-bottom: 2px;
+   }
+   
+   .hab-volet {
+     font-size: 0.78rem;
+     color: #6b7280;
+     margin-bottom: 4px;
+   }
+   
+   .hab-dates {
+     font-size: 0.75rem;
+     color: #9ca3af;
+   }
+   
+   /* ── Statut badge ─────────────────────────────────────── */
+   .statut-badge {
+     display: inline-block;
+     padding: 3px 10px;
+     border-radius: 20px;
+     font-size: 0.72rem;
+     font-weight: 700;
+     white-space: nowrap;
+     flex-shrink: 0;
+   }
+   
+   .statut-badge.valide {
+     background: #f0fdf4;
+     color: #15803d;
+   }
+   
+   .statut-badge.expirée {
+     background: #fef2f2;
+     color: #dc2626;
+   }
+   
+   /* ── Responsive ───────────────────────────────────────── */
+   @media (max-width: 900px) {
+     .form-layout      { grid-template-columns: 1fr; }
+     .side-panel       { position: static; }
+     .form-grid        { grid-template-columns: 1fr; }
+     .field-full       { grid-column: span 1; }
+   }

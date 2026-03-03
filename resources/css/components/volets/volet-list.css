@@ -1,0 +1,185 @@
+/* ── Page header ──────────────────────────────────────── */
+.volet-list .page-header {
+     display: flex;
+     align-items: center;
+     justify-content: space-between;
+     margin-bottom: 24px;
+   }
+   
+   .volet-list .page-title {
+     font-size: 1.4rem;
+     font-weight: 700;
+     color: #1a2e44;
+     margin: 0 0 4px 0;
+   }
+   
+   .volet-list .page-subtitle {
+     font-size: 0.85rem;
+     color: #6b7280;
+     margin: 0;
+   }
+   
+   .volet-list .btn-add {
+     display: flex;
+     align-items: center;
+     gap: 6px;
+     padding: 9px 16px;
+     background: #1a4a6b;
+     color: white;
+     border: none;
+     border-radius: 8px;
+     font-size: 0.875rem;
+     font-weight: 600;
+     cursor: pointer;
+     transition: background 0.15s;
+   }
+   
+   .volet-list .btn-add:hover {
+     background: #1a6b8a;
+   }
+   
+   /* ── Loading & empty ──────────────────────────────────── */
+   .volet-list .loading-state {
+     display: flex;
+     justify-content: center;
+     padding: 60px;
+   }
+   
+   .volet-list .loader {
+     width: 36px;
+     height: 36px;
+     border: 3px solid #e8ecf0;
+     border-top-color: #1a6b8a;
+     border-radius: 50%;
+     animation: spin 0.8s linear infinite;
+   }
+   
+   .volet-list .empty-state {
+     display: flex;
+     flex-direction: column;
+     align-items: center;
+     gap: 12px;
+     padding: 60px;
+     color: #9ca3af;
+     text-align: center;
+   }
+   
+   /* ── Grid ─────────────────────────────────────────────── */
+   .volets-grid {
+     display: grid;
+     grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+     gap: 16px;
+   }
+   
+   /* ── Volet card ───────────────────────────────────────── */
+   .volet-card {
+     background: white;
+     border-radius: 14px;
+     border: 1px solid #e8ecf0;
+     padding: 20px;
+     transition: box-shadow 0.2s, transform 0.2s;
+   }
+   
+   .volet-card:hover {
+     box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+     transform: translateY(-2px);
+   }
+   
+   .volet-card-header {
+     display: flex;
+     align-items: center;
+     justify-content: space-between;
+     margin-bottom: 14px;
+   }
+   
+   .volet-icon {
+     display: flex;
+     align-items: center;
+     justify-content: center;
+     width: 44px;
+     height: 44px;
+     background: #eef2f7;
+     color: #1a6b8a;
+     border-radius: 10px;
+   }
+   
+   .volet-actions {
+     display: flex;
+     gap: 6px;
+   }
+   
+   .volet-list .action-btn {
+     display: flex;
+     align-items: center;
+     justify-content: center;
+     width: 30px;
+     height: 30px;
+     border-radius: 6px;
+     border: none;
+     cursor: pointer;
+     transition: background 0.15s;
+   }
+   
+   .volet-list .action-btn.edit {
+     background: #eef2f7;
+     color: #1a6b8a;
+   }
+   
+   .volet-list .action-btn.edit:hover {
+     background: #dde8f5;
+   }
+   
+   .volet-list .action-btn.delete {
+     background: #fef2f2;
+     color: #ef4444;
+   }
+   
+   .volet-list .action-btn.delete:hover {
+     background: #fee2e2;
+   }
+   
+   /* ── Volet name ───────────────────────────────────────── */
+   .volet-name {
+     font-size: 1rem;
+     font-weight: 700;
+     color: #1a2e44;
+     margin-bottom: 14px;
+   }
+   
+   /* ── Stats ────────────────────────────────────────────── */
+   .volet-stats {
+     display: flex;
+     flex-direction: column;
+     gap: 8px;
+   }
+   
+   .volet-stat {
+     display: flex;
+     align-items: center;
+     gap: 6px;
+   }
+   
+   .stat-number {
+     font-size: 1.1rem;
+     font-weight: 800;
+     color: #1a6b8a;
+   }
+   
+   .volet-list .stat-label {
+     font-size: 0.8rem;
+     color: #6b7280;
+   }
+   
+   .standard-badge {
+     display: inline-flex;
+     align-items: center;
+     gap: 4px;
+     padding: 3px 10px;
+     background: #fef9c3;
+     color: #854d0e;
+     border-radius: 20px;
+     font-size: 0.75rem;
+     font-weight: 600;
+   }
+   
+   @keyframes spin { to { transform: rotate(360deg); } }
