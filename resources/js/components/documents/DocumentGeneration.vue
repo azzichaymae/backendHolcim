@@ -15,9 +15,7 @@
     <div class="doc-type-grid">
 
       <!-- Card 1 — Habilitation Individuelle -->
-      <div class="doc-type-card"
-        :class="{ active: activeType === 'individuelle' }"
-        @click="setType('individuelle')">
+      <div class="doc-type-card" :class="{ active: activeType === 'individuelle' }" @click="setType('individuelle')">
         <div class="doc-type-icon" v-html="icons.user"></div>
         <div class="doc-type-info">
           <div class="doc-type-title">Habilitation Individuelle</div>
@@ -25,15 +23,12 @@
             Attestation personnelle pour un employé et une habilitation
           </div>
         </div>
-        <div class="doc-type-check" v-if="activeType === 'individuelle'"
-          v-html="icons.check">
+        <div class="doc-type-check" v-if="activeType === 'individuelle'" v-html="icons.check">
         </div>
       </div>
 
       <!-- Card 2 — Note d'Habilitation -->
-      <div class="doc-type-card"
-        :class="{ active: activeType === 'note' }"
-        @click="setType('note')">
+      <div class="doc-type-card" :class="{ active: activeType === 'note' }" @click="setType('note')">
         <div class="doc-type-icon" v-html="icons.list"></div>
         <div class="doc-type-info">
           <div class="doc-type-title">Note d'Habilitation</div>
@@ -41,8 +36,7 @@
             Liste de tous les employés habilités pour une habilitation
           </div>
         </div>
-        <div class="doc-type-check" v-if="activeType === 'note'"
-          v-html="icons.check">
+        <div class="doc-type-check" v-if="activeType === 'note'" v-html="icons.check">
         </div>
       </div>
 
@@ -62,49 +56,48 @@
           <!-- Département -->
           <div class="field">
             <label>Département <span class="required">*</span></label>
-            <select v-model="ind.departement_id"
-              @change="onIndDepartementChange">
-              <option value="">Sélectionner un département</option>
-              <option v-for="d in departements" :key="d.id" :value="d.id">
+            <select v-model="ind.departement_id" @change="onIndDepartementChange" :disabled="loadingRefs">
+              <option value="" disabled>
+                {{ loadingRefs ? '⏳ Chargement...' : 'Sélectionner un département' }}
+              </option>
+              <option v-if="!loadingRefs" v-for="d in departements" :key="d.id" :value="d.id">
                 {{ d.nom }}
               </option>
             </select>
+            <span class="select-loading-hint" v-if="loadingRefs">
+              <span class="mini-spinner"></span>
+              Chargement des données...
+            </span>
           </div>
 
           <!-- Service -->
           <div class="field">
             <label>Service <span class="required">*</span></label>
-            <select v-model="ind.service_id"
-              @change="onIndServiceChange"
-              :disabled="!ind.departement_id">
+            <select v-model="ind.service_id" @change="onIndServiceChange" :disabled="!ind.departement_id">
               <option value="">Sélectionner un service</option>
-              <option v-for="s in indFilteredServices"
-                :key="s.id" :value="s.id">
+              <option v-for="s in indFilteredServices" :key="s.id" :value="s.id">
                 {{ s.nom }}
               </option>
             </select>
           </div>
 
-          <!-- Employé -->
+          <!-- Salarié -->
           <div class="field">
             <label>
-              Employé <span class="required">*</span>
+              Salarié <span class="required">*</span>
               <span class="hint" v-if="!ind.service_id">
                 — sélectionnez un service d'abord
               </span>
             </label>
-            <select v-model="ind.employee_id"
-              @change="onEmployeeChange"
-              :disabled="!ind.service_id">
+            <select v-model="ind.employee_id" @change="onEmployeeChange" :disabled="!ind.service_id">
               <option value="">Sélectionner un employé</option>
-              <option v-for="e in indFilteredEmployees"
-                :key="e.id" :value="e.id">
+              <option v-for="e in indFilteredEmployees" :key="e.id" :value="e.id">
                 {{ e.nom }} {{ e.prenom }} — {{ e.matricule }}
               </option>
             </select>
           </div>
 
-          <!-- Habilitation -->
+          <!-- Employé habilitation select -->
           <div class="field">
             <label>
               Habilitation <span class="required">*</span>
@@ -112,19 +105,34 @@
                 — sélectionnez un employé d'abord
               </span>
             </label>
-            <select v-model="ind.employee_habilitation_id"
-              :disabled="!ind.employee_id || loadingHabs">
-              <option value="">
-                {{ loadingHabs ? 'Chargement...' : 'Sélectionner une habilitation' }}
+            <select v-model="ind.employee_habilitation_id" :disabled="!ind.employee_id || loadingHabs">
+
+              <!-- Loading state -->
+              <option value="" disabled v-if="loadingHabs">
+                ⏳ Chargement...
               </option>
-              <option v-for="eh in employeeHabilitations"
-                :key="eh.employee_habilitation_id"
+
+              <!-- Empty state — employee has no habilitations -->
+              <option value="" disabled
+                v-else-if="!loadingHabs && employeeHabilitations.length === 0 && ind.employee_id">
+                ❌ Aucune habilitation trouvée pour cet employé
+              </option>
+
+              <!-- Default placeholder -->
+              <option value="" disabled v-else>
+                Sélectionner une habilitation
+              </option>
+
+              <!-- Options -->
+              <option v-if="!loadingHabs" v-for="eh in employeeHabilitations" :key="eh.employee_habilitation_id"
                 :value="eh.employee_habilitation_id">
-                {{ eh.habilitation_nom }} —
-                Obtenu le {{ eh.date_obtention }}
-                ({{ eh.statut }})
+                {{ eh.habilitation_nom }} — Obtenu le {{ eh.date_obtention }} ({{ eh.statut }})
               </option>
+
             </select>
+
+ 
+
           </div>
 
         </div>
@@ -134,7 +142,7 @@
           <div class="preview-title">Aperçu du document</div>
           <div class="preview-grid">
             <div class="preview-item">
-              <span class="preview-label">Employé</span>
+              <span class="preview-label">Salarié</span>
               <span class="preview-value">{{ selectedEH.nom_complet }}</span>
             </div>
             <div class="preview-item">
@@ -161,8 +169,7 @@
         </div>
 
         <div class="form-actions">
-          <button class="btn-generate"
-            @click="generateIndividuelle"
+          <button class="btn-generate" @click="generateIndividuelle"
             :disabled="!ind.employee_habilitation_id || generating">
             <span v-if="generating" class="spinner"></span>
             <span v-else v-html="icons.download"></span>
@@ -193,13 +200,10 @@
           <!-- Habilitation -->
           <div class="field">
             <label>Habilitation <span class="required">*</span></label>
-            <select v-model="note.habilitation_id"
-              @change="fetchEmployeesParHabilitation">
+            <select v-model="note.habilitation_id" @change="fetchEmployeesParHabilitation">
               <option value="">Sélectionner une habilitation</option>
-              <optgroup v-for="volet in voletsWithHabilitations"
-                :key="volet.id" :label="volet.nom">
-                <option v-for="h in volet.habilitations"
-                  :key="h.id" :value="h.id">
+              <optgroup v-for="volet in voletsWithHabilitations" :key="volet.id" :label="volet.nom">
+                <option v-for="h in volet.habilitations" :key="h.id" :value="h.id">
                   {{ h.nom }}
                 </option>
               </optgroup>
@@ -212,7 +216,7 @@
         <div class="employees-preview" v-if="note.habilitation_id">
 
           <div class="preview-title">
-            Employés habilités
+            Salariés habilités
             <span class="count-badge">{{ noteEmployees.length }}</span>
           </div>
 
@@ -256,10 +260,8 @@
         </div>
 
         <div class="form-actions">
-          <button class="btn-generate"
-            @click="generateNote"
-            :disabled="!note.habilitation_id ||
-              noteEmployees.length === 0 || generating">
+          <button class="btn-generate" @click="generateNote" :disabled="!note.habilitation_id ||
+            noteEmployees.length === 0 || generating">
             <span v-if="generating" class="spinner"></span>
             <span v-else v-html="icons.download"></span>
             Générer et télécharger
@@ -277,41 +279,41 @@ import { ref, reactive, computed, onMounted } from 'vue';
 import api from '@/services/api';
 import '@/../css/components/documents/document-generation.css';
 
-
-const activeType  = ref(null);
-const generating  = ref(false);
+const loadingRefs = ref(true);
+const activeType = ref(null);
+const generating = ref(false);
 const loadingHabs = ref(false);
 const loadingNoteEmployees = ref(false);
 
-const departements        = ref([]);
-const services            = ref([]);
-const employees           = ref([]);
-const habilitations       = ref([]);
-const volets              = ref([]);
+const departements = ref([]);
+const services = ref([]);
+const employees = ref([]);
+const habilitations = ref([]);
+const volets = ref([]);
 const employeeHabilitations = ref([]);
-const noteEmployees       = ref([]);
+const noteEmployees = ref([]);
 
 // ── Individuelle form ─────────────────────────────────
 const ind = reactive({
-  departement_id:          '',
-  service_id:              '',
-  employee_id:             '',
-  employee_habilitation_id:'',
+  departement_id: '',
+  service_id: '',
+  employee_id: '',
+  employee_habilitation_id: '',
 });
 
 // ── Note form ─────────────────────────────────────────
 const note = reactive({
-  volet_id:       '',
-  habilitation_id:'',
+  volet_id: '',
+  habilitation_id: '',
 });
 
 // ── Icons ─────────────────────────────────────────────
 const icons = {
-  user:     `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>`,
-  list:     `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>`,
-  check:    `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>`,
+  user: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>`,
+  list: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>`,
+  check: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>`,
   download: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>`,
-  users:    `<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>`,
+  users: `<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>`,
 };
 
 // ── Computed ──────────────────────────────────────────
@@ -355,26 +357,26 @@ const setType = (type) => {
   });
   Object.assign(note, { volet_id: '', habilitation_id: '' });
   employeeHabilitations.value = [];
-  noteEmployees.value         = [];
+  noteEmployees.value = [];
 };
 
 // ── Cascade handlers — individuelle ───────────────────
 const onIndDepartementChange = () => {
-  ind.service_id              = '';
-  ind.employee_id             = '';
+  ind.service_id = '';
+  ind.employee_id = '';
   ind.employee_habilitation_id = '';
   employeeHabilitations.value = [];
 };
 
 const onIndServiceChange = () => {
-  ind.employee_id              = '';
+  ind.employee_id = '';
   ind.employee_habilitation_id = '';
-  employeeHabilitations.value  = [];
+  employeeHabilitations.value = [];
 };
 
 const onEmployeeChange = async () => {
   ind.employee_habilitation_id = '';
-  employeeHabilitations.value  = [];
+  employeeHabilitations.value = [];
   if (!ind.employee_id) return;
 
   loadingHabs.value = true;
@@ -386,16 +388,16 @@ const onEmployeeChange = async () => {
     // Map to dropdown-friendly format
     employeeHabilitations.value = data.map(eh => ({
       employee_habilitation_id: eh.id,
-      habilitation_nom:         eh.habilitation?.nom,
-      date_obtention:           new Date(eh.date_obtention)
-                                  .toLocaleDateString('fr-FR'),
-      date_expiration:          new Date(eh.date_expiration)
-                                  .toLocaleDateString('fr-FR'),
-      statut:                   eh.statut,
-      nom_complet:              `${eh.employee?.prenom} ${eh.employee?.nom}`,
-      matricule:                eh.employee?.matricule,
-      habilitation:             eh.habilitation?.nom,
-      service:                  eh.employee?.service?.nom,
+      habilitation_nom: eh.habilitation?.nom,
+      date_obtention: new Date(eh.date_obtention)
+        .toLocaleDateString('fr-FR'),
+      date_expiration: new Date(eh.date_expiration)
+        .toLocaleDateString('fr-FR'),
+      statut: eh.statut,
+      nom_complet: `${eh.employee?.prenom} ${eh.employee?.nom}`,
+      matricule: eh.employee?.matricule,
+      habilitation: eh.habilitation?.nom,
+      service: eh.employee?.service?.nom,
     }));
   } catch (e) {
     console.error(e);
@@ -408,7 +410,7 @@ const onEmployeeChange = async () => {
 const fetchEmployeesParHabilitation = async () => {
   if (!note.habilitation_id) return;
   loadingNoteEmployees.value = true;
-  noteEmployees.value        = [];
+  noteEmployees.value = [];
   try {
     const { data } = await api.get(
       `/documents/employees-par-habilitation/${note.habilitation_id}`
@@ -460,12 +462,12 @@ const generateNote = async () => {
 // ── Download blob helper ──────────────────────────────
 const downloadBlob = (response) => {
   const disposition = response.headers['content-disposition'] ?? '';
-  const match       = disposition.match(/filename="?([^"]+)"?/);
-  const filename    = match ? match[1] : 'document.pdf';
+  const match = disposition.match(/filename="?([^"]+)"?/);
+  const filename = match ? match[1] : 'document.pdf';
 
-  const url  = window.URL.createObjectURL(new Blob([response.data]));
+  const url = window.URL.createObjectURL(new Blob([response.data]));
   const link = document.createElement('a');
-  link.href  = url;
+  link.href = url;
   link.setAttribute('download', filename);
   document.body.appendChild(link);
   link.click();
@@ -475,18 +477,24 @@ const downloadBlob = (response) => {
 
 // ── Fetch referentials ────────────────────────────────
 const fetchAll = async () => {
-  const [depRes, svcRes, empRes, habRes, volRes] = await Promise.all([
-    api.get('/departements'),
-    api.get('/services'),
-    api.get('/employees'),
-    api.get('/habilitations'),
-    api.get('/volets'),
-  ]);
-  departements.value  = depRes.data;
-  services.value      = svcRes.data;
-  employees.value     = empRes.data;
-  habilitations.value = habRes.data;
-  volets.value        = volRes.data;
+  loadingRefs.value = true;
+  try {
+    const [depRes, svcRes, empRes, habRes, volRes] = await Promise.all([
+      api.get('/departements'),
+      api.get('/services'),
+      api.get('/employees'),
+      api.get('/habilitations'),
+      api.get('/volets'),
+    ]);
+    departements.value = depRes.data;
+    services.value = svcRes.data;
+    employees.value = empRes.data;
+    habilitations.value = habRes.data;
+    volets.value = volRes.data;
+  } finally {
+    loadingRefs.value = false;
+
+  };
 };
 
 onMounted(fetchAll);

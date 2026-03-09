@@ -17,6 +17,8 @@ class Employee extends Model
         'prenom',
         'email_pro',
         'position',
+        'type',        // ← add
+    'societe',  
         'service_id',
     ];
 

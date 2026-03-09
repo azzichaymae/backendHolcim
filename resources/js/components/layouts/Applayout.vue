@@ -1,10 +1,17 @@
 <template>
   <div class="app-shell">
 
+    <!-- ── Mobile overlay ────────────────────────────── -->
+    <div class="sidebar-overlay"
+      v-if="sidebarOpen"
+      @click="sidebarOpen = false">
+    </div>
+
     <!-- ── Sidebar ───────────────────────────────────── -->
-    <aside class="sidebar">
+    <aside class="sidebar" :class="{ open: sidebarOpen }">
 
       <!-- Logo -->
+    
       <div class="sidebar-logo">
         <img :src="`/images/holcim_logo.png`" alt="Holcim" class="logo-img" />
 
@@ -15,12 +22,10 @@
         <div class="nav-section-label">NAVIGATION</div>
         <nav class="sidebar-nav">
           <router-link
-            v-for="item in visibleNavItems"
-            :key="item.name"
-            :to="item.path"
-            class="nav-item"
+            v-for="item in visibleNavItems" :key="item.name"
+            :to="item.path" class="nav-item"
             :class="{ active: isActive(item) }"
-          >
+            @click="sidebarOpen = false">
             <span class="nav-icon" v-html="item.icon"></span>
             <span class="nav-label">{{ item.label }}</span>
             <span class="active-dot" v-if="isActive(item)"></span>
@@ -29,25 +34,34 @@
       </div>
 
       <!-- Système section -->
-      <div class="nav-section">
-      
-        <div v-if="visibleSystemItems.length > 0">
-  <div class="nav-section-label">SYSTÈME</div>
+      <div class="nav-section" v-if="visibleSystemItems.length > 0">
+        <div class="nav-section-label">SYSTÈME</div>
+        <nav class="sidebar-nav">
+          <router-link
+            v-for="item in visibleSystemItems" :key="item.name"
+            :to="item.path" class="nav-item"
+            :class="{ active: isActive(item) }"
+            @click="sidebarOpen = false">
+            <span class="nav-icon" v-html="item.icon"></span>
+            <span class="nav-label">{{ item.label }}</span>
+            <span class="active-dot" v-if="isActive(item)"></span>
+          </router-link>
+        </nav>
+      </div>
 
-  <nav class="sidebar-nav">
-    <router-link
-      v-for="item in visibleSystemItems"
-      :key="item.name"
-      :to="item.path"
-      class="nav-item"
-      :class="{ active: isActive(item) }"
-    >
-      <span class="nav-icon" v-html="item.icon"></span>
-      <span class="nav-label">{{ item.label }}</span>
-      <span class="active-dot" v-if="isActive(item)"></span>
-    </router-link>
-  </nav>
-</div>
+      <!-- ── Logout at bottom of sidebar ─────────────── -->
+      <div class="sidebar-footer">
+        <!-- <div class="sidebar-user">
+          <div class="sidebar-avatar">{{ userInitial }}</div>
+          <div class="sidebar-user-info">
+            <div class="sidebar-user-name">{{ auth.user?.nom }}</div>
+            <div class="sidebar-user-role">{{ auth.user?.role }}</div>
+          </div>
+        </div> -->
+        <button class="sidebar-logout" @click="handleLogout">
+          <span v-html="icons.logout"></span>
+          Se déconnecter
+        </button>
       </div>
 
     </aside>
@@ -58,6 +72,10 @@
       <!-- Top bar -->
       <header class="topbar">
         <div class="topbar-left">
+          <!-- Mobile hamburger button -->
+          <button class="hamburger-btn" @click="sidebarOpen = !sidebarOpen">
+            <span v-html="icons.menu"></span>
+          </button>
           <h2 class="page-title">{{ currentPageTitle }}</h2>
         </div>
         <div class="topbar-right">
@@ -68,28 +86,23 @@
             <span class="bell-badge" v-if="alertCount > 0">{{ alertCount }}</span>
           </router-link>
 
-          <!-- User menu -->
-          <div class="user-menu" @click="userDropdown = !userDropdown">
+          <!-- User menu — no logout here anymore -->
+          <div class="user-menu" @click="profilePage">
             <div class="user-avatar">{{ userInitial }}</div>
             <div class="user-info">
               <span class="user-name">{{ auth.user?.nom }}</span>
               <span class="user-role">{{ auth.user?.role }}</span>
             </div>
-            <span v-html="icons.chevronDown"></span>
+            <!-- <span v-html="icons.chevronDown"></span> -->
 
-            <!-- Dropdown -->
-            <div class="user-dropdown" v-if="userDropdown">
+            <!-- Dropdown — just info, no logout -->
+            <!-- <div class="user-dropdown" v-if="userDropdown" >
               <div class="dropdown-header">
-                <div class="user-name">{{ auth.user?.nom }}</div>
+                <div @click="profilePage" class="user-name">{{ auth.user?.nom }}</div>
                 <div class="user-email">{{ auth.user?.email }}</div>
                 <div class="user-service">{{ auth.user?.service }}</div>
               </div>
-              <div class="dropdown-divider"></div>
-              <button class="dropdown-item logout" @click="handleLogout">
-                <span v-html="icons.logout"></span>
-                Se déconnecter
-              </button>
-            </div>
+            </div> -->
           </div>
 
         </div>
@@ -98,30 +111,57 @@
       <!-- Page content -->
       <main class="page-content">
         <router-view />
+
+        <!-- Inactivity warning -->
+        <Teleport to="body">
+          <div v-if="showWarning" style="
+            position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+            background:#1a2e44;color:white;
+            padding:14px 24px;border-radius:12px;
+            box-shadow:0 8px 32px rgba(0,0,0,0.3);
+            display:flex;align-items:center;gap:16px;
+            z-index:99999;font-size:0.875rem;
+          ">
+            <span>⚠️ Session expirée dans 1 minute pour inactivité.</span>
+            <button @click="resetSession" style="
+              padding:6px 14px;background:#1a6b8a;color:white;
+              border:none;border-radius:6px;cursor:pointer;font-weight:600;
+            ">
+              Rester connecté
+            </button>
+          </div>
+        </Teleport>
       </main>
 
     </div>
-
   </div>
 </template>
-
 <script setup>
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
+import { ref, computed, onMounted, onBeforeUnmount, onUnmounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
 import api from '@/services/api';
 import '@/../css/components/layouts/Applayout.css';
+import { useInactivityTimer } from '@/composables/useInactivityTimer';
 
-const auth     = useAuthStore();
-const route    = useRoute();
-const router   = useRouter();
+const sidebarOpen = ref(false);
 
-const collapsed    = ref(false);
+const { start, stop, showWarning, reset: resetSession } = useInactivityTimer();
+onMounted(() => start());
+onUnmounted(() => stop())
+
+
+const auth = useAuthStore();
+const route = useRoute();
+const router = useRouter();
+
+const collapsed = ref(false);
 const userDropdown = ref(false);
-const alertCount   = ref(0);
+const alertCount = ref(0);
 
 // ── Icons (inline SVG) ────────────────────────────────
 const icons = {
+    menu: `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>`,
   dashboard: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>`,
   employees: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>`,
   habilitations: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/></svg>`,
@@ -139,13 +179,13 @@ const icons = {
 
 // ── Navigation items ──────────────────────────────────
 const navItems = [
-  { name: 'dashboard',     label: 'Dashboard',      path: '/dashboard',    icon: icons.dashboard,     roles: ['RRH','RH'] },
-  { name: 'employees',     label: 'Salariés',      path: '/employees',    icon: icons.employees,     roles: ['RRH','RH','Manager'] },
-  { name: 'volets',        label: 'Volets',         path: '/volets',       icon: icons.volets,        roles: ['RRH','RH'] },
-  { name: 'habilitations', label: 'Habilitations',  path: '/habilitations',icon: icons.habilitations, roles: ['RRH','RH'] },
-  { name: 'attributions',  label: 'Associations',   path: '/attributions', icon: icons.attributions,  roles: ['RRH','RH'] },
-  { name: 'documents',     label: 'Documents',      path: '/documents',    icon: icons.documents,     roles: ['RRH','RH'] },
-  { name: 'alerts',        label: 'Alertes',        path: '/alerts',       icon: icons.alerts,        roles: ['RRH','RH','Manager'] },
+  { name: 'dashboard', label: 'Dashboard', path: '/dashboard', icon: icons.dashboard, roles: ['RRH', 'RH'] },
+  { name: 'employees', label: 'Salariés', path: '/employees', icon: icons.employees, roles: ['RRH', 'RH', 'Manager'] },
+  { name: 'volets', label: 'Volets', path: '/volets', icon: icons.volets, roles: ['RRH', 'RH'] },
+  { name: 'habilitations', label: 'Habilitations', path: '/habilitations', icon: icons.habilitations, roles: ['RRH', 'RH'] },
+  { name: 'attributions', label: 'Associations', path: '/attributions', icon: icons.attributions, roles: ['RRH', 'RH'] },
+  { name: 'documents', label: 'Documents', path: '/documents', icon: icons.documents, roles: ['RRH', 'RH'] },
+  { name: 'alerts', label: 'Alertes', path: '/alerts', icon: icons.alerts, roles: ['RRH', 'RH', 'Manager'] },
 ];
 
 // ── System items ──────────────────────────────────────
@@ -191,13 +231,15 @@ const handleLogout = async () => {
   await auth.logout();
   router.push({ name: 'login' });
 };
-
+const profilePage = async () => {
+  router.push({name : 'profile'})
+}
 // ── Alert count ───────────────────────────────────────
 const fetchAlertCount = async () => {
   try {
     const { data } = await api.get('/alerts/count');
     alertCount.value = data.total;
-  } catch {}
+  } catch { }
 };
 
 // ── Close dropdown on outside click ──────────────────

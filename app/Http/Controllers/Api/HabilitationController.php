@@ -43,9 +43,9 @@ class HabilitationController extends Controller
         $validated = $request->validate([
             'nom'                             => 'required|string|max:150',
             'detail_formation'                => 'nullable|string',
-            'duree_formation_initiale'         => 'required|integer|min:1',
+            'duree_formation_initiale'         => 'required|numeric|min:0.5',
             'duree_formation_initiale_unite'   => 'required|in:heures,jours',
-            'duree_formation_recyclage'        => 'required|integer|min:1',
+            'duree_formation_recyclage'        => 'required|numeric|min:0.5',
             'duree_formation_recyclage_unite'  => 'required|in:heures,jours',
             'duree_de_validite'                => 'required|integer|min:1',
             'volet_id'                         => 'required|exists:volets,id',
@@ -70,9 +70,9 @@ class HabilitationController extends Controller
         $validated = $request->validate([
             'nom'                             => 'required|string|max:150',
             'detail_formation'                => 'nullable|string',
-            'duree_formation_initiale'         => 'required|integer|min:1',
+            'duree_formation_initiale'         => 'required|numeric|min:0.5',
             'duree_formation_initiale_unite'   => 'required|in:heures,jours',
-            'duree_formation_recyclage'        => 'required|integer|min:1',
+            'duree_formation_recyclage'        => 'required|numeric|min:0.5',
             'duree_formation_recyclage_unite'  => 'required|in:heures,jours',
             'duree_de_validite'                => 'required|integer|min:1',
             'volet_id'                         => 'required|exists:volets,id',

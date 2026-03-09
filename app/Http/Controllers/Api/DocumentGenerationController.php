@@ -10,9 +10,13 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
+
 class DocumentGenerationController extends Controller
-{     
-     Carbon::setLocale('fr');
+{
+    public function __construct()
+    {
+        Carbon::setLocale('fr');
+    }
 
     // GET /api/documents/employees-par-habilitation/{habilitation}
     public function employeesParHabilitation(Habilitation $habilitation): JsonResponse
@@ -45,32 +49,39 @@ class DocumentGenerationController extends Controller
 
     // POST /api/documents/generate/individuelle
     public function generateIndividuelle(Request $request)
-    {
-        $request->validate([
-            'employee_habilitation_id' => 'required|exists:employee_habilitations,id',
-        ]);
+{
+    $request->validate([
+        'employee_habilitation_id' => 'required|exists:employee_habilitations,id',
+    ]);
 
-        $eh = EmployeeHabilitation::with([
-            'employee.service.departement',
-            'habilitation',
-        ])->findOrFail($request->employee_habilitation_id);
+    // ── Debug — remove after fix ──────────────────────
+    $logoPath = public_path('images/holcim_logo.png');
+    \Log::info('Logo exists: ' . (file_exists($logoPath) ? 'YES' : 'NO'));
+    \Log::info('Logo path: ' . $logoPath);
+    // ─────────────────────────────────────────────────
 
-        $settings = Setting::getInstance();
+    $eh = EmployeeHabilitation::with([
+        'employee.service.departement',
+        'habilitation',
+    ])->findOrFail($request->employee_habilitation_id);
 
-        $filename = 'habilitation_'
-            . $eh->employee->matricule . '_'
-            . str_replace(' ', '_', $eh->habilitation->nom) . '_'
-            . now()->format('Ymd')
-            . '.pdf';
+    $settings = Setting::getInstance();
 
-        $pdf = Pdf::loadView('pdf.habilitation_individuelle', [
-            'eh'       => $eh,
-            'settings' => $settings,
-        ])->setPaper('a4', 'portrait');
+    \Carbon\Carbon::setLocale('fr');
 
-        return $pdf->download($filename);
-    }
+    $filename = 'habilitation_'
+        . $eh->employee->matricule . '_'
+        . str_replace(' ', '_', $eh->habilitation->nom) . '_'
+        . now()->format('Ymd')
+        . '.pdf';
 
+    $pdf = Pdf::loadView('pdf.habilitation_individuelle', [
+        'eh'       => $eh,
+        'settings' => $settings,
+    ])->setPaper('a4', 'portrait');
+
+    return $pdf->download($filename);
+}
     // POST /api/documents/generate/note
     public function generateNote(Request $request)
     {

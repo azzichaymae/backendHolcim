@@ -160,7 +160,7 @@
             <!-- Formation initiale durée -->
             <div class="modal-field">
               <label>Durée formation initiale <span style="color:#ef4444">*</span></label>
-              <input v-model="form.duree_formation_initiale" type="number" min="1"
+              <input v-model="form.duree_formation_initiale" type="number" step="0.5" min="0.5"
                 placeholder="2"
                 :class="{ 'input-error': errors.duree_formation_initiale }" />
               <span class="error-msg" v-if="errors.duree_formation_initiale">
@@ -180,7 +180,7 @@
             <!-- Recyclage durée -->
             <div class="modal-field">
               <label>Durée recyclage <span style="color:#ef4444">*</span></label>
-              <input v-model="form.duree_formation_recyclage" type="number" min="1"
+              <input v-model="form.duree_formation_recyclage" type="number" step="0.5" min="0.5"
                 placeholder="2"
                 :class="{ 'input-error': errors.duree_formation_recyclage }" />
               <span class="error-msg" v-if="errors.duree_formation_recyclage">

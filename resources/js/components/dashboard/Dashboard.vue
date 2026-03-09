@@ -90,7 +90,7 @@
         <!-- Bar — employés par service -->
         <div class="chart-card">
           <div class="chart-header">
-            <h3>Employés par Service</h3>
+            <h3>Salariés par Service</h3>
             <span class="chart-badge">Effectifs</span>
           </div>
           <Bar :data="serviceBarData" :options="barOptions" />
@@ -114,7 +114,7 @@
           <table class="exp-table">
             <thead>
               <tr>
-                <th>Employé</th>
+                <th>Salarié</th>
                 <th>Matricule</th>
                 <th>Habilitation</th>
                 <th>Volet</th>
@@ -214,7 +214,7 @@ const statsCards = computed(() => {
   return [
     {
       key: 'employees',
-      label: 'Total Employés',
+      label: 'Total Salariés',
       value: s.employees?.total ?? 0,
       color: '#1a6b8a',
       percent: 100,
@@ -317,7 +317,7 @@ const serviceBarData = computed(() => {
   return {
     labels: data.map(i => i.service),
     datasets: [{
-      label: 'Employés',
+      label: 'Salariés',
       data: data.map(i => i.total),
       backgroundColor: '#1a6b8a',
       borderRadius: 6,

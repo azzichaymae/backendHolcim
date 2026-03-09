@@ -13,7 +13,7 @@ class EmployeeController extends Controller
     public function index(Request $request): JsonResponse
     {
         $query = Employee::with('service.departement');
-    
+
         // Auto-restrict Manager to their own service
         if (auth()->user()->role === 'Manager') {
             $query->where('service_id', auth()->user()->service_id);
@@ -22,27 +22,27 @@ class EmployeeController extends Controller
             if ($request->has('service_id')) {
                 $query->where('service_id', $request->service_id);
             }
-    
+
             if ($request->has('departement_id')) {
                 $query->whereHas('service', function ($q) use ($request) {
                     $q->where('departement_id', $request->departement_id);
                 });
             }
         }
-    
+
         // Search available for all roles
         if ($request->has('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
-                $q->where('nom',         'like', "%{$search}%")
-                  ->orWhere('prenom',    'like', "%{$search}%")
-                  ->orWhere('matricule', 'like', "%{$search}%")
-                  ->orWhere('email_pro', 'like', "%{$search}%");
+                $q->where('nom', 'like', "%{$search}%")
+                    ->orWhere('prenom', 'like', "%{$search}%")
+                    ->orWhere('matricule', 'like', "%{$search}%")
+                    ->orWhere('email_pro', 'like', "%{$search}%");
             });
         }
-    
+
         $employees = $query->orderBy('nom')->get();
-    
+
         return response()->json($employees, 200);
     }
 
@@ -64,14 +64,15 @@ class EmployeeController extends Controller
     public function store(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'matricule'  => 'required|integer|unique:employees,matricule',
-            'nom'        => 'required|string|max:100',
-            'prenom'     => 'required|string|max:100',
-            'email_pro'  => 'required|email|max:150|unique:employees,email_pro',
-            'position'   => 'required|string|max:100',
+            'matricule' => 'required|integer|unique:employees,matricule,' . ($employee->id ?? 'NULL'),
+            'nom' => 'required|string|max:100',
+            'prenom' => 'required|string|max:100',
+            'email_pro' => 'required|email',
+            'position' => 'required|string|max:150',
+            'type' => 'required|in:propre,sous-traitant',
+            'societe' => 'required_if:type,sous-traitant|nullable|string|max:150',
             'service_id' => 'required|exists:services,id',
         ]);
-
         $employee = Employee::create($validated);
         $employee->load('service.departement');
 
@@ -82,11 +83,13 @@ class EmployeeController extends Controller
     public function update(Request $request, Employee $employee): JsonResponse
     {
         $validated = $request->validate([
-            'matricule'  => 'required|integer|unique:employees,matricule,' . $employee->id,
-            'nom'        => 'required|string|max:100',
-            'prenom'     => 'required|string|max:100',
-            'email_pro'  => 'required|email|max:150|unique:employees,email_pro,' . $employee->id,
-            'position'   => 'required|string|max:100',
+            'matricule' => 'required|integer|unique:employees,matricule,' . ($employee->id ?? 'NULL'),
+            'nom' => 'required|string|max:100',
+            'prenom' => 'required|string|max:100',
+            'email_pro' => 'required|email',
+            'position' => 'required|string|max:150',
+            'type' => 'required|in:propre,sous-traitant',
+            'societe' => 'required_if:type,sous-traitant|nullable|string|max:150',
             'service_id' => 'required|exists:services,id',
         ]);
 
@@ -101,7 +104,7 @@ class EmployeeController extends Controller
     {
         if ($employee->habilitations()->exists()) {
             return response()->json([
-                'message'              => 'Impossible de supprimer cet employé : des habilitations lui sont attribuées.',
+                'message' => 'Impossible de supprimer cet employé : des habilitations lui sont attribuées.',
                 'nombre_habilitations' => $employee->habilitations()->count(),
             ], 409);
         }
@@ -109,7 +112,7 @@ class EmployeeController extends Controller
         $employee->delete();
 
         return response()->json([
-            'message' => 'Employé supprimé avec succès.'
+            'message' => 'Salarié supprimé avec succès.'
         ], 200);
     }
 }

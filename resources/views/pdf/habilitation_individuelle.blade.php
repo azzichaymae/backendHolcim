@@ -4,163 +4,219 @@
     <meta charset="UTF-8">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
+
         body {
-            font-family: Arial, sans-serif;
-            font-size: 12px;
+            font-family: "Times New Roman", Times, serif;
+            font-size: 11pt;
             color: #000;
-            padding: 40px;
-            line-height: 1.6;
+            line-height: 1.5;
         }
+
+        /* ── Page layout ── */
+        .page {
+            padding: 2cm 2.5cm 2cm 2.5cm; /* Word margins */
+        }
+
+        /* ── Header with logo ── */
+        .header-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+        }
+        .header-table td {
+            vertical-align: middle;
+            border: none;
+            text-align: center;
+        }
+        .logo-cell img {
+            width: 150px;
+            height: auto;
+        }
+        .header-divider {
+            border-top: solid #000;
+            margin-bottom: 24px;
+        }
+
+        /* ── Title ── */
         .title {
             text-align: center;
-            font-size: 15px;
+            font-size: 14pt;
             font-weight: bold;
             text-decoration: underline;
-            margin-bottom: 30px;
             text-transform: uppercase;
+            margin: 30px 0 28px 0;
+            letter-spacing: 0.5px;
         }
+
+        /* ── Body text ── */
         .body-text {
             text-align: justify;
-            margin-bottom: 16px;
+            margin-bottom: 14px;
+            font-size: 11pt;
+            word-spacing: 7px; /* mimic Word spacing */
         }
-        .list {
-            margin-left: 40px;
-            margin-bottom: 16px;
+
+        /* ── Numbered section ── */
+        .section {
+            margin: 15px 0 14px 15px;
         }
-        .list-item { margin-bottom: 4px; }
-        .section-number {
-            font-weight: bold;
-            margin-bottom: 8px;
+        .section-title {
+            margin-bottom: 6px;
         }
+        .section-list {
+            margin-left: 50px;
+        }
+        .section-list .item {
+            margin-bottom: 3px;
+        }
+
+        /* ── Authorization ── */
         .authorization {
             text-align: justify;
-            margin-top: 20px;
-            margin-bottom: 16px;
+            margin: 18px 0 14px 0;
+            word-spacing: 7px;
         }
+
+        /* ── Validity ── */
         .validity {
             text-align: justify;
-            margin-bottom: 30px;
+            margin: 30px 0;
+            word-spacing: 7px;
         }
+
+        /* ── Signature table ── */
         .signature-table {
             width: 100%;
             border-collapse: collapse;
             margin-top: 50px;
         }
         .signature-table td {
-            border: 1px solid #000;
-            padding: 10px 6px;
+            border: 1px solid #000; /* thicker like Word */
+            padding: 8px 6px 30px 6px;
             text-align: center;
             width: 20%;
             vertical-align: top;
-            font-size: 11px;
+            font-size: 10pt;
+            line-height: 1.4;
         }
-        .sig-title {
+        .sig-role {
             font-weight: normal;
-            margin-bottom: 35px;
+            font-size: 10pt;
+            min-height: 40px;
         }
-        .sig-name { font-weight: bold; }
+        .sig-name {
+            font-weight: bold;
+            margin-top: 8px;
+            font-size: 10pt;
+        }
+
         .bold { font-weight: bold; }
+        .underline { text-decoration: underline; }
     </style>
 </head>
 <body>
+<div class="page">
 
-    <div class="title">
-        Habilitation {{ $eh->habilitation->nom }}
-    </div>
-
-    <div class="body-text">
-        Je soussigné M. <span class="bold">{{ $settings->directeur_usine }}</span>,
-        en qualité de {{ $settings->titre_directeur }} de la {{ $settings->site }},
-        atteste par le présent document que
-        <span class="bold">M. {{ strtoupper($eh->employee->nom) }} {{ $eh->employee->prenom }}</span>
-        répond aux conditions suivantes :
-    </div>
-
-    <div class="section-number">1. Participation à la formation suivante :</div>
-    <div class="list">
-        <div class="list-item">
-            - Thème de la Formation :
-            <span class="bold">{{ $eh->habilitation->nom }}</span>
-        </div>
-        <div class="list-item">
-            - Date de la Formation :
-            <span class="bold">{{ $eh->date_obtention->format('d/m/Y') }}</span>
-        </div>
-        <div class="list-item">
-            - Durée de la Formation :
-            <span class="bold">
-                @if($eh->type === 'initiale')
-                    {{ $eh->habilitation->duree_formation_initiale }}
-                    {{ $eh->habilitation->duree_formation_initiale_unite }}
-                @else
-                    {{ $eh->habilitation->duree_formation_recyclage }}
-                    {{ $eh->habilitation->duree_formation_recyclage_unite }}
-                @endif
-            </span>
-        </div>
-        <div class="list-item">
-            - Organisme de Formation :
-            <span class="bold">{{ $eh->organisme_formation }}</span>
-        </div>
-    </div>
-
-    <div class="body-text">
-        <span class="bold">2.</span>
-        Aptitude médicale délivrée par le Docteur
-        <span class="bold">{{ $settings->medecin }}</span>,
-        Médecin de Travail, en date du
-        <span class="bold">{{ $eh->date_aptitude_medicale->format('d/m/Y') }}</span>
-    </div>
-
-    <div class="authorization">
-        En foi de quoi, et dans le cadre de ses activités professionnelles au sein de
-        {{ $settings->societe }}, {{ $settings->site }},
-        j'autorise
-        <span class="bold">
-            M. {{ strtoupper($eh->employee->nom) }} {{ $eh->employee->prenom }}
-            à effectuer les Travaux en tant que {{ $eh->habilitation->nom }}
-        </span>.
-    </div>
-
-    <div class="validity">
-        Cette habilitation est valable à partir du
-        <span class="bold">{{ $eh->date_obtention->format('d/m/Y') }}</span>,
-        avec une réévaluation des compétences obligatoire d'une durée de
-        <span class="bold">
-            {{ $eh->habilitation->duree_formation_recyclage }}
-            {{ $eh->habilitation->duree_formation_recyclage_unite }}
-        </span>
-        chaque
-        <span class="bold">{{ $eh->habilitation->duree_de_validite }} ans</span>.
-    </div>
-
-    <table class="signature-table">
+    <!-- Logo -->
+    <table class="header-table">
         <tr>
-            <td>
-                <div class="sig-title">Intéressé</div>
-                <div class="sig-name">
-                    {{ strtoupper($eh->employee->nom) }}<br>
-                    {{ $eh->employee->prenom }}
-                </div>
-            </td>
-            <td>
-                <div class="sig-title">Responsable<br>Maintenance<br>Électrique</div>
-                <div class="sig-name">{{ $settings->resp_maintenance_elec }}</div>
-            </td>
-            <td>
-                <div class="sig-title">Responsable<br>Maintenance</div>
-                <div class="sig-name">{{ $settings->resp_maintenance }}</div>
-            </td>
-            <td>
-                <div class="sig-title">Responsable<br>Santé Sécurité</div>
-                <div class="sig-name">{{ $settings->resp_sante_securite }}</div>
-            </td>
-            <td>
-                <div class="sig-title">{{ $settings->titre_directeur }}</div>
-                <div class="sig-name">{{ $settings->directeur_usine }}</div>
+            <td class="logo-cell">
+                <img src="{{ public_path('images/holcim_logoB&W.png') }}" alt="Holcim" />
             </td>
         </tr>
     </table>
 
+    <!-- Title -->
+    <div class="title">
+        Habilitation {{ $eh->habilitation->nom }}
+    </div>
+
+    <!-- Opening paragraph -->
+    <div class="body-text">
+        Je soussigné M. <span class="bold">{{ $settings->directeur_usine }}</span>,
+        en qualité de {{ $settings->titre_directeur }} de la {{ $settings->site }},
+        par le présent document que
+        M. <span class="bold">{{ strtoupper($eh->employee->nom) }} {{ $eh->employee->prenom }}</span>
+        répond aux conditions suivantes :
+    </div>
+
+    <!-- Section 1 -->
+    <div class="section">
+        <div class="section-title">1. Participation à la formation suivante :</div>
+        <div class="section-list">
+            <div class="item">- Thème de la Formation : <span class="bold">{{ $eh->habilitation->nom }}</span></div>
+            <div class="item">- Date de la Formation : <span class="bold">{{ $eh->date_obtention->translatedFormat('d F Y') }}</span></div>
+            <div class="item">- Durée de la Formation : <span class="bold">
+                @if($eh->type === 'initiale')
+                    {{ $eh->habilitation->duree_formation_initiale }} {{ $eh->habilitation->duree_formation_initiale_unite }}
+                @else
+                    {{ $eh->habilitation->duree_formation_recyclage }} {{ $eh->habilitation->duree_formation_recyclage_unite }}
+                @endif
+            </span></div>
+            <div class="item">- Organisme de Formation : <span class="bold">{{ $eh->organisme_formation }}</span></div>
+        </div>
+    </div>
+
+    <!-- Section 2 -->
+    <div class="body-text" style="margin-left:15px;">
+        <span>2. </span>
+        Aptitude médicale délivrée par le Docteur
+        <span class="bold">{{ $settings->medecin }}</span>,
+        Médecin de Travail, en date du
+        <span class="bold">{{ $eh->date_aptitude_medicale->translatedFormat('d F Y') }}</span>
+    </div>
+
+    <!-- Authorization -->
+    <div class="authorization">
+        En foi de quoi, et dans le cadre de ses activités professionnelles
+        au sein de {{ $settings->societe }}, {{ $settings->site }},
+        j'autorise M.
+        <span class="bold">{{ strtoupper($eh->employee->nom) }} {{ $eh->employee->prenom }}</span>
+        <span class="bold">à effectuer les Travaux en tant que {{ $eh->habilitation->nom }}</span>
+    </div>
+
+    <!-- Validity -->
+    <div class="validity">
+        Cette habilitation est valable à partir du
+        <span class="bold">{{ $eh->date_obtention->translatedFormat('d F Y') }}</span>,
+        avec une réévaluation des compétences obligatoire d'une durée de
+        <span class="bold">{{ $eh->habilitation->duree_formation_recyclage }} {{ $eh->habilitation->duree_formation_recyclage_unite }}</span>
+        chaque <span class="bold">{{ $eh->habilitation->duree_de_validite }} ans</span>.
+    </div>
+
+    <!-- Signature table -->
+    <table class="signature-table">
+        <tr>
+            <td>
+                <div class="sig-role">Intéressé</div>
+                <div class="sig-name">{{ strtoupper($eh->employee->nom) }}<br>{{ $eh->employee->prenom }}</div>
+            </td>
+            <td>
+                <div class="sig-role">Responsable<br>{{ $settings->resp_maintenance_elec_titre ?? 'Maintenance Électrique' }}</div>
+                <div class="sig-name">{{ $settings->resp_maintenance_elec }}</div>
+            </td>
+            <td>
+                <div class="sig-role">Responsable<br>{{ $settings->resp_maintenance_titre ?? 'Maintenance' }}</div>
+                <div class="sig-name">{{ $settings->resp_maintenance }}</div>
+            </td>
+            <td>
+                <div class="sig-role">Responsable<br>Santé Sécurité</div>
+                <div class="sig-name">{{ $settings->resp_sante_securite }}</div>
+            </td>
+            <td>
+                <div class="sig-role">{{ $settings->titre_directeur }}</div>
+                <div class="sig-name">{{ $settings->directeur_usine }}</div>
+            </td>
+        </tr>
+        <tr>
+            <td style="height:25px"></td>
+            <td style="height:25px"></td>
+            <td style="height:25px"></td>
+            <td style="height:25px"></td>
+            <td style="height:25px"></td>
+        </tr>
+    </table>
+
+</div>
 </body>
 </html>

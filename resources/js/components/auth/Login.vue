@@ -84,7 +84,7 @@
         </form>
 
         <div class="footer-text">
-          © 2026 Holcim Factory Compliance Platform
+          © 2026 Holcim 
         </div>
 
       </div>

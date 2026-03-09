@@ -13,7 +13,7 @@ use App\Http\Controllers\Api\AlertController;
 use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\SettingController;
 use App\Http\Controllers\Api\DocumentGenerationController;
-
+use App\Http\Controllers\Api\UserController;
 
 // ── Public routes ──────────────────────────────────────
 Route::post('/auth/login', [AuthController::class, 'login']);
@@ -157,4 +157,11 @@ Route::middleware('role:RRH')->group(function () {
     Route::put('/parametres',  [SettingController::class, 'update']);
 });
 
+Route::put('/auth/change-password', [AuthController::class, 'changePassword']);
+Route::middleware('role:RRH')->group(function () {
+    Route::get('/users',          [UserController::class, 'index']);
+    Route::post('/users',         [UserController::class, 'store']);
+    Route::put('/users/{user}',   [UserController::class, 'update']);
+    Route::delete('/users/{user}',[UserController::class, 'destroy']);
+});
 });

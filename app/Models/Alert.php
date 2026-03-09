@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\HabilitationExpirationMail;
 use Carbon\Carbon;
 
 class Alert extends Model
@@ -84,7 +86,7 @@ class Alert extends Model
     public function getLibelleAttribute(): string
     {
         $nom = $this->employeeHabilitation->habilitation->nom ?? 'Habilitation';
-        $employe = $this->employeeHabilitation->employee->nom_complet ?? 'Employé';
+        $employe = $this->employeeHabilitation->employee->nom_complet ?? 'Salarié';
 
         return match((int) $this->jours_avant_expiration) {
             0  => "⛔ {$employe} — {$nom} a expiré aujourd'hui",
@@ -96,27 +98,28 @@ class Alert extends Model
 
     // ── Static Factory ─────────────────────────────────────
 
-    public static function genererPourHabilitation(EmployeeHabilitation $eh): void
-    {
-        $seuils = [30, 7, 0];
+   public static function genererPourHabilitation(EmployeeHabilitation $eh): void
+{
+    $dateExpiration = $eh->date_expiration;
+    $today          = Carbon::today();
 
-        foreach ($seuils as $jours) {
-            $alertDate = $eh->date_expiration->subDays($jours);
+    foreach ([30, 7, 0] as $jours) {
+        $alertDate = $dateExpiration->copy()->subDays($jours);
 
-            // Avoid duplicates
-            $existe = self::where('employee_habilitation_id', $eh->id)
-                          ->where('jours_avant_expiration', $jours)
-                          ->exists();
+        // Only create if alert doesn't already exist
+        $exists = self::where('employee_habilitation_id', $eh->id)
+                      ->where('jours_avant_expiration', $jours)
+                      ->exists();
 
-            if (!$existe && $alertDate->isFuture()) {
-                self::create([
-                    'employee_habilitation_id' => $eh->id,
-                    'alert_type'               => 'expiration_proche',
-                    'alert_date'               => $alertDate,
-                    'jours_avant_expiration'   => $jours,
-                    'statut'                   => 'active',
-                ]);
-            }
+        if (!$exists && $alertDate->gte($today)) {
+            self::create([
+                'employee_habilitation_id' => $eh->id,
+                'alert_type'               => 'expiration_proche',
+                'alert_date'               => $alertDate,
+                'jours_avant_expiration'   => $jours,
+                'statut'                   => 'active',
+            ]);
         }
     }
+}
 }

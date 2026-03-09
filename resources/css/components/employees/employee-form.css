@@ -318,3 +318,24 @@
      .form-grid        { grid-template-columns: 1fr; }
      .field-full       { grid-column: span 1; }
    }
+   .radio-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background: #f8fafc;
+  border: 1.5px solid #e8ecf0;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.radio-option.selected {
+  border-color: #1a6b8a;
+  background: #eef6fb;
+  color: #1a6b8a;
+  font-weight: 600;
+}
