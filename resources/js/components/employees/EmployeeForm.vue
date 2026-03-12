@@ -12,7 +12,7 @@
             {{ isEdit ? 'Modifier le salarié' : 'Ajouter un salarié' }}
           </h1>
           <p class="page-subtitle">
-            {{ isEdit ? `Matricule : ${form.matricule}` : 'Remplir les informations du salarié' }}
+{{ isEdit ? (form.type === 'sous-traitant' ? `Sous-traitant — ${form.societe}` : `Matricule : ${form.matricule}`) : 'Remplir les informations du salarié' }}
           </p>
         </div>
       </div>
@@ -31,12 +31,28 @@
           <div class="form-section-title">Informations personnelles</div>
 
           <div class="form-grid">
-
+            <!-- Type -->
+            <div class="field field-full">
+              <label>Type d'employé <span class="required">*</span></label>
+              <div style="display:flex;gap:12px;margin-top:4px;">
+                <label class="radio-option" :class="{ selected: form.type === 'propre' }">
+                  <input type="radio" v-model="form.type" value="propre" style="display:none;" />
+                  <span v-html="icons.building"></span>
+                  Personnel Propre
+                </label>
+                <label class="radio-option" :class="{ selected: form.type === 'sous-traitant' }">
+                  <input type="radio" v-model="form.type" value="sous-traitant" style="display:none;" />
+                  <span v-html="icons.truck"></span>
+                  Sous-Traitant
+                </label>
+              </div>
+              <span class="error-msg" v-if="errors.type">{{ errors.type }}</span>
+            </div>
             <!-- Matricule -->
             <div class="field">
-              <label>Matricule <span class="required">*</span></label>
-              <input v-model="form.matricule" type="number"  placeholder="70347"
-                :class="{ 'input-error': errors.matricule }" :disabled="isEdit" />
+              <label>Matricule </label>
+              <input v-model="form.matricule" type="number"
+                :class="{ 'input-error': errors.matricule }" :disabled="isEdit || form.type === 'sous-traitant'" />
               <span class="error-msg" v-if="errors.matricule">
                 {{ errors.matricule }}
               </span>
@@ -79,23 +95,7 @@
             </div>
 
           </div>
-          <!-- Type -->
-          <div class="field field-full">
-            <label>Type d'employé <span class="required">*</span></label>
-            <div style="display:flex;gap:12px;margin-top:4px;">
-              <label class="radio-option" :class="{ selected: form.type === 'propre' }">
-                <input type="radio" v-model="form.type" value="propre" style="display:none;" />
-                <span v-html="icons.building"></span>
-                Personnel Propre
-              </label>
-              <label class="radio-option" :class="{ selected: form.type === 'sous-traitant' }">
-                <input type="radio" v-model="form.type" value="sous-traitant" style="display:none;" />
-                <span v-html="icons.truck"></span>
-                Sous-Traitant
-              </label>
-            </div>
-            <span class="error-msg" v-if="errors.type">{{ errors.type }}</span>
-          </div>
+
 
           <!-- Société (only for sous-traitant) -->
           <div class="field field-full" v-if="form.type === 'sous-traitant'">
@@ -238,7 +238,7 @@ const errors = reactive({
 // ── Icons ─────────────────────────────────────────────
 const icons = {
   building: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-2 8v-3a1 1 0 011-1h2a1 1 0 011 1v3m-4 0h4"/></svg>`,
-truck:    `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10l2 1m8-11h3l3 4v4h-6V6z"/></svg>`,
+  truck: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10l2 1m8-11h3l3 4v4h-6V6z"/></svg>`,
   back: `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>`,
   save: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>`,
 };
@@ -290,8 +290,10 @@ const clearErrors = () => {
 
 const validate = () => {
   let valid = true;
-  if (!form.matricule) { errors.matricule = 'Le matricule est obligatoire.'; valid = false; }
-  if (!form.nom) { errors.nom = 'Le nom est obligatoire.'; valid = false; }
+if (form.type !== 'sous-traitant' && !form.matricule) { 
+  errors.matricule = 'Le matricule est obligatoire.'; 
+  valid = false; 
+}  if (!form.nom) { errors.nom = 'Le nom est obligatoire.'; valid = false; }
   if (!form.prenom) { errors.prenom = 'Le prénom est obligatoire.'; valid = false; }
   if (!form.email_pro) { errors.email_pro = 'L\'email est obligatoire.'; valid = false; }
   if (!form.position) { errors.position = 'Le poste est obligatoire.'; valid = false; }
@@ -304,6 +306,7 @@ const validate = () => {
 // ── Submit ────────────────────────────────────────────
 const submit = async () => {
   clearErrors();
+  
   if (!validate()) return;
 
   submitting.value = true;

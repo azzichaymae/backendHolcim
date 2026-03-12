@@ -20,14 +20,22 @@ class EmployeeHabilitation extends Model
         'type',
         'statut',
         'organisme_formation',       // ← add
-        'date_aptitude_medicale',    // ← add
+        'date_aptitude_medicale',
+            'acknowledged_at',
+
     ];
     
     protected $casts = [
         'date_obtention'         => 'date',
         'date_expiration'        => 'date',
         'date_aptitude_medicale' => 'date',  // ← add
+        'acknowledged_at'        => 'datetime',  // ← add
+
     ];
+    public function acknowledge(): void
+{
+    $this->update(['acknowledged_at' => now()]);
+}
 
     // ── Relations ──────────────────────────────────────────
 
@@ -94,4 +102,9 @@ class EmployeeHabilitation extends Model
                      ->whereDate('date_expiration', '<=', Carbon::today()->addDays($jours))
                      ->whereDate('date_expiration', '>=', Carbon::today());
     }
+    public function scopeExpirantBientot($query, int $jours = 30)
+{
+    return $query->where('date_expiration', '<=', Carbon::today()->addDays($jours))
+                 ->orderBy('date_expiration');
+}
 }

@@ -64,7 +64,7 @@ class EmployeeController extends Controller
     public function store(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'matricule' => 'required|integer|unique:employees,matricule,' . ($employee->id ?? 'NULL'),
+'matricule' => 'nullable|integer|unique:employees,matricule',
             'nom' => 'required|string|max:100',
             'prenom' => 'required|string|max:100',
             'email_pro' => 'required|email',
@@ -83,7 +83,7 @@ class EmployeeController extends Controller
     public function update(Request $request, Employee $employee): JsonResponse
     {
         $validated = $request->validate([
-            'matricule' => 'required|integer|unique:employees,matricule,' . ($employee->id ?? 'NULL'),
+'matricule' => 'nullable|integer|unique:employees,matricule,' . $employee->id,
             'nom' => 'required|string|max:100',
             'prenom' => 'required|string|max:100',
             'email_pro' => 'required|email',

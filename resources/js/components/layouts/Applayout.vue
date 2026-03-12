@@ -51,13 +51,7 @@
 
       <!-- ── Logout at bottom of sidebar ─────────────── -->
       <div class="sidebar-footer">
-        <!-- <div class="sidebar-user">
-          <div class="sidebar-avatar">{{ userInitial }}</div>
-          <div class="sidebar-user-info">
-            <div class="sidebar-user-name">{{ auth.user?.nom }}</div>
-            <div class="sidebar-user-role">{{ auth.user?.role }}</div>
-          </div>
-        </div> -->
+
         <button class="sidebar-logout" @click="handleLogout">
           <span v-html="icons.logout"></span>
           Se déconnecter
@@ -179,13 +173,14 @@ const icons = {
 
 // ── Navigation items ──────────────────────────────────
 const navItems = [
-  { name: 'dashboard', label: 'Dashboard', path: '/dashboard', icon: icons.dashboard, roles: ['RRH', 'RH'] },
+  { name: 'dashboard', label: 'Dashboard', path: '/dashboard', icon: icons.dashboard, roles: ['RRH', 'RH','Manager'] },
   { name: 'employees', label: 'Salariés', path: '/employees', icon: icons.employees, roles: ['RRH', 'RH', 'Manager'] },
   { name: 'volets', label: 'Volets', path: '/volets', icon: icons.volets, roles: ['RRH', 'RH'] },
-  { name: 'habilitations', label: 'Habilitations', path: '/habilitations', icon: icons.habilitations, roles: ['RRH', 'RH'] },
+  { name: 'habilitations', label: 'Habilitations', path: '/habilitations', icon: icons.habilitations, roles: ['RRH', 'RH','Manager'] },
   { name: 'attributions', label: 'Associations', path: '/attributions', icon: icons.attributions, roles: ['RRH', 'RH'] },
   { name: 'documents', label: 'Documents', path: '/documents', icon: icons.documents, roles: ['RRH', 'RH'] },
   { name: 'alerts', label: 'Alertes', path: '/alerts', icon: icons.alerts, roles: ['RRH', 'RH', 'Manager'] },
+  {name: 'profile', label: 'Profil', path: '/profile', icon: icons.settings, roles: ['RRH', 'RH', 'Manager'] },
 ];
 
 // ── System items ──────────────────────────────────────
@@ -238,7 +233,8 @@ const profilePage = async () => {
 const fetchAlertCount = async () => {
   try {
     const { data } = await api.get('/alerts/count');
-    alertCount.value = data.total;
+    alertCount.value = data.urgentes + data.a_7j;
+    console.log('Alert count:', data);
   } catch { }
 };
 

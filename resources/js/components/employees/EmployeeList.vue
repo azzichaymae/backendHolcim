@@ -57,64 +57,56 @@
       <span v-html="icons.users"></span>
       <p>Aucun employé trouvé.</p>
     </div>
-
     <!-- ── Table ──────────────────────────────────────── -->
-    <div class="table-card" v-else>
-  <div class="table-responsive">
-    <table class="data-table">
-      <thead>
-        <tr>
-          <th>Matricule</th>
-          <th>Nom & Prénom</th>
-          <th>Poste</th>
-          <th>Type</th>
-          <th>Service</th>
-          <th>Habilitations</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="emp in employees" :key="emp.id" class="table-row"
-          :class="{ 'row-clickable': !authStore.isManager }" @click="goToDetail(emp.id)">
-          <td data-label="Matricule">
-            <span class="matricule-badge">{{ emp.matricule }}</span>
-          </td>
-          <td data-label="Nom & Prénom">
-            <div class="employee-name">
-              <div>
-                <div class="name">{{ emp.nom }} {{ emp.prenom }}</div>
-                <div class="email">{{ emp.email_pro }}</div>
+    <div class="emp-table-card" v-else>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Matricule</th>
+            <th>Nom & Prénom</th>
+            <th>Poste</th>
+            <th>Type</th>
+            <th>Service</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="emp in employees" :key="emp.id" class="table-row"
+            :class="{ 'row-clickable': !authStore.isManager }" @click="goToDetail(emp.id)">
+            <td data-label="Matricule">
+              <span class="matricule-badge">{{ emp.matricule || 'ST' }}</span>
+            </td>
+            <td data-label="Nom & Prénom">
+              <div class="employee-name">
+                <div>
+                  <div class="name">{{ emp.nom }} {{ emp.prenom }}</div>
+                  <div class="email">{{ emp.email_pro }}</div>
+                </div>
               </div>
-            </div>
-          </td>
-          <td data-label="Poste" class="td-muted">{{ emp.position || '—' }}</td>
-          <td data-label="Type">
-            <span class="type-badge" :class="emp.type">
-              {{ emp.type === 'propre' ? 'Propre' : 'Sous-Traitant' }}
-            </span>
-            <div class="societe-name" v-if="emp.societe">{{ emp.societe }}</div>
-          </td>
-          <td data-label="Service" class="td-muted">{{ emp.service?.nom || '—' }}</td>
-          <td data-label="Habilitations">
-            <span class="hab-count">
-              {{ emp.habilitations_count ?? '—' }}
-            </span>
-          </td>
-          <td data-label="Actions" @click.stop>
-            <div class="actions">
-              <router-link :to="`/employees/${emp.id}/edit`" class="action-btn edit" v-if="canWrite" title="Modifier">
-                <span v-html="icons.edit"></span>
-              </router-link>
-              <button class="action-btn delete" v-if="canDelete" @click="confirmDelete(emp)" title="Supprimer">
-                <span v-html="icons.trash"></span>
-              </button>
-            </div>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-</div>
+            </td>
+            <td data-label="Poste" class="td-muted">{{ emp.position || '—' }}</td>
+            <td data-label="Type">
+              <span class="type-badge" :class="emp.type">
+                {{ emp.type === 'propre' ? 'Propre' : 'Sous-Traitant' }}
+              </span>
+              <div class="societe-name" v-if="emp.societe">{{ emp.societe }}</div>
+            </td>
+            <td data-label="Service" class="td-muted">{{ emp.service?.nom || '—' }}</td>
+
+            <td data-label="Actions" @click.stop>
+              <div class="actions">
+                <router-link :to="`/employees/${emp.id}/edit`" class="action-btn edit" v-if="canWrite" title="Modifier">
+                  <span v-html="icons.edit"></span>
+                </router-link>
+                <button class="action-btn delete" v-if="canDelete" @click="confirmDelete(emp)" title="Supprimer">
+                  <span v-html="icons.trash"></span>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
 
 
     <ConfirmModal :show="!!deleteTarget" title="Supprimer cet employé ?" confirmLabel="Supprimer" :loading="deleting"
@@ -233,10 +225,6 @@ const goToDetail = (id) => {
   router.push(`/employees/${id}/edit`);
 };
 
-// ── Helpers ───────────────────────────────────────────
-const initials = (emp) => {
-  return (emp.prenom?.charAt(0) ?? '') + (emp.nom?.charAt(0) ?? '');
-};
 
 // ── Delete ────────────────────────────────────────────
 const confirmDelete = (emp) => {

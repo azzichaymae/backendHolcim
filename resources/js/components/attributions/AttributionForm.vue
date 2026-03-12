@@ -131,6 +131,7 @@
                 type="text"
                 class="org-input"
                 placeholder="Ex: OFPPT, Centre Holcim..."
+                required
               />
             </div>
           </template>
@@ -139,7 +140,7 @@
       </div>
 
       <div class="af-step-actions">
-        <button class="btn-primary" :disabled="!form.habilitation_id" @click="currentStep = 1">
+        <button class="btn-primary" :disabled="!form.habilitation_id || !form.organisme_formation" @click="currentStep = 1">
           Suivant <span v-html="icons.arrowRight"></span>
         </button>
       </div>
@@ -447,8 +448,8 @@ const submitAll = async () => {
         employee_id:            emp.id,
         habilitation_id:        form.habilitation_id,
         date_obtention:         emp._date_obtention,
-        date_aptitude_medicale: emp._date_aptitude_medicale || null,
-        organisme_formation:    form.organisme_formation    || null,
+        date_aptitude_medicale: emp._date_aptitude_medicale,
+        organisme_formation:    form.organisme_formation    ,
         type:                   emp._type,
       });
       results.ok++;

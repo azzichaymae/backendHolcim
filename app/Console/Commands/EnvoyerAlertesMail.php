@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Mail;
 
 class EnvoyerAlertesMail extends Command
 {
-    protected $signature   = 'alertes:envoyer-mail';
+    protected $signature = 'alertes:envoyer-mail';
     protected $description = 'Envoie les emails pour les alertes du jour';
 
     public function handle(): void
@@ -20,25 +20,26 @@ class EnvoyerAlertesMail extends Command
             'employeeHabilitation.employee',
             'employeeHabilitation.habilitation.volet',
         ])
-        ->whereDate('alert_date', Carbon::today())
-        ->where('statut', 'active')
-        ->whereNull('email_sent_at') // add this column (see migration below)
-        ->get();
+            ->whereDate('alert_date', Carbon::today())
+            ->where('statut', 'active')
+            ->whereNull('email_sent_at') // add this column (see migration below)
+            ->get();
 
         $sent = 0;
 
         foreach ($alertes as $alerte) {
-            $eh    = $alerte->employeeHabilitation;
-            $email = $eh->employee->email_pro;
+            $eh = $alerte->employeeHabilitation;
 
-            if (!$email) continue;
 
-            // Send to the employee + RRH/RH users
-            $recipients = \App\Models\User::whereIn('role', ['RRH', 'RH'])->pluck('email')->toArray();
-            $recipients[] = $email;
+            $recipients = \App\Models\User::whereIn('role', ['RRH'])
+                ->pluck('email')
+                ->toArray();
 
-            foreach (array_unique($recipients) as $recipient) {
-                Mail::to($recipient)->queue(
+            if (empty($recipients))
+                continue;
+
+            foreach ($recipients as $recipient) {
+                Mail::to($recipient)->send(
                     new HabilitationExpirationMail($eh, $alerte->jours_avant_expiration)
                 );
             }

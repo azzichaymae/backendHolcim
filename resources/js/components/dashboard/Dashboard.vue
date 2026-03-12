@@ -102,46 +102,67 @@
       <div class="table-card">
         <div class="chart-header">
           <h3>Habilitations Expirant Bientôt</h3>
-          <span class="chart-badge warning">30 jours</span>
+
+          <!-- ── Filter tabs ── -->
+          <div class="exp-tabs">
+            <button
+              v-for="tab in expirationTabs"
+              :key="tab.jours"
+              :class="['exp-tab', tab.cls, { active: activeJours === tab.jours }]"
+              @click="switchTab(tab.jours)"
+              :disabled="expLoading"
+            >
+              {{ tab.label }}
+              <span class="exp-tab-count">{{ tab.count }}</span>
+            </button>
+          </div>
         </div>
 
-        <div class="table-empty" v-if="expirations.length === 0">
-          <span v-html="icons.check"></span>
-          Aucune habilitation n'expire dans les 30 prochains jours.
+        <!-- Tab loading spinner -->
+        <div class="exp-tab-loading" v-if="expLoading">
+          <div class="exp-spinner"></div>
         </div>
 
-        <div class="table-wrapper" v-else>
-          <table class="exp-table">
-            <thead>
-              <tr>
-                <th>Salarié</th>
-                <th>Matricule</th>
-                <th>Habilitation</th>
-                <th>Volet</th>
-                <th>Expiration</th>
-                <th>Jours restants</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="row in expirations" :key="row.employee_habilitation_id">
-                <td class="td-name">{{ row.employe }}</td>
-                <td>{{ row.matricule }}</td>
-                <td>{{ row.habilitation }}</td>
-                <td>{{ row.volet }}</td>
-                <td>{{ formatDate(row.date_expiration) }}</td>
-                <td>
-                  <span class="jours-badge"
-                    :class="{
-                      urgent:  row.jours_restants <= 7,
-                      warning: row.jours_restants > 7 && row.jours_restants <= 30
-                    }">
-                    {{ row.jours_restants }}j
-                  </span>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+        <template v-else>
+          <div class="table-empty" v-if="expirations.length === 0">
+            <span v-html="icons.check"></span>
+            Aucune habilitation n'expire dans ce délai.
+          </div>
+
+          <div class="table-wrapper" v-else>
+            <table class="exp-table">
+              <thead>
+                <tr>
+                  <th>Salarié</th>
+                  <th>Matricule</th>
+                  <th>Habilitation</th>
+                  <th>Volet</th>
+                  <th>Expiration</th>
+                  <th>Jours restants</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="row in expirations" :key="row.employee_habilitation_id">
+                  <td class="td-name">{{ row.employee?.nom }} {{ row.employee?.prenom }}</td>
+                  <td>{{ row.employee?.matricule }}</td>
+                  <td>{{ row.habilitation?.nom }}</td>
+                  <td>{{ row.habilitation?.volet?.nom }}</td>
+                  <td>{{ formatDate(row.date_expiration) }}</td>
+                  <td>
+                    <span class="jours-badge"
+                      :class="{
+                        expired: row.jours_restants <= 0,
+                        urgent:  row.jours_restants > 0 && row.jours_restants <= 7,
+                        warning: row.jours_restants > 7 && row.jours_restants <= 30
+                      }">
+                      {{ !row.jours_restants_display ? 'Expiré' : row.jours_restants_display + 'j' }}
+                    </span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </template>
       </div>
 
     </template>
@@ -167,7 +188,19 @@ const auth    = useAuthStore();
 const loading = ref(true);
 const stats   = ref(null);
 const charts  = ref(null);
+
+// ── Expiration state ──────────────────────────────────
 const expirations = ref([]);
+const expLoading  = ref(false);
+const activeJours = ref(30);
+// Counts per tier — fetched once on mount alongside the 30j data
+const tierCounts = ref({ 30: 0, 7: 0, 0: 0 });
+
+const expirationTabs = computed(() => [
+  { jours: 30, label: '30 jours', cls: 'tab-warning', count: tierCounts.value[30] },
+  { jours: 7,  label: '7 jours',  cls: 'tab-urgent',  count: tierCounts.value[7]  },
+  { jours: 0,  label: 'Expirés',  cls: 'tab-expired', count: tierCounts.value[0]  },
+]);
 
 const isManager = computed(() => auth.user?.role === 'Manager');
 
@@ -181,19 +214,64 @@ const icons = {
   check:        `<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`,
 };
 
-// ── Fetch ─────────────────────────────────────────────
+// ── Fetch expiration data for a given tier ────────────
+const fetchExpirations = async (jours) => {
+  expLoading.value = true;
+  try {
+    // jours=0 means already expired → use statut filter instead
+    const url = jours === 0
+      ? '/employee-habilitations?statut=expirée'
+      : `/employee-habilitations/expiring?jours=${jours}`;
+    const { data } = await api.get(url);
+    expirations.value = isManager.value
+      ? (data.expiring_soon ?? data)
+      : data;
+  } catch (e) {
+    console.error(e);
+  } finally {
+    expLoading.value = false;
+  }
+};
+
+// ── Fetch all tier counts in parallel (for badges) ───
+const fetchTierCounts = async () => {
+  try {
+    const [r30, r7, r0] = await Promise.all([
+      api.get('/employee-habilitations/expiring?jours=30'),
+      api.get('/employee-habilitations/expiring?jours=7'),
+      api.get('/employee-habilitations?statut=expirée'),
+    ]);
+    tierCounts.value = {
+      30: r30.data.length,
+      7:  r7.data.length,
+      0:  r0.data.length,
+    };
+    // Seed the initial table data from the already-fetched 30j response
+    expirations.value = isManager.value
+      ? (r30.data.expiring_soon ?? r30.data)
+      : r30.data;
+  } catch (e) {
+    console.error(e);
+  }
+};
+
+// ── Tab switch ────────────────────────────────────────
+const switchTab = async (jours) => {
+  if (activeJours.value === jours) return;
+  activeJours.value = jours;
+  await fetchExpirations(jours);
+};
+
+// ── Full page fetch ───────────────────────────────────
 const fetchAll = async () => {
   loading.value = true;
   try {
-    const [dashRes, expRes] = await Promise.all([
+    const [dashRes] = await Promise.all([
       api.get('/dashboard'),
-      api.get('/employee-habilitations/expiring?jours=30'),
+      fetchTierCounts(),   // sets expirations + tierCounts
     ]);
-    stats.value       = dashRes.data.stats;
-    charts.value      = dashRes.data.charts;
-    expirations.value = isManager.value
-      ? dashRes.data.expiring_soon ?? []
-      : expRes.data;
+    stats.value  = dashRes.data.stats;
+    charts.value = dashRes.data.charts;
   } catch (e) {
     console.error(e);
   } finally {

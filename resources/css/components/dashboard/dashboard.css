@@ -344,3 +344,97 @@
    @media (max-width: 640px) {
      .stats-grid  { grid-template-columns: 1fr; }
    }
+   /* ══ Expiration filter tabs — append to dashboard.css ══════════════════ */
+
+.exp-tabs {
+  display: flex;
+  gap: 6px;
+}
+
+.exp-tab {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 20px;
+  border: 1.5px solid transparent;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  background: #f4f6f9;
+  color: #6b7280;
+  transition: all 0.15s;
+}
+
+.exp-tab:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.exp-tab-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 10px;
+  font-size: 0.68rem;
+  font-weight: 800;
+  background: rgba(0,0,0,0.08);
+}
+
+/* ── Warning tab (30j) ── */
+.exp-tab.tab-warning:hover,
+.exp-tab.tab-warning.active {
+  background: #fffbeb;
+  border-color: #fbbf24;
+  color: #92400e;
+}
+.exp-tab.tab-warning.active .exp-tab-count {
+  background: #fbbf24;
+  color: white;
+}
+
+/* ── Urgent tab (7j) ── */
+.exp-tab.tab-urgent:hover,
+.exp-tab.tab-urgent.active {
+  background: #fff7ed;
+  border-color: #f97316;
+  color: #9a3412;
+}
+.exp-tab.tab-urgent.active .exp-tab-count {
+  background: #f97316;
+  color: white;
+}
+
+/* ── Expired tab (0j) ── */
+.exp-tab.tab-expired:hover,
+.exp-tab.tab-expired.active {
+  background: #fef2f2;
+  border-color: #ef4444;
+  color: #991b1b;
+}
+.exp-tab.tab-expired.active .exp-tab-count {
+  background: #ef4444;
+  color: white;
+}
+
+/* ── Tab-level loading ── */
+.exp-tab-loading {
+  display: flex;
+  justify-content: center;
+  padding: 40px;
+}
+.exp-spinner {
+  width: 24px;
+  height: 24px;
+  border: 3px solid #e8ecf0;
+  border-top-color: #1a6b8a;
+  border-radius: 50%;
+  animation: dash-spin 0.7s linear infinite;
+}
+@keyframes dash-spin { to { transform: rotate(360deg); } }
+
+/* ── jours-badge expired state ── */
+.jours-badge.expired {
+  background: #fef2f2;
+  color: #dc2626;
+}

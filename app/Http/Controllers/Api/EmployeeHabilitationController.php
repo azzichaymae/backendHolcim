@@ -67,6 +67,7 @@ class EmployeeHabilitationController extends Controller
      {
           $employeeHabilitation->load([
                'employee.departement',
+               'employee.service',
                'habilitation.volet',
                'documents',
                'alerts',
@@ -185,5 +186,55 @@ class EmployeeHabilitationController extends Controller
 
           return response()->json($results, 200);
      }
+     // GET /api/employee-habilitations/alertes
+public function alertes(Request $request): JsonResponse
+{
+    $query = EmployeeHabilitation::with([
+        'employee.service.departement',
+        'habilitation.volet',
+    ])->where('date_expiration', '<=', Carbon::today()->addDays(30))
+      ->orderBy('date_expiration');
+
+    if (auth()->user()->role === 'Manager') {
+        $query->whereHas('employee', fn($q) =>
+            $q->where('service_id', auth()->user()->service_id)
+        );
+    }
+
+    $results = $query->get()->map(fn($eh) => [
+        'id'              => $eh->id,
+        'employee'        => $eh->employee,
+        'habilitation'    => $eh->habilitation,
+        'date_expiration' => $eh->date_expiration,
+        'jours_restants'  => (int) Carbon::today()->diffInDays($eh->date_expiration, false),
+        'statut'          => $eh->statut,
+        'acknowledged'    => !is_null($eh->acknowledged_at),
+        'acknowledged_at' => $eh->acknowledged_at,
+    ]);
+
+    return response()->json($results);
+}
+
+// PATCH /api/employee-habilitations/{id}/acknowledge
+public function acknowledge(EmployeeHabilitation $employeeHabilitation): JsonResponse
+{
+    $employeeHabilitation->acknowledge();
+    return response()->json(['acknowledged' => true]);
+}
+
+// POST /api/employee-habilitations/acknowledge-bulk
+public function acknowledgeBulk(Request $request): JsonResponse
+{
+    $validated = $request->validate([
+        'ids'   => 'required|array',
+        'ids.*' => 'integer|exists:employee_habilitations,id',
+    ]);
+
+    EmployeeHabilitation::whereIn('id', $validated['ids'])
+        ->whereNull('acknowledged_at')
+        ->update(['acknowledged_at' => now()]);
+
+    return response()->json(['acknowledged' => true]);
+}
 
 }

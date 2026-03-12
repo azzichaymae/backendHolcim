@@ -309,14 +309,20 @@
   font-weight: 600;
   cursor: pointer;
   transition: all 0.15s;
+  
 }
+.btn-change-pwd:disabled {
+  background: #f4f6f9;
+  color: #9ca3af;
+  border-color: #f0f4f8;
+  cursor: not-allowed;
+} 
 
-.btn-change-pwd:hover {
+.btn-change-pwd:not(:disabled):hover {
   background: #eef6fb;
   color: #1a6b8a;
   border-color: #bfdbfe;
 }
-
 /* ── Add user button ──────────────────────────────────── */
 .btn-add-user {
   display: flex;

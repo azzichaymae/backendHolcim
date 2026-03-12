@@ -25,6 +25,9 @@ class HabilitationController extends Controller
         }
 
         $habilitations = $query->orderBy('nom')->get();
+        $habilitations = Habilitation::with('volet')
+    ->withCount('employeeHabilitations as employee_count')
+    ->get();
 
         return response()->json($habilitations, 200);
     }

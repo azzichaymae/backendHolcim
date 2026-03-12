@@ -24,7 +24,9 @@
     color: var(--color-text);
     background: var(--color-bg);
   }
-  
+  html, body {
+  overflow-x: hidden;
+}
   /* ── Component styles ─────────────────────────────────── */
   @import './components/auth/login.css';
   @import './components/layouts/Applayout.css';
@@ -34,3 +36,5 @@
   @import './components/attributions/attribution-form.css';
   @import './components/documents/document-generation.css';
   @import './components/alerts/alert-list.css';
+  @import './components/attributions/attributions.css';
+  @import './components/settings/settings.css';

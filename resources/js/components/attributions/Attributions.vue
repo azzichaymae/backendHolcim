@@ -73,9 +73,8 @@
     </div>
 
     <!-- ── Table ───────────────────────────────────────────────────── -->
-    <div class="table-card" v-else>
-      <div class="table-wrap">
-        <table>
+    <div class="attr-table-card" v-else>
+        <table class="attr-data-table">
           <thead>
             <tr>
               <th>Employé</th>
@@ -134,7 +133,6 @@
             </tr>
           </tbody>
         </table>
-      </div>
 
       <!-- Pagination info -->
       <div class="table-footer" v-if="filtered.length > 0">
@@ -216,7 +214,7 @@ const filtered = computed(() => {
     const s = search.value.toLowerCase();
     list = list.filter(a =>
       `${a.employee?.prenom} ${a.employee?.nom}`.toLowerCase().includes(s) ||
-      a.employee?.matricule?.toLowerCase().includes(s) ||
+      a.employee?.matricule?.toString().includes(s) ||
       a.habilitation?.nom?.toLowerCase().includes(s) ||
       a.organisme_formation?.toLowerCase().includes(s)
     );
@@ -233,7 +231,7 @@ const filtered = computed(() => {
   if (filterStatut.value) {
     list = list.filter(a => statutClass(a) === filterStatut.value);
   }
-
+console.log('Filtered list:', list);
   return list;
 });
 

@@ -268,7 +268,7 @@
 }
 
 .table-scroll {
-  overflow-x: auto;
+  overflow: auto;
   -webkit-overflow-scrolling: touch;
 }
 
@@ -445,3 +445,26 @@
   .filter-group { flex-wrap: wrap; }
   .alert-list .page-header { flex-direction: column; }
 }
+
+/* ── Expired summary card ─────────────────────────────────────────────── */
+.summary-card.expired {
+  border-left-color: #ef4444;
+}
+.summary-card.expired .summary-icon {
+  background: #fef2f2;
+  color: #ef4444;
+}
+
+/* ── Urgence filter tabs ──────────────────────────────────────────────── */
+.filter-tab.tab-expired.active  { background:#fef2f2; border-color:#ef4444; color:#991b1b; }
+.filter-tab.tab-critical.active { background:#fff7ed; border-color:#f97316; color:#9a3412; }
+.filter-tab.tab-warning.active  { background:#fffbeb; border-color:#fbbf24; color:#92400e; }
+.filter-tab.tab-expired.active  .tab-count { background:#ef4444; color:white; }
+.filter-tab.tab-critical.active .tab-count { background:#f97316; color:white; }
+.filter-tab.tab-warning.active  .tab-count { background:#fbbf24; color:white; }
+
+/* ── jours-badge states ───────────────────────────────────────────────── */
+.jours-badge.expired  { background:#fef2f2; color:#dc2626; }
+.jours-badge.critical { background:#fff7ed; color:#ea580c; }
+.jours-badge.warning  { background:#fffbeb; color:#d97706; }
+.jours-badge.ok       { background:#f0fdf4; color:#16a34a; }

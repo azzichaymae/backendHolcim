@@ -102,7 +102,7 @@
             <span class="info-val">15 min d'inactivité</span>
           </div>
         </div>
-        <button class="btn-change-pwd" @click="showPwdModal = true">
+        <button class="btn-change-pwd" @click="showPwdModal=true" :disabled="auth.user?.role !== 'RRH'">
           <span v-html="icons.key"></span>
           Changer le mot de passe
         </button>
