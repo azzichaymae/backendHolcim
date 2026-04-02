@@ -21,12 +21,15 @@ class HabilitationExpirationMail extends Mailable
     public function envelope(): Envelope
     {
         $subject = match(true) {
-            $this->joursAvant === 0  => '🔴 Habilitation expirée aujourd\'hui — ' . $this->eh->habilitation->nom,
-            $this->joursAvant <= 7   => '🟠 Habilitation expire dans ' . $this->joursAvant . ' jours — ' . $this->eh->habilitation->nom,
-            default                  => '🟡 Habilitation expire dans ' . $this->joursAvant . ' jours — ' . $this->eh->habilitation->nom,
+            $this->joursAvant === 0  => '🚩',
+            $this->joursAvant <= 7   => '🚩',
+            default                  => '⚠️',
         };
 
-        return new Envelope(subject: $subject);
+       return new Envelope(
+        subject: $subject . 'Alerte : ' . $this->eh->habilitation->nom . ' — ' . 
+                 ($this->joursAvant === 0 ? 'Expiré aujourd\'hui' : 'Expire dans ' . $this->joursAvant . 'j'),
+    );
     }
 
     public function content(): Content

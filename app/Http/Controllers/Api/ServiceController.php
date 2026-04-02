@@ -13,7 +13,7 @@ class ServiceController extends Controller
     // GET /api/services
     public function index(Request $request): JsonResponse
     {
-        $query = Service::with(['departement', 'responsable'])
+        $query = Service::with(['departement'])
                         ->withCount('employees');
 
         if ($request->has('departement_id')) {
@@ -22,11 +22,11 @@ class ServiceController extends Controller
 
         return response()->json($query->orderBy('nom')->get(), 200);
     }
-
+ 
     // GET /api/services/{id}
     public function show(Service $service): JsonResponse
     {
-        $service->load(['departement', 'responsable', 'employees']);
+        $service->load(['departement', 'employees']);
         $service->loadCount('employees');
 
         return response()->json($service, 200);
@@ -38,21 +38,13 @@ class ServiceController extends Controller
         $validated = $request->validate([
             'nom'             => 'required|string|max:100',
             'departement_id'  => 'required|exists:departements,id',
-            'responsable_id'  => 'nullable|exists:users,id',
+            'responsable'  => 'nullable|string|max:150',
+            'responsable_email' => 'nullable|string|max:150',
         ]);
-
-        // Ensure responsable is a Manager
-        if (!empty($validated['responsable_id'])) {
-            $user = User::findOrFail($validated['responsable_id']);
-            if (!$user->isManager()) {
-                return response()->json([
-                    'message' => 'Le responsable doit avoir le rôle Manager.'
-                ], 422);
-            }
-        }
+       
 
         $service = Service::create($validated);
-        $service->load(['departement', 'responsable']);
+        $service->load(['departement']);
 
         return response()->json($service, 201);
     }
@@ -63,20 +55,12 @@ class ServiceController extends Controller
         $validated = $request->validate([
             'nom'            => 'required|string|max:100',
             'departement_id' => 'required|exists:departements,id',
-            'responsable_id' => 'nullable|exists:users,id',
+            'responsable' => 'nullable|string|max:150',
+            'responsable_email' => 'nullable|string|max:150',
         ]);
 
-        if (!empty($validated['responsable_id'])) {
-            $user = User::findOrFail($validated['responsable_id']);
-            if (!$user->isManager()) {
-                return response()->json([
-                    'message' => 'Le responsable doit avoir le rôle Manager.'
-                ], 422);
-            }
-        }
-
         $service->update($validated);
-        $service->load(['departement', 'responsable']);
+        $service->load(['departement']);
 
         return response()->json($service, 200);
     }

@@ -22,7 +22,7 @@ class EnvoyerAlertesMail extends Command
         ])
             ->whereDate('alert_date', Carbon::today())
             ->where('statut', 'active')
-            ->whereNull('email_sent_at') // add this column (see migration below)
+            ->whereNull('email_sent_at') 
             ->get();
 
         $sent = 0;

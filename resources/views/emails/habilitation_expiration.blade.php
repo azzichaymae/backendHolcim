@@ -38,7 +38,7 @@
 <div class="container">
 
   <div class="header">
-    <h1>Gestion des Habilitations — Holcim Maroc</h1>
+    <h1>Gestion des Habilitations — Holcim Oujda</h1>
     <p>Notification automatique d'expiration</p>
   </div>
 
@@ -46,7 +46,7 @@
     $urgencyClass = $joursAvant === 0 ? 'expired' : ($joursAvant <= 7 ? 'critical' : 'warning');
   @endphp
 
-  <div class="urgency-bar {{ $urgencyClass }}"></div>
+  <div class="urgency-bar expired"></div>
 
   <div class="body">
     <p>Bonjour,</p>
@@ -61,27 +61,27 @@
 
     <div class="info-card">
       <div class="info-row">
-        <span class="info-label">Employé</span>
+        <span class="info-label">Employé : </span>
         <span class="info-value">{{ $eh->employee->prenom }} {{ $eh->employee->nom }}</span>
       </div>
       <div class="info-row">
-        <span class="info-label">Matricule</span>
+        <span class="info-label">Matricule : </span>
         <span class="info-value">{{ $eh->employee->matricule }}</span>
       </div>
       <div class="info-row">
-        <span class="info-label">Habilitation</span>
+        <span class="info-label">Habilitation : </span>
         <span class="info-value">{{ $eh->habilitation->nom }}</span>
       </div>
       <div class="info-row">
-        <span class="info-label">Volet</span>
+        <span class="info-label">Volet : </span>
         <span class="info-value">{{ $eh->habilitation->volet->nom }}</span>
       </div>
       <div class="info-row">
-        <span class="info-label">Date d'expiration</span>
+        <span class="info-label">Date d'expiration : </span>
         <span class="info-value">{{ $eh->date_expiration->format('d/m/Y') }}</span>
       </div>
       <div class="info-row">
-        <span class="info-label">Urgence</span>
+        <span class="info-label">Urgence : </span>
         <span class="info-value">
           <span class="badge {{ $urgencyClass }}">
             @if ($joursAvant === 0) Expiré aujourd'hui

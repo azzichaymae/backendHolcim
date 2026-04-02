@@ -22,11 +22,13 @@ class Alert extends Model
         'alert_date',
         'jours_avant_expiration',
         'statut',
+        'email_sent_at'
     ];
 
     protected $casts = [
         'alert_date'              => 'date',
         'jours_avant_expiration'  => 'integer',
+         'email_sent_at' => 'datetime',
     ];
 
     // ── Relations ──────────────────────────────────────────
@@ -122,4 +124,6 @@ class Alert extends Model
         }
     }
 }
+
+   
 }

@@ -64,7 +64,7 @@ class EmployeeController extends Controller
     public function store(Request $request): JsonResponse
     {
         $validated = $request->validate([
-'matricule' => 'nullable|integer|unique:employees,matricule',
+            'matricule' => 'nullable|integer|unique:employees,matricule',
             'nom' => 'required|string|max:100',
             'prenom' => 'required|string|max:100',
             'email_pro' => 'required|email',
@@ -83,7 +83,7 @@ class EmployeeController extends Controller
     public function update(Request $request, Employee $employee): JsonResponse
     {
         $validated = $request->validate([
-'matricule' => 'nullable|integer|unique:employees,matricule,' . $employee->id,
+            'matricule' => 'nullable|integer|unique:employees,matricule,' . $employee->id,
             'nom' => 'required|string|max:100',
             'prenom' => 'required|string|max:100',
             'email_pro' => 'required|email',
@@ -114,5 +114,44 @@ class EmployeeController extends Controller
         return response()->json([
             'message' => 'Salarié supprimé avec succès.'
         ], 200);
+    }
+    
+    // GET /api/employees/archived
+    public function archived(): JsonResponse
+    {
+        $employees = Employee::onlyTrashed()
+            ->with('service.departement')
+            ->get();
+        return response()->json($employees);
+    }
+
+    // PATCH /api/employees/{id}/restore
+    public function restore($id): JsonResponse
+    {
+        $employee = Employee::onlyTrashed()->findOrFail($id);
+        $employee->restore();
+        return response()->json(['message' => 'Employé restauré.']);
+    }
+
+    // DELETE /api/employees/{id}/force — permanent delete if needed
+    public function forceDelete($id): JsonResponse
+    {
+        $employee = Employee::onlyTrashed()->findOrFail($id);
+        $employee->forceDelete();
+        return response()->json(['message' => 'Employé supprimé définitivement.']);
+    }
+
+    public function import(Request $request): JsonResponse
+    {
+        $request->validate(['file' => 'required|file|mimes:xlsx,xls,csv|max:5120']);
+
+        $import = new \App\Imports\EmployeesImport();
+        $import->import($request->file('file'));
+
+        return response()->json([
+            'imported' => $import->imported,
+            'updated' => $import->updated,
+            'errors' => $import->errors,
+        ]);
     }
 }

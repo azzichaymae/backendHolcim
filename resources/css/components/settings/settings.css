@@ -138,10 +138,10 @@
   padding: 24px;
   margin-bottom: 16px;
 }
-  
-.settings-panel-header {
+
+.st-panel-header {
   display: flex;
-  align-items:flex-start;
+  align-items: flex-start;
   gap: 14px;
   padding-bottom: 20px;
   border-bottom: 1px solid #f0f4f8;
@@ -149,7 +149,7 @@
   color: #1a4a6b;
 }
 
-.settings-panel-header > span {
+.st-panel-header > span {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -176,8 +176,8 @@
 /* ── Fields grid ──────────────────────────────────────────────────────── */
 .fields-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 10px;
 }
 
 .field-group {
@@ -367,4 +367,164 @@
 
 @media (max-width: 560px) {
   .sig-boxes { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* ══ Org management (Départements & Services) ════════════════════════════ */
+.org-add-form {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+  padding: 14px;
+  background: #f8fafc;
+  border: 1px solid #e8ecf0;
+  border-radius: 10px;
+}
+
+.org-input {
+  flex: 1;
+  min-width: 160px;
+  padding: 8px 12px;
+  background: white;
+  border: 1px solid #e8ecf0;
+  border-radius: 7px;
+  font-size: 0.875rem;
+  color: #1a2e44;
+  outline: none;
+}
+.org-input:focus { border-color: #1a6b8a; }
+
+.btn-org-add {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 8px 16px;
+  background: #1a4a6b;
+  color: white;
+  border: none;
+  border-radius: 7px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.btn-org-add:hover:not(:disabled) { background: #1a6b8a; }
+.btn-org-add:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.org-loading { display: flex; justify-content: center; padding: 24px; }
+.org-empty   { text-align: center; padding: 24px; color: #9ca3af; font-size: 0.875rem; }
+
+.org-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.org-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: white;
+  border: 1px solid #e8ecf0;
+  border-radius: 9px;
+  flex-wrap: wrap;
+}
+
+.org-item-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.org-item-nom {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #1a2e44;
+}
+
+.org-item-resp {
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+.org-item-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.org-dep-badge {
+  padding: 2px 8px;
+  background: #eef2f7;
+  color: #1a6b8a;
+  border-radius: 20px;
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+.org-count-badge {
+  padding: 2px 8px;
+  background: #f0f4f8;
+  color: #6b7280;
+  border-radius: 20px;
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+.org-item-actions {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.btn-org-action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.12s;
+}
+.btn-org-action.edit   { background: #eef2f7; color: #1a6b8a; }
+.btn-org-action.edit:hover { background: #dde8f5; }
+.btn-org-action.delete { background: #fef2f2; color: #ef4444; }
+.btn-org-action.delete:hover { background: #fee2e2; }
+.btn-org-action.save   { background: #f0fdf4; color: #16a34a; }
+.btn-org-action.save:hover { background: #dcfce7; }
+.btn-org-action.cancel { background: #f4f6f9; color: #6b7280; }
+.btn-org-action.cancel:hover { background: #e5e7eb; }
+
+.org-input-inline {
+  flex: 1;
+  min-width: 120px;
+  padding: 6px 10px;
+  background: #f8fafc;
+  border: 1.5px solid #1a6b8a;
+  border-radius: 6px;
+  font-size: 0.82rem;
+  color: #1a2e44;
+  outline: none;
+}
+
+/* ── Auto badge in sig preview ───────────────────────── */
+.sig-box-auto {
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  margin-top: 4px;
+  font-style: italic;
+}
+.sig-box.muted .sig-box-name,
+.sig-box-name.muted {
+  color: #9ca3af;
+  font-style: italic;
 }

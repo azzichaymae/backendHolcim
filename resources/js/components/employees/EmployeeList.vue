@@ -40,7 +40,10 @@
           {{ svc.nom }}
         </option>
       </select>
-
+      <button class="btn-archived" :class="{ active: showArchived }" @click="showArchived = !showArchived">
+        <span v-html="icons.archive"></span>
+        {{ showArchived ? 'Voir actifs' : 'Voir archivés' }}
+      </button>
       <button class="btn-reset" @click="resetFilters" v-if="hasFilters">
         <span v-html="icons.x"></span>
         Réinitialiser
@@ -65,7 +68,7 @@
             <th>Matricule</th>
             <th>Nom & Prénom</th>
             <th>Poste</th>
-            <th>Type</th>
+            <th>Statut</th>
             <th>Service</th>
             <th>Actions</th>
           </tr>
@@ -112,14 +115,86 @@
     <ConfirmModal :show="!!deleteTarget" title="Supprimer cet employé ?" confirmLabel="Supprimer" :loading="deleting"
       :icon="icons.trash" @confirm="deleteEmployee" @cancel="deleteTarget = null">
       <strong>{{ deleteTarget?.nom }} {{ deleteTarget?.prenom }}</strong>
-      — Matricule {{ deleteTarget?.matricule }}<br>
-      Cette action est irréversible.
+      sera archivé et ne sera plus visible dans la liste active.<br>
+      Ses habilitations et documents seront conservés.
     </ConfirmModal>
+
+
+    <!-- ── Import Modal ───────────────────────────────── -->
+    <Teleport to="body">
+      <div v-if="showImportModal" class="import-backdrop" @click.self="closeImportModal">
+        <div class="import-dialog">
+
+          <div class="import-header">
+            <div>
+              <h3 class="import-title">Importer des salariés</h3>
+              <p class="import-subtitle">Fichier Excel (.xlsx, .xls) ou CSV</p>
+            </div>
+            <button class="import-close" @click="closeImportModal">
+              <span v-html="icons.x"></span>
+            </button>
+          </div>
+
+          <div class="import-template-bar">
+            <span v-html="icons.download"></span>
+            <span>Télécharger le modèle Excel</span>
+            <button class="btn-template" @click="downloadTemplate">Télécharger</button>
+          </div>
+
+          <div class="import-dropzone" :class="{ 'drag-over': isDragging, 'has-file': importFile }"
+            @dragover.prevent="isDragging = true" @dragleave="isDragging = false" @drop.prevent="onDrop"
+            @click="$refs.fileInput.click()">
+            <input ref="fileInput" type="file" accept=".xlsx,.xls,.csv" style="display:none" @change="onFileChange" />
+            <template v-if="!importFile">
+              <span class="dropzone-icon" v-html="icons.uploadLg"></span>
+              <p class="dropzone-text">Glisser-déposer ou <span class="dropzone-link">parcourir</span></p>
+              <p class="dropzone-hint">xlsx, xls, csv — max 5 MB</p>
+            </template>
+            <template v-else>
+              <span class="dropzone-icon" v-html="icons.fileExcel"></span>
+              <p class="dropzone-text">{{ importFile.name }}</p>
+              <p class="dropzone-hint">{{ (importFile.size / 1024).toFixed(1) }} KB — Cliquer pour changer</p>
+            </template>
+          </div>
+
+          <div class="import-result" v-if="importResult">
+            <div class="result-stats">
+              <div class="result-stat green">
+                <span class="result-num">{{ importResult.imported }}</span>
+                <span class="result-label">Ajoutés</span>
+              </div>
+              <div class="result-stat blue">
+                <span class="result-num">{{ importResult.updated }}</span>
+                <span class="result-label">Mis à jour</span>
+              </div>
+              <div class="result-stat red">
+                <span class="result-num">{{ importResult.errors.length }}</span>
+                <span class="result-label">Erreurs</span>
+              </div>
+            </div>
+            <ul class="import-errors" v-if="importResult.errors.length">
+              <li v-for="(err, i) in importResult.errors" :key="i">{{ err }}</li>
+            </ul>
+          </div>
+
+          <div class="import-actions">
+            <button class="btn-cancel-import" @click="closeImportModal">Annuler</button>
+            <button class="btn-do-import" @click="doImport" :disabled="!importFile || importing">
+              <span v-if="importing" class="spinner-sm"></span>
+              <span v-else v-html="icons.upload"></span>
+              {{ importing ? 'Importation...' : 'Importer' }}
+            </button>
+          </div>
+
+        </div>
+      </div>
+    </Teleport>
+
   </div>
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue';
+import { ref, reactive, computed, onMounted, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
 import api from '@/services/api';
@@ -140,6 +215,7 @@ const total = ref(0);
 const isManager = computed(() => auth.user?.role === 'Manager');
 const canWrite = computed(() => ['RRH', 'RH'].includes(auth.user?.role));
 const canDelete = computed(() => auth.user?.role === 'RRH');
+const showArchived = ref(false);
 
 const filters = reactive({
   search: '',
@@ -157,8 +233,16 @@ const filteredServices = computed(() =>
     : services.value
 );
 
+// ── Import state ─────────────────────────────────────
+const showImportModal = ref(false);
+const importFile = ref(null);
+const importing = ref(false);
+const importResult = ref(null);
+const isDragging = ref(false);
+
 // ── Icons ─────────────────────────────────────────────
 const icons = {
+  archive: `<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/></svg>`,
   plus: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>`,
   upload: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>`,
   search: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>`,
@@ -166,18 +250,23 @@ const icons = {
   trash: `<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>`,
   users: `<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>`,
   x: `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>`,
+  download: `<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>`,
+  uploadLg: `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>`,
+  fileExcel: `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>`,
 };
 
 // ── Fetch ─────────────────────────────────────────────
 const fetchEmployees = async () => {
   loading.value = true;
+  const endpoint = showArchived.value ? '/employees/archived' : '/employees';
+
   try {
     const params = {};
     if (filters.search) params.search = filters.search;
     if (filters.service_id) params.service_id = filters.service_id;
     if (filters.departement_id) params.departement_id = filters.departement_id;
 
-    const { data } = await api.get('/employees', { params });
+    const { data } = await api.get(endpoint, { params });
     employees.value = data;
     total.value = data.length;
   } catch (e) {
@@ -186,6 +275,9 @@ const fetchEmployees = async () => {
     loading.value = false;
   }
 };
+
+
+watch(showArchived, fetchEmployees);
 
 const fetchReferentials = async () => {
   if (isManager.value) return;
@@ -246,6 +338,60 @@ const deleteEmployee = async () => {
   } finally {
     deleting.value = false;
   }
+};
+
+// ── Import ────────────────────────────────────────────
+const closeImportModal = () => {
+  showImportModal.value = false;
+  importFile.value = null;
+  importResult.value = null;
+  isDragging.value = false;
+};
+
+const onFileChange = (e) => {
+  const file = e.target.files[0];
+  if (file) { importFile.value = file; importResult.value = null; }
+};
+
+const onDrop = (e) => {
+  isDragging.value = false;
+  const file = e.dataTransfer.files[0];
+  if (file) { importFile.value = file; importResult.value = null; }
+};
+
+const doImport = async () => {
+  if (!importFile.value) return;
+  importing.value = true;
+  importResult.value = null;
+  try {
+    const formData = new FormData();
+    formData.append('file', importFile.value);
+    const { data } = await api.post('/employees/import', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    importResult.value = data;
+    if (data.imported > 0 || data.updated > 0) await fetchEmployees();
+  } catch (e) {
+    importResult.value = {
+      imported: 0, updated: 0,
+      errors: [e.response?.data?.message ?? "Erreur lors de l'importation."],
+    };
+  } finally {
+    importing.value = false;
+  }
+};
+
+const downloadTemplate = () => {
+  const csv = [
+    'matricule,nom,prenom,email_pro,position,type,societe,service',
+    '12345,BENALI,Karim,k.benali@holcim.ma,Opérateur,propre,,Production',
+    ',SMITH,John,j.smith@contractor.ma,Technicien,sous-traitant,Anwal Electric,Maintenance',
+  ].join('\n');
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'modele_import_salaries.csv';
+  a.click(); URL.revokeObjectURL(url);
 };
 
 onMounted(async () => {

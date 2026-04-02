@@ -18,16 +18,21 @@ class HabilitationController extends Controller
         if ($request->has('volet_id')) {
             $query->where('volet_id', $request->volet_id);
         }
-
-        // Filter standard only
-        if ($request->has('standard')) {
-            $query->where('is_standard', true);
-        }
-
         $habilitations = $query->orderBy('nom')->get();
         $habilitations = Habilitation::with('volet')
     ->withCount('employeeHabilitations as employee_count')
     ->get();
+
+        return response()->json($habilitations, 200);
+    }
+
+    // GET /api/habilitations/volet/{volet_id}
+    public function getByVolet($volet_id): JsonResponse
+    {
+        $habilitations = Habilitation::with('volet')
+            ->where('volet_id', $volet_id)
+            ->orderBy('nom')
+            ->get();
 
         return response()->json($habilitations, 200);
     }
@@ -52,15 +57,10 @@ class HabilitationController extends Controller
             'duree_formation_recyclage_unite'  => 'required|in:heures,jours',
             'duree_de_validite'                => 'required|integer|min:1',
             'volet_id'                         => 'required|exists:volets,id',
-            'is_standard'                      => 'boolean',
+            'texte_autorisation'               => 'required|string|max:255',
         ]);
 
-        // If set as standard, unset previous standard of same volet
-        if (!empty($validated['is_standard']) && $validated['is_standard']) {
-            Habilitation::where('volet_id', $validated['volet_id'])
-                         ->update(['is_standard' => false]);
-        }
-
+       
         $habilitation = Habilitation::create($validated);
         $habilitation->load('volet');
 
@@ -79,15 +79,10 @@ class HabilitationController extends Controller
             'duree_formation_recyclage_unite'  => 'required|in:heures,jours',
             'duree_de_validite'                => 'required|integer|min:1',
             'volet_id'                         => 'required|exists:volets,id',
-            'is_standard'                      => 'boolean',
+            'texte_autorisation'               => 'required|string|max:255',
         ]);
 
-        // If setting as standard, unset others in same volet
-        if (!empty($validated['is_standard']) && $validated['is_standard']) {
-            Habilitation::where('volet_id', $validated['volet_id'])
-                         ->where('id', '!=', $habilitation->id)
-                         ->update(['is_standard' => false]);
-        }
+        
 
         $habilitation->update($validated);
         $habilitation->load('volet');

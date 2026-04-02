@@ -14,9 +14,14 @@ use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\SettingController;
 use App\Http\Controllers\Api\DocumentGenerationController;
 use App\Http\Controllers\Api\UserController;
+use App\Http\Controllers\Api\ValidationController;
 
 // ── Public routes ──────────────────────────────────────
 Route::post('/auth/login', [AuthController::class, 'login']);
+Route::get('/validations/confirmer/{token}', 
+    [ValidationController::class, 'confirmer']);
+Route::get('/validations/refuser/{token}', 
+    [ValidationController::class, 'refuser']);
 
 // ── Protected routes ───────────────────────────────────
 Route::middleware('auth:sanctum')->group(function () {
@@ -48,6 +53,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // ── Habilitations ──────────────────────────────────
     Route::middleware('role:RRH,RH')->group(function () {
+        Route::get('/habilitations/volet/{volet_id}', [HabilitationController::class, 'getByVolet']);
         Route::get('/habilitations', [HabilitationController::class, 'index']);
         Route::get('/habilitations/{habilitation}', [HabilitationController::class, 'show']);
     });
@@ -58,20 +64,24 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     // ── Employees ──────────────────────────────────────
+    Route::middleware('role:RRH')->group(function () {
+        Route::get('/employees/archived', [EmployeeController::class, 'archived']);
+        Route::patch('/employees/{id}/restore', [EmployeeController::class, 'restore']);
+        Route::delete('/employees/{id}/force', [EmployeeController::class, 'forceDelete']);
+        Route::delete('/employees/{employee}', [EmployeeController::class, 'destroy']);
+    });
     Route::middleware('role:RRH,RH,Manager')->group(function () {
         Route::get('/employees', [EmployeeController::class, 'index']);
         Route::get('/employees/{employee}', [EmployeeController::class, 'show']);
     });
     Route::middleware('role:RRH,RH')->group(function () {
+        Route::post('/employees/import', [EmployeeController::class, 'import']);
         Route::post('/employees', [EmployeeController::class, 'store']);
         Route::put('/employees/{employee}', [EmployeeController::class, 'update']);
     });
-    Route::middleware('role:RRH')->group(function () {
-        Route::delete('/employees/{employee}', [EmployeeController::class, 'destroy']);
-    });
+
 
     // ── Employee Habilitations ─────────────────────────
-    // IMPORTANT: static segments MUST come before {wildcard} routes
 
     Route::middleware('role:RRH,RH,Manager')->group(function () {
         // Static routes first
@@ -105,8 +115,9 @@ Route::middleware('auth:sanctum')->group(function () {
     // ── Documents ──────────────────────────────────────
     Route::middleware('role:RRH,RH,Manager')->group(function () {
         Route::get('/documents', [DocumentController::class, 'index']);
+        Route::get('/documents/all', [DocumentController::class, 'getAllDocuments']);
         Route::get('/documents/{document}', [DocumentController::class, 'show']);
-        Route::get('/documents/{document}/download', [DocumentController::class, 'download']);
+        Route::get('/documents/download/{document}', [DocumentController::class, 'download']);
     });
     Route::middleware('role:RRH,RH')->group(function () {
         Route::get('/documents/employees-par-habilitation/{habilitation}', [DocumentGenerationController::class, 'employeesParHabilitation']);
@@ -114,6 +125,9 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/documents/generate/note', [DocumentGenerationController::class, 'generateNote']);
         Route::post('/documents', [DocumentController::class, 'store']);
         Route::delete('/documents/{document}', [DocumentController::class, 'destroy']);
+        Route::get('/documents/{document}/download', [DocumentGenerationController::class, 'download']);
+
+
     });
 
     // ── Alerts ─────────────────────────────────────────
@@ -148,4 +162,9 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/users/{user}', [UserController::class, 'update']);
         Route::delete('/users/{user}', [UserController::class, 'destroy']);
     });
+
+        Route::post('/validations/initier/{employeeHabilitation}', 
+        [ValidationController::class, 'initier']);
+    Route::get('/validations/{employeeHabilitation}', 
+        [ValidationController::class, 'statut']);
 });

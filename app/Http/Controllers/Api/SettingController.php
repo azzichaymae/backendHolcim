@@ -22,11 +22,11 @@ class SettingController extends Controller
         $validated = $request->validate([
             'directeur_usine'       => 'required|string|max:150',
             'titre_directeur'       => 'required|string|max:150',
+            'email_directeur'       => 'nullable|string|max:150',
             'site'                  => 'required|string|max:150',
             'societe'               => 'required|string|max:150',
             'resp_sante_securite'   => 'required|string|max:150',
-            'resp_maintenance_elec' => 'required|string|max:150',
-            'resp_maintenance'      => 'required|string|max:150',
+            'email_resp_sante_securite' => 'nullable|string|max:150',
             'medecin'               => 'required|string|max:150',
         ]);
 

@@ -66,12 +66,19 @@ class DashboardController extends Controller
                 $q->join('employee_habilitations', 'habilitations.id', '=', 'employee_habilitations.habilitation_id')
                     ->where('employee_habilitations.statut', 'expirée');
             },
+            'habilitations as attributions_expirent_bientot' => function ($q) {
+                $q->join('employee_habilitations', 'habilitations.id', '=', 'employee_habilitations.habilitation_id')
+                    ->where('employee_habilitations.statut', 'valide')
+                    ->whereDate('employee_habilitations.date_expiration', '<=', now()->addDays(30))
+                    ->whereDate('employee_habilitations.date_expiration', '>=', now());
+            },
         ])->get()->map(function ($volet) {
             return [
                 'volet' => $volet->nom,
                 'total' => $volet->total_attributions,
                 'valides' => $volet->attributions_valides,
                 'expirees' => $volet->attributions_expirees,
+                'expirant_bientot' => $volet->attributions_expirent_bientot,
             ];
         });
 
@@ -135,7 +142,7 @@ class DashboardController extends Controller
                 'alertes_par_seuil' => $alertesChart,
                 'employes_par_service' => $parService,
             ],
-             'expiring_soon' => $expirantBientot,
+            'expiring_soon' => $expirantBientot,
         ], 200);
     }
 

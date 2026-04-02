@@ -22,6 +22,7 @@ class EmployeeHabilitation extends Model
         'organisme_formation',       // ← add
         'date_aptitude_medicale',
             'acknowledged_at',
+            'validation_statut',
 
     ];
     
@@ -30,6 +31,7 @@ class EmployeeHabilitation extends Model
         'date_expiration'        => 'date',
         'date_aptitude_medicale' => 'date',  // ← add
         'acknowledged_at'        => 'datetime',  // ← add
+        'validation_statut'       => 'string',  // ← add
 
     ];
     public function acknowledge(): void
@@ -59,6 +61,10 @@ class EmployeeHabilitation extends Model
         return $this->hasMany(Alert::class, 'employee_habilitation_id');
     }
 
+    public function validations()
+{
+    return $this->hasMany(AttributionValidation::class);
+}
     // ── Accessors ──────────────────────────────────────────
 
     public function getJoursRestantsAttribute(): int

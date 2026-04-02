@@ -20,12 +20,10 @@ class Habilitation extends Model
         'duree_formation_recyclage_unite',
         'duree_de_validite',
         'volet_id',
-        'is_standard',
+        'texte_autorisation',
     ];
 
-    protected $casts = [
-        'is_standard' => 'boolean',
-    ];
+   
 
     // ── Relations ──────────────────────────────────────────
 
@@ -70,11 +68,7 @@ class Habilitation extends Model
 
     // ── Scopes ─────────────────────────────────────────────
 
-    public function scopeStandard($query)
-    {
-        return $query->where('is_standard', true);
-    }
-
+    
     public function scopeParVolet($query, int $voletId)
     {
         return $query->where('volet_id', $voletId);
@@ -82,13 +76,5 @@ class Habilitation extends Model
 
     // ── Helpers ────────────────────────────────────────────
 
-    public function setAsStandard(): void
-    {
-        // Ensure only one standard per volet
-        Habilitation::where('volet_id', $this->volet_id)
-                     ->where('id', '!=', $this->id)
-                     ->update(['is_standard' => false]);
-
-        $this->update(['is_standard' => true]);
-    }
+   
 }

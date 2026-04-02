@@ -9,7 +9,6 @@ import Login from "@/components/auth/Login.vue";
 import Dashboard from "@/components/dashboard/Dashboard.vue";
 import EmployeeList from "@/components/employees/EmployeeList.vue";
 import EmployeeForm from "@/components/employees/EmployeeForm.vue";
-import HabilitationList from "@/components/habilitations/HabilitationList.vue";
 import AttributionForm from "@/components/attributions/AttributionForm.vue";
 import DocumentGeneration from "@/components/documents/DocumentGeneration.vue";
 import AlertList from "@/components/alerts/AlertList.vue";
@@ -17,6 +16,7 @@ import Settings from "@/components/settings/Settings.vue";
 import VoletList from "@/components/volets/VoletList.vue";
 import Profile from "../components/profile/Profile.vue";
 import Attributions from "../components/attributions/Attributions.vue";
+import Referentiel from "../components/habilitations/Referentiel.vue";
 
 const routes = [
     // Public
@@ -41,11 +41,7 @@ const routes = [
                 component: EmployeeForm,
                 name: "employees.edit",
             },
-            {
-                path: "habilitations",
-                component: HabilitationList,
-                name: "habilitations",
-            },
+
             {
                 path: "attributions",
                 component:Attributions,
@@ -61,16 +57,22 @@ const routes = [
                 component: DocumentGeneration,
                 name: "documents",
             },
-            { path: "alerts", component: AlertList, name: "alerts" },
             {
-                path: "settings",
+                path: "documents/:id",
+                component: DocumentGeneration,
+                name: "documents.id",
+            },
+                      { path: "alerts", component: AlertList, name: "alerts" },
+            {
+                path: "parametres",
                 component: Settings,
-                name: "settings",
+                name: "parametres",
                 meta: { roles: ["RRH"] },
             },
             { path: "volets", component: VoletList, name: "volets" },
 
             { path: "profile", component: Profile, name: "profile" },
+            { path: 'referentiel', component: Referentiel, name: 'referentiel' }
         ],
     },
 

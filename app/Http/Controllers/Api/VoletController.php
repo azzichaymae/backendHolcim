@@ -13,7 +13,6 @@ class VoletController extends Controller
     public function index(): JsonResponse
     {
         $volets = Volet::withCount('habilitations')
-            ->with('habilitationStandard')
             ->orderBy('nom')
             ->get();
 

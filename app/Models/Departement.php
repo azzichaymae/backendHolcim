@@ -11,7 +11,7 @@ class Departement extends Model
 
     protected $table = 'departements';
 
-    protected $fillable = ['nom'];
+    protected $fillable = ['nom', 'responsable', 'responsable_email'];
 
     // ── Relations ──────────────────────────────────────────
 
@@ -25,8 +25,8 @@ class Departement extends Model
         return $this->hasManyThrough(
             Employee::class,
             Service::class,
-            'departement_id', // FK on services
-            'service_id',     // FK on employees
+            'departement_id', 
+            'service_id',     
         );
     }
 }

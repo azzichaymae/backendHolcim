@@ -32,6 +32,9 @@ class DepartementController extends Controller
     {
         $validated = $request->validate([
             'nom' => 'required|string|max:100|unique:departements,nom',
+            'responsable' => 'nullable|string|max:150',
+            'responsable_email' => 'nullable|string|max:150',
+
         ]);
 
         $departement = Departement::create($validated);
@@ -44,6 +47,9 @@ class DepartementController extends Controller
     {
         $validated = $request->validate([
             'nom' => 'required|string|max:100|unique:departements,nom,' . $departement->id,
+            'responsable' => 'nullable|string|max:150',
+            'responsable_email' => 'nullable|string|max:150',
+
         ]);
 
         $departement->update($validated);

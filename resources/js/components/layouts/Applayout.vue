@@ -84,7 +84,7 @@
           <div class="user-menu" @click="profilePage">
             <div class="user-avatar">{{ userInitial }}</div>
             <div class="user-info">
-              <span class="user-name">{{ auth.user?.nom }}</span>
+              <span class="user-name">{{ auth.user?.nom }} {{ auth.user?.prenom }}</span>
               <span class="user-role">{{ auth.user?.role }}</span>
             </div>
             <!-- <span v-html="icons.chevronDown"></span> -->
@@ -175,8 +175,8 @@ const icons = {
 const navItems = [
   { name: 'dashboard', label: 'Dashboard', path: '/dashboard', icon: icons.dashboard, roles: ['RRH', 'RH','Manager'] },
   { name: 'employees', label: 'Salariés', path: '/employees', icon: icons.employees, roles: ['RRH', 'RH', 'Manager'] },
-  { name: 'volets', label: 'Volets', path: '/volets', icon: icons.volets, roles: ['RRH', 'RH'] },
-  { name: 'habilitations', label: 'Habilitations', path: '/habilitations', icon: icons.habilitations, roles: ['RRH', 'RH','Manager'] },
+  // { name: 'volets', label: 'Catégories', path: '/volets', icon: icons.volets, roles: ['RRH', 'RH'] },
+  { name: 'habilitations', label: 'Habilitations', path: '/referentiel', icon: icons.habilitations, roles: ['RRH', 'RH','Manager'] },
   { name: 'attributions', label: 'Associations', path: '/attributions', icon: icons.attributions, roles: ['RRH', 'RH'] },
   { name: 'documents', label: 'Documents', path: '/documents', icon: icons.documents, roles: ['RRH', 'RH'] },
   { name: 'alerts', label: 'Alertes', path: '/alerts', icon: icons.alerts, roles: ['RRH', 'RH', 'Manager'] },
@@ -185,7 +185,7 @@ const navItems = [
 
 // ── System items ──────────────────────────────────────
 const systemItems = [
-  { name: 'settings', label: 'Paramètres', path: '/settings', icon: icons.settings, roles: ['RRH'] },
+  { name: 'settings', label: 'Paramètres', path: '/parametres', icon: icons.settings, roles: ['RRH'] },
 ];
 
 // ── All items combined for page title lookup ──────────
@@ -199,9 +199,6 @@ const visibleSystemItems = computed(() =>
   systemItems.filter(item => item.roles.includes(auth.user?.role))
 );
 
-const visibleMenuItems = computed(() =>
-  allMenuItems.filter(item => item.roles.includes(auth.user?.role))
-);
 
 const canSeeAlerts = computed(() =>
   ['RRH', 'RH', 'Manager'].includes(auth.user?.role)
@@ -233,8 +230,8 @@ const profilePage = async () => {
 const fetchAlertCount = async () => {
   try {
     const { data } = await api.get('/alerts/count');
-    alertCount.value = data.urgentes + data.a_7j;
-    console.log('Alert count:', data);
+    console.log('Alert count:', data.urgentes);
+    alertCount.value = data.urgentes;
   } catch { }
 };
 

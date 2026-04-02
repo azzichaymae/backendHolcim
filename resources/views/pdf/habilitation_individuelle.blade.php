@@ -121,7 +121,7 @@
     <table class="header-table">
         <tr>
             <td class="logo-cell">
-                <img src="{{ public_path('images/holcim_logoB&W.png') }}" alt="Holcim" />
+                <img src="{{ public_path('images/holcim_logo.png') }}" alt="Holcim" />
             </td>
         </tr>
     </table>
@@ -172,7 +172,7 @@
         au sein de {{ $settings->societe }}, {{ $settings->site }},
         j'autorise M.
         <span class="bold">{{ strtoupper($eh->employee->nom) }} {{ $eh->employee->prenom }}</span>
-        <span class="bold">à effectuer les Travaux en tant que {{ $eh->habilitation->nom }}</span>
+        <span class="bold">à effectuer {{ $eh->habilitation->texte_autorisation }}</span>.
     </div>
 
     <!-- Validity -->
@@ -192,12 +192,12 @@
                 <div class="sig-name">{{ strtoupper($eh->employee->nom) }}<br>{{ $eh->employee->prenom }}</div>
             </td>
             <td>
-                <div class="sig-role">Responsable<br>{{ $settings->resp_maintenance_elec_titre ?? 'Maintenance Électrique' }}</div>
-                <div class="sig-name">{{ $settings->resp_maintenance_elec }}</div>
+                <div class="sig-role">Responsable<br>{{ $eh->employee->service->nom }}</div>
+                <div class="sig-name">{{ $eh->employee->service->responsable }}</div>
             </td>
             <td>
-                <div class="sig-role">Responsable<br>{{ $settings->resp_maintenance_titre ?? 'Maintenance' }}</div>
-                <div class="sig-name">{{ $settings->resp_maintenance }}</div>
+                <div class="sig-role">Responsable<br>{{ $eh->employee->service->departement->nom }}</div>
+                <div class="sig-name">{{ $eh->employee->service->departement->responsable }}</div>
             </td>
             <td>
                 <div class="sig-role">Responsable<br>Santé Sécurité</div>
@@ -209,11 +209,11 @@
             </td>
         </tr>
         <tr>
-            <td style="height:25px"></td>
-            <td style="height:25px"></td>
-            <td style="height:25px"></td>
-            <td style="height:25px"></td>
-            <td style="height:25px"></td>
+            <td style="height:25px" id="emp"></td>
+            <td style="height:25px" id="respService"></td>
+            <td style="height:25px" id="respDepartement"></td>
+            <td style="height:25px" id="respSanteSecurite"></td>
+            <td style="height:25px" id="directeurUsine"></td>
         </tr>
     </table>
 

@@ -23,11 +23,7 @@ class Volet extends Model
         return $this->hasMany(Habilitation::class, 'volet_id');
     }
 
-    public function habilitationStandard()
-    {
-        return $this->hasOne(Habilitation::class, 'volet_id')
-                    ->where('is_standard', true);
-    }
+    
 
     // ── Accessors ──────────────────────────────────────────
 
@@ -36,24 +32,4 @@ class Volet extends Model
         return $this->habilitations()->count();
     }
 
-    public function getAStandardAttribute(): bool
-    {
-        return $this->habilitations()->where('is_standard', true)->exists();
-    }
-
-    // ── Scopes ─────────────────────────────────────────────
-
-    public function scopeAvecStandard($query)
-    {
-        return $query->whereHas('habilitations', function ($q) {
-            $q->where('is_standard', true);
-        });
-    }
-
-    public function scopeSansStandard($query)
-    {
-        return $query->whereDoesntHave('habilitations', function ($q) {
-            $q->where('is_standard', true);
-        });
-    }
 }

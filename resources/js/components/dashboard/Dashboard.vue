@@ -6,7 +6,7 @@
       <div>
         <h1 class="dash-title">Dashboard</h1>
         <p class="dash-subtitle">
-          {{ isManager ? `Service : ${auth.user?.service}` : 'Vue globale — tous les services' }}
+          {{ isManager ? `${managerService}` : 'Service : Vue globale — tous les services' }}
         </p>
       </div>
       <button class="btn-refresh" @click="fetchAll" :disabled="loading">
@@ -24,16 +24,14 @@
 
       <!-- ── Stats Cards ────────────────────────────────── -->
       <div class="stats-grid">
-        <div class="stat-card" v-for="card in statsCards" :key="card.key"
-             :style="{ '--accent': card.color }">
+        <div class="stat-card" v-for="card in statsCards" :key="card.key" :style="{ '--accent': card.color }" :class="{ clickable: card.href }" @click="card.href && $router.push(card.href) ">
           <div class="stat-icon" v-html="card.icon"></div>
           <div class="stat-body">
             <div class="stat-value">{{ card.value }}</div>
             <div class="stat-label">{{ card.label }}</div>
           </div>
           <div class="stat-bar">
-            <div class="stat-bar-fill"
-                 :style="{ width: card.percent + '%', background: card.color }">
+            <div class="stat-bar-fill" :style="{ width: card.percent + '%', background: card.color }">
             </div>
           </div>
         </div>
@@ -81,7 +79,7 @@
         <!-- Bar — par volet -->
         <div class="chart-card chart-wide">
           <div class="chart-header">
-            <h3>Habilitations par Volet</h3>
+            <h3>Habilitations par Catégorie</h3>
             <span class="chart-badge">Attribution</span>
           </div>
           <Bar :data="voletBarData" :options="voletBarOptions" />
@@ -105,13 +103,9 @@
 
           <!-- ── Filter tabs ── -->
           <div class="exp-tabs">
-            <button
-              v-for="tab in expirationTabs"
-              :key="tab.jours"
-              :class="['exp-tab', tab.cls, { active: activeJours === tab.jours }]"
-              @click="switchTab(tab.jours)"
-              :disabled="expLoading"
-            >
+            <button v-for="tab in expirationTabs" :key="tab.jours"
+              :class="['exp-tab', tab.cls, { active: activeJours === tab.jours }]" @click="switchTab(tab.jours)"
+              :disabled="expLoading">
               {{ tab.label }}
               <span class="exp-tab-count">{{ tab.count }}</span>
             </button>
@@ -136,7 +130,7 @@
                   <th>Salarié</th>
                   <th>Matricule</th>
                   <th>Habilitation</th>
-                  <th>Volet</th>
+                  <th>Catégorie</th>
                   <th>Expiration</th>
                   <th>Jours restants</th>
                 </tr>
@@ -149,12 +143,11 @@
                   <td>{{ row.habilitation?.volet?.nom }}</td>
                   <td>{{ formatDate(row.date_expiration) }}</td>
                   <td>
-                    <span class="jours-badge"
-                      :class="{
-                        expired: row.jours_restants <= 0,
-                        urgent:  row.jours_restants > 0 && row.jours_restants <= 7,
-                        warning: row.jours_restants > 7 && row.jours_restants <= 30
-                      }">
+                    <span class="jours-badge" :class="{
+                      expired: row.jours_restants <= 0,
+                      urgent: row.jours_restants > 0 && row.jours_restants <= 7,
+                      warning: row.jours_restants > 7 && row.jours_restants <= 30
+                    }">
                       {{ !row.jours_restants_display ? 'Expiré' : row.jours_restants_display + 'j' }}
                     </span>
                   </td>
@@ -177,41 +170,41 @@ import {
   ArcElement, Tooltip, Legend,
   CategoryScale, LinearScale, BarElement, Title
 } from 'chart.js';
-import api           from '@/services/api';
+import api from '@/services/api';
 import { useAuthStore } from '@/stores/auth';
 import '@/../css/components/dashboard/dashboard.css';
 
 ChartJS.register(ArcElement, Tooltip, Legend,
   CategoryScale, LinearScale, BarElement, Title);
 
-const auth    = useAuthStore();
+const auth = useAuthStore();
 const loading = ref(true);
-const stats   = ref(null);
-const charts  = ref(null);
+const stats = ref(null);
+const charts = ref(null);
 
 // ── Expiration state ──────────────────────────────────
 const expirations = ref([]);
-const expLoading  = ref(false);
+const expLoading = ref(false);
 const activeJours = ref(30);
 // Counts per tier — fetched once on mount alongside the 30j data
 const tierCounts = ref({ 30: 0, 7: 0, 0: 0 });
 
 const expirationTabs = computed(() => [
   { jours: 30, label: '30 jours', cls: 'tab-warning', count: tierCounts.value[30] },
-  { jours: 7,  label: '7 jours',  cls: 'tab-urgent',  count: tierCounts.value[7]  },
-  { jours: 0,  label: 'Expirés',  cls: 'tab-expired', count: tierCounts.value[0]  },
+  { jours: 7, label: '7 jours', cls: 'tab-urgent', count: tierCounts.value[7] },
+  { jours: 0, label: 'Expirés', cls: 'tab-expired', count: tierCounts.value[0] },
 ]);
 
 const isManager = computed(() => auth.user?.role === 'Manager');
 
 // ── Icons ─────────────────────────────────────────────
 const icons = {
-  employees:    `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>`,
-  valides:      `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`,
-  expirees:     `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`,
-  alerts:       `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>`,
-  refresh:      `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>`,
-  check:        `<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`,
+  employees: `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>`,
+  valides: `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`,
+  expirees: `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`,
+  alerts: `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>`,
+  refresh: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>`,
+  check: `<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`,
 };
 
 // ── Fetch expiration data for a given tier ────────────
@@ -243,8 +236,8 @@ const fetchTierCounts = async () => {
     ]);
     tierCounts.value = {
       30: r30.data.length,
-      7:  r7.data.length,
-      0:  r0.data.length,
+      7: r7.data.length,
+      0: r0.data.length,
     };
     // Seed the initial table data from the already-fetched 30j response
     expirations.value = isManager.value
@@ -270,7 +263,7 @@ const fetchAll = async () => {
       api.get('/dashboard'),
       fetchTierCounts(),   // sets expirations + tierCounts
     ]);
-    stats.value  = dashRes.data.stats;
+    stats.value = dashRes.data.stats;
     charts.value = dashRes.data.charts;
   } catch (e) {
     console.error(e);
@@ -297,6 +290,7 @@ const statsCards = computed(() => {
       color: '#1a6b8a',
       percent: 100,
       icon: icons.employees,
+      href: '/employees',
     },
     {
       key: 'valides',
@@ -305,6 +299,17 @@ const statsCards = computed(() => {
       color: '#22c55e',
       percent: Math.round((s.habilitations?.valides / total) * 100),
       icon: icons.valides,
+      href: '/attributions?statut=valide'
+    },
+    {
+      key: 'expiring',
+      label: 'Habilitations Expirant Bientôt',
+      value: s.habilitations?.expirant_30j ?? 0,
+      color: '#f59e0b',
+      percent: Math.round((s.habilitations?.expirant_30j / total) * 100),
+      icon: icons.alerts,
+      href: '/attributions?statut=bientot',
+
     },
     {
       key: 'expirees',
@@ -313,15 +318,16 @@ const statsCards = computed(() => {
       color: '#ef4444',
       percent: Math.round((s.habilitations?.expirees / total) * 100),
       icon: icons.expirees,
+      href: '/attributions?statut=expire',
     },
-    {
-      key: 'alerts',
-      label: 'Alertes Actives',
-      value: s.alerts?.actives ?? 0,
-      color: '#f59e0b',
-      percent: 100,
-      icon: icons.alerts,
-    },
+    // {
+    //   key: 'alerts',
+    //   label: 'Alertes Actives',
+    //   value: s.alerts?.actives ?? 0,
+    //   color: '#f59e0b',
+    //   percent: 100,
+    //   icon: icons.alerts,
+    // },
   ];
 });
 
@@ -380,6 +386,11 @@ const voletBarData = computed(() => {
         borderRadius: 4,
       },
       {
+        label: 'Expire dans 30j',
+        data: data.map(v => v.expirant_bientot),
+        backgroundColor: '#f59e0b',
+      },
+      {
         label: 'Expirées',
         data: data.map(i => i.expirees),
         backgroundColor: '#ef4444',
@@ -429,6 +440,20 @@ const formatDate = (dateStr) => {
   if (!dateStr) return '—';
   return new Date(dateStr).toLocaleDateString('fr-FR');
 };
-
+const managerService = ref('');
+const fetchManagerService = async () => {
+  try {
+    const { data } = await api.get('/auth/me');
+    managerService.value = data.service?.nom ?? data.service;
+  }
+  catch (e) {
+    console.error(e);
+  }
+};
 onMounted(fetchAll);
+onMounted(() => {
+  if (isManager) {
+    fetchManagerService();
+  }
+});
 </script>

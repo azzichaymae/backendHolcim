@@ -12,7 +12,8 @@
             {{ isEdit ? 'Modifier le salarié' : 'Ajouter un salarié' }}
           </h1>
           <p class="page-subtitle">
-{{ isEdit ? (form.type === 'sous-traitant' ? `Sous-traitant — ${form.societe}` : `Matricule : ${form.matricule}`) : 'Remplir les informations du salarié' }}
+            {{ isEdit ? (form.type === 'sous-traitant' ? `Sous-traitant — ${form.societe}` : `Matricule :
+            ${form.matricule}`) : 'Remplir les informations du salarié' }}
           </p>
         </div>
       </div>
@@ -33,7 +34,7 @@
           <div class="form-grid">
             <!-- Type -->
             <div class="field field-full">
-              <label>Type d'employé <span class="required">*</span></label>
+              <label>Statut d'employé <span class="required">*</span></label>
               <div style="display:flex;gap:12px;margin-top:4px;">
                 <label class="radio-option" :class="{ selected: form.type === 'propre' }">
                   <input type="radio" v-model="form.type" value="propre" style="display:none;" />
@@ -51,8 +52,8 @@
             <!-- Matricule -->
             <div class="field">
               <label>Matricule </label>
-              <input v-model="form.matricule" type="number"
-                :class="{ 'input-error': errors.matricule }" :disabled="isEdit || form.type === 'sous-traitant'" />
+              <input v-model="form.matricule" type="number" :class="{ 'input-error': errors.matricule }"
+                :disabled="isEdit || form.type === 'sous-traitant'" />
               <span class="error-msg" v-if="errors.matricule">
                 {{ errors.matricule }}
               </span>
@@ -76,28 +77,17 @@
 
             <!-- Email -->
             <div class="field">
-              <label>Email professionnel <span class="required">*</span></label>
+              <label>Email professionnel <span v-if="form.type === 'propre'" class="required">*</span></label>
               <input v-model="form.email_pro" type="email" placeholder="k.benali@holcim.ma"
                 :class="{ 'input-error': errors.email_pro }" />
               <span class="error-msg" v-if="errors.email_pro">
                 {{ errors.email_pro }}
               </span>
             </div>
-
-            <!-- Position -->
-            <div class="field field-full">
-              <label>Poste / Position <span class="required">*</span></label>
-              <input v-model="form.position" type="text" placeholder="Opérateur de production"
-                :class="{ 'input-error': errors.position }" />
-              <span class="error-msg" v-if="errors.position">
-                {{ errors.position }}
-              </span>
-            </div>
-
           </div>
 
 
-          <!-- Société (only for sous-traitant) -->
+          <!-- Société -->
           <div class="field field-full" v-if="form.type === 'sous-traitant'">
             <label>Société <span class="required">*</span></label>
             <input v-model="form.societe" type="text" placeholder="Ex: Anwal Electric"
@@ -108,35 +98,46 @@
 
           <div class="form-grid">
 
-            <!-- Département -->
-            <div class="field">
-              <label>Département <span class="required">*</span></label>
-              <select v-model="selectedDepartement" @change="onDepartementChange"
-                :class="{ 'input-error': errors.service_id }">
-                <option value="">Sélectionner un département</option>
-                <option v-for="dep in departements" :key="dep.id" :value="dep.id">
-                  {{ dep.nom }}
-                </option>
-              </select>
-            </div>
-
-            <!-- Service -->
-            <div class="field">
+            <!-- Service first -->
+            <div class="field form-group">
               <label>Service <span class="required">*</span></label>
-              <select v-model="form.service_id" :class="{ 'input-error': errors.service_id }"
-                :disabled="!selectedDepartement">
+              <select v-model="form.service_id" @change="onServiceChange" class="form-input"
+                :class="{ 'input-error': errors.service_id }">
                 <option value="">Sélectionner un service</option>
-                <option v-for="svc in filteredServices" :key="svc.id" :value="svc.id">
+                <option v-for="svc in services" :key="svc.id" :value="svc.id">
                   {{ svc.nom }}
                 </option>
               </select>
-              <span class="error-msg" v-if="errors.service_id">
-                {{ errors.service_id }}
-              </span>
+              <span class="error-msg" v-if="errors.service_id">{{ errors.service_id }}</span>
+            </div>
+
+            <!-- Département auto-filled, read-only -->
+            <div class="field form-group">
+              <label>Département</label>
+              <input type="text" class="form-input readonly" :value="autoFilledDepartement" readonly
+                placeholder="Sélectionnez d'abord un service" />
             </div>
 
           </div>
-
+          <div class="field field-full">
+            <label>Poste / Position <span class="required">*</span></label>
+            <div class="position-combo">
+              <input v-model="form.position" type="text" placeholder="Sélectionner ou saisir un poste..."
+                :class="{ 'input-error': errors.position }" @focus="showPositions = true"
+                @blur="setTimeout(() => showPositions = false, 150)" autocomplete="off" />
+              <ul class="position-dropdown" v-if="showPositions && filteredPositions.length">
+                <li v-for="pos in filteredPositions" :key="pos" @mousedown="form.position = pos; showPositions = false"
+                  :class="{ active: form.position === pos }">
+                  {{ pos }}
+                </li>
+                <li class="position-new" v-if="form.position && !filteredPositions.includes(form.position)">
+                  <span v-html="icons.plus"></span>
+                  Ajouter "{{ form.position }}"
+                </li>
+              </ul>
+            </div>
+            <span class="error-msg" v-if="errors.position">{{ errors.position }}</span>
+          </div>
           <!-- Global error -->
           <div class="global-error" v-if="errors.global">
             {{ errors.global }}
@@ -212,6 +213,9 @@ const departements = ref([]);
 const services = ref([]);
 const selectedDepartement = ref('');
 
+const showPositions = ref(false);
+const existingPositions = ref([]);
+
 const form = reactive({
   matricule: '',
   nom: '',
@@ -244,11 +248,40 @@ const icons = {
 };
 
 // ── Computed ──────────────────────────────────────────
-const filteredServices = computed(() =>
-  selectedDepartement.value
-    ? services.value.filter(s => s.departement_id == selectedDepartement.value)
-    : []
-);
+const fetchPositions = async () => {
+  if (!form.service_id) { existingPositions.value = []; return; }
+  try {
+    const { data } = await api.get('/employees', {
+      params: { service_id: form.service_id }
+    });
+    // Extract unique non-null positions
+    const positions = [...new Set(
+      data.map(e => e.position).filter(Boolean)
+    )].sort();
+    existingPositions.value = positions;
+  } catch (e) {
+    console.error(e);
+  }
+};
+
+const filteredPositions = computed(() => {
+  if (!form.position) return existingPositions.value;
+  const q = form.position.toLowerCase();
+  return existingPositions.value.filter(p => p.toLowerCase().includes(q));
+});
+const onServiceChange = () => {
+   form.position = ''; 
+   const svc = services.value.find(s => s.id === form.service_id);
+  selectedDepartement.value = svc ? svc.departement_id : '';
+  fetchPositions();
+  autoFilledDepartement();
+ 
+};
+const autoFilledDepartement = computed(() => {
+  if (!form.service_id) return '';
+  const svc = services.value.find(s => s.id == form.service_id);
+  return svc?.departement?.nom ?? '';
+});
 
 // ── Fetch referentials ────────────────────────────────
 const fetchReferentials = async () => {
@@ -278,10 +311,6 @@ const fetchEmployee = async () => {
   selectedDepartement.value = data.service?.departement_id ?? '';
 };
 
-// ── Departement change ────────────────────────────────
-const onDepartementChange = () => {
-  form.service_id = '';
-};
 
 // ── Validate ──────────────────────────────────────────
 const clearErrors = () => {
@@ -290,10 +319,10 @@ const clearErrors = () => {
 
 const validate = () => {
   let valid = true;
-if (form.type !== 'sous-traitant' && !form.matricule) { 
-  errors.matricule = 'Le matricule est obligatoire.'; 
-  valid = false; 
-}  if (!form.nom) { errors.nom = 'Le nom est obligatoire.'; valid = false; }
+  if (form.type !== 'sous-traitant' && !form.matricule) {
+    errors.matricule = 'Le matricule est obligatoire.';
+    valid = false;
+  } if (!form.nom) { errors.nom = 'Le nom est obligatoire.'; valid = false; }
   if (!form.prenom) { errors.prenom = 'Le prénom est obligatoire.'; valid = false; }
   if (!form.email_pro) { errors.email_pro = 'L\'email est obligatoire.'; valid = false; }
   if (!form.position) { errors.position = 'Le poste est obligatoire.'; valid = false; }
@@ -306,7 +335,7 @@ if (form.type !== 'sous-traitant' && !form.matricule) {
 // ── Submit ────────────────────────────────────────────
 const submit = async () => {
   clearErrors();
-  
+
   if (!validate()) return;
 
   submitting.value = true;

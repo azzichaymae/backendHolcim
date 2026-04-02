@@ -26,7 +26,6 @@ class HabilitationSeeder extends Seeder
                 'duree_formation_recyclage_unite' => 'heures',
                 'duree_de_validite'               => 2,
                 'volet_id'                        => $incendie->id,
-                'is_standard'                     => true,
             ],
             [
                 'nom'                            => 'Équipier de Seconde Intervention',
@@ -37,7 +36,6 @@ class HabilitationSeeder extends Seeder
                 'duree_formation_recyclage_unite' => 'jours',
                 'duree_de_validite'               => 2,
                 'volet_id'                        => $incendie->id,
-                'is_standard'                     => false,
             ],
             // Électrique
             [
@@ -49,7 +47,6 @@ class HabilitationSeeder extends Seeder
                 'duree_formation_recyclage_unite' => 'heures',
                 'duree_de_validite'               => 3,
                 'volet_id'                        => $electrique->id,
-                'is_standard'                     => true,
             ],
             [
                 'nom'                            => 'Habilitation B1 — Exécutant électricien BT',
@@ -60,7 +57,6 @@ class HabilitationSeeder extends Seeder
                 'duree_formation_recyclage_unite' => 'jours',
                 'duree_de_validite'               => 3,
                 'volet_id'                        => $electrique->id,
-                'is_standard'                     => false,
             ],
             // Travail en Hauteur
             [
@@ -72,7 +68,6 @@ class HabilitationSeeder extends Seeder
                 'duree_formation_recyclage_unite' => 'heures',
                 'duree_de_validite'               => 3,
                 'volet_id'                        => $hauteur->id,
-                'is_standard'                     => true,
             ],
             // Conduite d'Engins
             [
@@ -84,7 +79,6 @@ class HabilitationSeeder extends Seeder
                 'duree_formation_recyclage_unite' => 'jours',
                 'duree_de_validite'               => 5,
                 'volet_id'                        => $engins->id,
-                'is_standard'                     => true,
             ],
         ];
 

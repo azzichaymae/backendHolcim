@@ -111,7 +111,7 @@
             <tr>
               <th>Employé</th>
               <th>Habilitation</th>
-              <th>Volet</th>
+              <th>Catégorie</th>
               <th>Date expiration</th>
               <th>Jours restants</th>
               <th>Urgence</th>

@@ -4,12 +4,12 @@
     <!-- ── Header ─────────────────────────────────────── -->
     <div class="page-header">
       <div>
-        <h1 class="page-title">Volets</h1>
-        <p class="page-subtitle">{{ volets.length }} volet(s) configuré(s)</p>
+        <h1 class="page-title">Catégories</h1>
+        <p class="page-subtitle">{{ volets.length }} catégorie(s) configurée(s)</p>
       </div>
       <button class="btn-add" @click="openModal()">
         <span v-html="icons.plus"></span>
-        Ajouter un volet
+        Ajouter une catégorie
       </button>
     </div>
 
@@ -21,7 +21,7 @@
     <!-- ── Empty ──────────────────────────────────────── -->
     <div class="empty-state" v-else-if="volets.length === 0">
       <span v-html="icons.folder"></span>
-      <p>Aucun volet configuré.</p>
+      <p>Aucune catégorie configurée.</p>
     </div>
 
     <!-- ── Grid ───────────────────────────────────────── -->
@@ -86,12 +86,12 @@
           box-shadow:0 20px 60px rgba(0,0,0,0.2);
         ">
           <h3 style="font-size:1.1rem;font-weight:700;color:#1a2e44;margin:0 0 24px 0;">
-            {{ editTarget ? 'Modifier le volet' : 'Ajouter un volet' }}
+            {{ editTarget ? 'Modifier la catégorie' : 'Ajouter une catégorie' }}
           </h3>
 
           <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:20px;">
             <label style="font-size:0.85rem;font-weight:600;color:#374151;">
-              Nom du volet <span style="color:#ef4444;">*</span>
+              Nom de la catégorie <span style="color:#ef4444;">*</span>
             </label>
             <input
               v-model="form.nom"
@@ -150,14 +150,14 @@
     <!-- ── Delete confirm ─────────────────────────────── -->
     <ConfirmModal
       :show="!!deleteTarget"
-      title="Supprimer ce volet ?"
+      title="Supprimer cette catégorie ?"
       confirmLabel="Supprimer"
       :loading="deleting"
       :icon="icons.trash"
       @confirm="deleteVolet"
       @cancel="deleteTarget = null"
     >
-      Voulez-vous supprimer le volet
+      Voulez-vous supprimer cette catégorie
       <strong>{{ deleteTarget?.nom }}</strong> ?<br>
       Cette action est irréversible.
     </ConfirmModal>

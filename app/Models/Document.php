@@ -42,15 +42,6 @@ class Document extends Model
         return 'Inconnu';
     }
 
-    // ── Helpers ────────────────────────────────────────────
 
-    public function isPdf(): bool
-    {
-        return $this->type === 'PDF';
-    }
-
-    public function isImage(): bool
-    {
-        return in_array($this->type, ['JPG', 'PNG']);
-    }
+   
 }

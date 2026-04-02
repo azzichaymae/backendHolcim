@@ -377,6 +377,7 @@ const icons = {
 
 const initials = computed(() => {
   if (!user.value) return '?';
+  console.log(user.value);
   return ((user.value.prenom?.charAt(0) ?? '') + (user.value.nom?.charAt(0) ?? '')).toUpperCase();
 });
 
@@ -448,10 +449,8 @@ const openUserModal = (u = null) => {
   Object.keys(userErrors).forEach(k => userErrors[k] = '');
 
   if (u) {
-    // Split nom into prenom + nom
-    const parts  = (u.nom ?? '').trim().split(' ');
-    const nom = parts[0] ?? '';
-    const prenom    = parts.slice(1).join(' ') ?? '';
+    const nom = u.nom;
+    const prenom    = u.prenom;
 
     Object.assign(userForm, {
       nom,
@@ -487,7 +486,7 @@ const validateUser = () => {
 const submitUser = async () => {
   if (!validateUser()) return;
   savingUser.value = true;
-  const payload = { nom: userForm.nom + " " + userForm.prenom, prenom: userForm.prenom,email: userForm.email, role: userForm.role, service_id: userForm.service_id || null };
+  const payload = { nom: userForm.nom, prenom: userForm.prenom, email: userForm.email, role: userForm.role, service_id: userForm.service_id || null };
   if (!editUser.value || resetPassword.value) { payload.password = userForm.password; payload.password_confirmation = userForm.password_confirmation; }
   try {
     if (editUser.value) {

@@ -10,6 +10,8 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
+use Laravel\Pail\ValueObjects\Origin\Console;
+use App\Models\Document;
 
 class DocumentGenerationController extends Controller
 {
@@ -30,58 +32,77 @@ class DocumentGenerationController extends Controller
             ->map(function ($eh) {
                 return [
                     'employee_habilitation_id' => $eh->id,
-                    'matricule'                => $eh->employee->matricule,
-                    'nom_complet'              => $eh->employee->prenom . ' ' . $eh->employee->nom,
-                    'position'                 => $eh->employee->position,
-                    'service'                  => $eh->employee->service->nom,
-                    'date_obtention'           => $eh->date_obtention->format('d/m/Y'),
-                    'date_expiration'          => $eh->date_expiration->format('d/m/Y'),
-                    'statut'                   => $eh->statut,
+                    'matricule' => $eh->employee->matricule,
+                    'nom_complet' => $eh->employee->prenom . ' ' . $eh->employee->nom,
+                    'position' => $eh->employee->position,
+                    'service' => $eh->employee->service->nom,
+                    'date_obtention' => $eh->date_obtention->format('d/m/Y'),
+                    'date_expiration' => $eh->date_expiration->format('d/m/Y'),
+                    'statut' => $eh->statut,
                 ];
             });
 
         return response()->json([
             'habilitation' => $habilitation->nom,
-            'total'        => $employees->count(),
-            'employees'    => $employees,
+            'total' => $employees->count(),
+            'employees' => $employees,
         ], 200);
     }
 
     // POST /api/documents/generate/individuelle
     public function generateIndividuelle(Request $request)
-{
-    $request->validate([
-        'employee_habilitation_id' => 'required|exists:employee_habilitations,id',
-    ]);
+    {
+        $request->validate([
+            'employee_habilitation_id' => 'required|exists:employee_habilitations,id',
+        ]);
 
-    // ── Debug — remove after fix ──────────────────────
-    $logoPath = public_path('images/holcim_logo.png');
-    \Log::info('Logo exists: ' . (file_exists($logoPath) ? 'YES' : 'NO'));
-    \Log::info('Logo path: ' . $logoPath);
-    // ─────────────────────────────────────────────────
 
-    $eh = EmployeeHabilitation::with([
-        'employee.service.departement',
-        'habilitation',
-    ])->findOrFail($request->employee_habilitation_id);
+        $eh = EmployeeHabilitation::with([
+            'employee.service.departement',
+            'habilitation',
+        ])->findOrFail($request->employee_habilitation_id);
+        echo "<script>console.log('PHP variable:', '" . $eh . "');</script>";
+        $settings = Setting::getInstance();
 
-    $settings = Setting::getInstance();
+        Carbon::setLocale('fr');
 
-    \Carbon\Carbon::setLocale('fr');
+        $filename = 'Habilitation Individuelle_'
+            . $eh->employee->matricule . '_'
+            . str_replace(' ', '_', $eh->habilitation->nom) . '_'
+            . now()->format('Ymd')
+            . '.pdf';
 
-    $filename = 'habilitation_'
-        . $eh->employee->matricule . '_'
-        . str_replace(' ', '_', $eh->habilitation->nom) . '_'
-        . now()->format('Ymd')
-        . '.pdf';
+        $pdf = Pdf::loadView('pdf.habilitation_individuelle', [
+            'eh' => $eh,
+            'settings' => $settings,
+        ])->setPaper('a4', 'portrait');
 
-    $pdf = Pdf::loadView('pdf.habilitation_individuelle', [
-        'eh'       => $eh,
-        'settings' => $settings,
-    ])->setPaper('a4', 'portrait');
+        $relativePath = 'documents/' . $filename;
+        $pdf->save(storage_path('app/public/' . $relativePath));
 
-    return $pdf->download($filename);
-}
+        $baseName = $filename;
+        $counter = 1;
+
+        while (
+            Document::where('nom', $filename)
+                ->where('employee_habilitation_id', $eh->id)
+                ->exists()
+        ) {
+            $filename = pathinfo($baseName, PATHINFO_FILENAME) . '_' . $counter . '.' . pathinfo($baseName, PATHINFO_EXTENSION);
+            $counter++;
+        }
+
+        $docDB = Document::create([
+            'nom' => $filename,
+            'employee_habilitation_id' => $eh->id,
+            'type' => 'individuelle',
+            'chemin' => $relativePath,
+        ]);
+
+
+
+        return $pdf->download($filename);
+    }
     // POST /api/documents/generate/note
     public function generateNote(Request $request)
     {
@@ -94,10 +115,10 @@ class DocumentGenerationController extends Controller
         $employeeHabilitations = EmployeeHabilitation::with([
             'employee.service',
         ])
-        ->where('habilitation_id', $habilitation->id)
-        ->where('statut', 'valide')
-        ->orderBy('date_expiration')
-        ->get();
+            ->where('habilitation_id', $habilitation->id)
+            ->where('statut', 'valide')
+            ->orderBy('date_expiration')
+            ->get();
 
         $settings = Setting::getInstance();
 
@@ -107,11 +128,17 @@ class DocumentGenerationController extends Controller
             . '.pdf';
 
         $pdf = Pdf::loadView('pdf.note_habilitation', [
-            'habilitation'          => $habilitation,
+            'habilitation' => $habilitation,
             'employeeHabilitations' => $employeeHabilitations,
-            'settings'              => $settings,
+            'settings' => $settings,
         ])->setPaper('a4', 'portrait');
+
+        $relativePath = 'documents/' . $filename;
+        $pdf->save(storage_path('app/public/' . $relativePath));
+
 
         return $pdf->download($filename);
     }
+
+
 }

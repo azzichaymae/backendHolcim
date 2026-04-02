@@ -14,7 +14,8 @@ class Service extends Model
     protected $fillable = [
         'nom',
         'departement_id',
-        'responsable_id',
+        'responsable',
+        'responsable_email',
     ];
 
     // ── Relations ──────────────────────────────────────────

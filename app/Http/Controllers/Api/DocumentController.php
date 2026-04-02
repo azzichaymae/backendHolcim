@@ -12,6 +12,24 @@ use Illuminate\Support\Str;
 
 class DocumentController extends Controller
 {
+     //Get all documents for a specific employee habilitation
+     public function getAllDocuments(): JsonResponse
+{
+    $documents = Document::with('employeeHabilitation.employee', 'employeeHabilitation.habilitation')
+        ->orderBy('created_at', 'desc')
+        ->get()
+        ->map(function ($doc) {
+            $doc->url = Storage::url($doc->chemin);
+            $doc->employee_nom = $doc->employeeHabilitation->employee->nom ?? null;
+            $doc->employee_prenom = $doc->employeeHabilitation->employee->prenom ?? null;
+            $doc->habilitation_nom = $doc->employeeHabilitation->habilitation->nom ?? null;
+            $doc->employee_matricule = $doc->employeeHabilitation->employee->matricule ?? null;
+            return $doc;
+        });
+
+    return response()->json($documents, 200);
+}
+
      // GET /api/documents?employee_habilitation_id=1
      public function index(Request $request): JsonResponse
      {

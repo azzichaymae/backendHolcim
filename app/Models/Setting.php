@@ -14,9 +14,9 @@ class Setting extends Model
      'site',
      'societe',
      'resp_sante_securite',
-     'resp_maintenance_elec',
-     'resp_maintenance',
-     'medecin',              // ← ADD
+     'medecin',              
+     'email_directeur', 
+     'email_resp_sante_securite', 
  ];
 
     // ── Helper — always get the single settings record ────
