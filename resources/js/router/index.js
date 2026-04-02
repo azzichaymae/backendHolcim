@@ -17,10 +17,21 @@ import VoletList from "@/components/volets/VoletList.vue";
 import Profile from "../components/profile/Profile.vue";
 import Attributions from "../components/attributions/Attributions.vue";
 import Referentiel from "../components/habilitations/Referentiel.vue";
-
+import ValidationConfirm from "@/components/validation/ValidationConfirm.vue";
+import ValidationRefuse from "@/components/validation/ValidationRefuse.vue";
 const routes = [
     // Public
     { path: "/login", component: Login, name: "login" },
+    {
+        path: "/validation/confirmer/:token",
+        component: ValidationConfirm,
+        name: "validation.confirmer",
+    },
+    {
+        path: "/validation/refuser/:token",
+        component: ValidationRefuse,
+        name: "validation.refuser",
+    },
 
     // Protected — wrapped in AppLayout
     {
@@ -44,7 +55,7 @@ const routes = [
 
             {
                 path: "attributions",
-                component:Attributions,
+                component: Attributions,
                 name: "attributions",
             },
             {
@@ -62,7 +73,7 @@ const routes = [
                 component: DocumentGeneration,
                 name: "documents.id",
             },
-                      { path: "alerts", component: AlertList, name: "alerts" },
+            { path: "alerts", component: AlertList, name: "alerts" },
             {
                 path: "parametres",
                 component: Settings,
@@ -72,7 +83,11 @@ const routes = [
             { path: "volets", component: VoletList, name: "volets" },
 
             { path: "profile", component: Profile, name: "profile" },
-            { path: 'referentiel', component: Referentiel, name: 'referentiel' }
+            {
+                path: "referentiel",
+                component: Referentiel,
+                name: "referentiel",
+            },
         ],
     },
 

@@ -117,14 +117,8 @@ class ValidationController extends Controller
         $this->sendNextValidationEmail($eh);
     }
 
-    // ✅ RETURN BLADE VIEW INSTEAD OF REDIRECT
-    return view('validation.success', [
-        'employee'     => $eh->employee->nom . ' ' . $eh->employee->prenom,
-        'matricule'    => $eh->employee->matricule ?? 'N/A',
-        'habilitation' => $eh->habilitation->nom ?? 'N/A',
-        'obtention'    => $eh->date_obtention ?? 'N/A',
-        'expiration'   => $eh->date_expiration ?? 'N/A',
-    ]);
+    return redirect(config('app.frontend_url') . '/validation-confirmer');
+
 }
 
     // GET /api/validations/refuser/{token}
@@ -186,4 +180,15 @@ class ValidationController extends Controller
             );
         }
     }
+
+
+    public function info(string $token): JsonResponse
+{
+    $validation = AttributionValidation::where('token', $token)->firstOrFail();
+    $eh = $validation->employeeHabilitation->load('employee', 'habilitation');
+    return response()->json([
+        'validation' => $validation,
+        'eh'         => $eh,
+    ]);
+}
 }

@@ -341,8 +341,9 @@ const fetchData = async () => {
 
 const soumettreValidation = async (id) => {
   try {
-    await api.post(`/validations/initier/${id}`);
+    const {data} = await api.post(`/validations/initier/${id}`);
     await fetchData();
+    console.log(data);
     alert('Workflow de validation initié. Le premier signataire a été notifié.');
   } catch (e) {
     alert(e.response?.data?.message ?? 'Erreur lors de l\'initiation.');
@@ -352,8 +353,8 @@ const soumettreValidation = async (id) => {
 const voirValidation = async (id) => {
   try {
     const { data } = await api.get(`/validations/${id}`);
-    console.log(data);
-    // show a simple modal or alert with the steps
+    // console.log(data);
+
     const etapes = data.etapes.map(e =>
       `${e.ordre}. ${e.signataire_nom} — ${e.statut} ${e.confirmed_at ? '(' + new Date(e.confirmed_at).toLocaleDateString('fr-FR') + ')' : ''}`
     ).join('\n');
@@ -367,7 +368,9 @@ onMounted(async () => {
   if (route.query.statut) {
     filterStatut.value = route.query.statut;
   }
-});</script>
+});
+
+</script>
 
 <style scoped>
 .action-btn.validate {

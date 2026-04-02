@@ -22,6 +22,7 @@ Route::get('/validations/confirmer/{token}',
     [ValidationController::class, 'confirmer']);
 Route::get('/validations/refuser/{token}', 
     [ValidationController::class, 'refuser']);
+Route::get('/validations/info/{token}', [ValidationController::class, 'info']);
 
 // ── Protected routes ───────────────────────────────────
 Route::middleware('auth:sanctum')->group(function () {

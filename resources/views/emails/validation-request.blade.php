@@ -18,11 +18,11 @@
   .info-row:last-child { border-bottom: none; }
   .info-label { color: #9ca3af; font-weight: 500; }
   .info-value { color: #1a2e44; font-weight: 600; }
-  .btn-group { display: flex; gap: 12px; margin: 24px 0; }
-  .btn-confirm { padding: 12px 28px; background: #16a34a; color: white;
+  .btn-group { display: flex; gap: 12px; margin: 24px 10px; }
+  .btn-confirm { padding: 10px 20px; background: #16a34a; color: white;
                  text-decoration: none; border-radius: 8px;
                  font-weight: 700; font-size: 0.9rem; }
-  .btn-refuse  { padding: 12px 28px; background: #dc2626; color: white;
+  .btn-refuse  { padding: 10px 20px; background: #dc2626; color: white;
                  text-decoration: none; border-radius: 8px;
                  font-weight: 700; font-size: 0.9rem; }
   .footer { padding: 20px 32px; background: #f8fafc;
@@ -66,9 +66,11 @@
     <p>Veuillez confirmer ou refuser cette habilitation en cliquant sur l'un des boutons ci-dessous :</p>
 
     <div class="btn-group">
-      <a href="{{ url('/api/validations/confirmer/' . $validation->token) }}" 
+      <a href="{{ config('app.frontend_url') }}/validation/confirmer/{{ $validation->token }}"
+
          class="btn-confirm">✓ Confirmer</a>
-      <a href="{{ url('/api/validations/refuser/' . $validation->token) }}" 
+      <a href="{{ config('app.frontend_url') }}/validation/refuser/{{ $validation->token }}"
+
          class="btn-refuse">✗ Refuser</a>
     </div>
 
