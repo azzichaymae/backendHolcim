@@ -4,12 +4,13 @@ import router           from './router';
 import App              from './App.vue';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap/dist/js/bootstrap.bundle.min.js';
-
+import vuetify from './plugins/vuetify';
  const app = createApp(App);
 
 app.use(createPinia());
 app.use(router);
 app.mount('#app');
+app.use(vuetify);
 app.directive('click-outside', {
   mounted(el, binding) {
     el._clickOutside = (e) => { if (!el.contains(e.target)) binding.value(e); };

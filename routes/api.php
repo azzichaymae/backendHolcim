@@ -18,10 +18,14 @@ use App\Http\Controllers\Api\ValidationController;
 
 // ── Public routes ──────────────────────────────────────
 Route::post('/auth/login', [AuthController::class, 'login']);
-Route::get('/validations/confirmer/{token}', 
-    [ValidationController::class, 'confirmer']);
-Route::get('/validations/refuser/{token}', 
-    [ValidationController::class, 'refuser']);
+Route::get(
+    '/validations/confirmer/{token}',
+    [ValidationController::class, 'confirmer']
+);
+Route::get(
+    '/validations/refuser/{token}',
+    [ValidationController::class, 'refuser']
+);
 Route::get('/validations/info/{token}', [ValidationController::class, 'info']);
 
 // ── Protected routes ───────────────────────────────────
@@ -42,7 +46,7 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     // ── Volets ─────────────────────────────────────────
-    Route::middleware('role:RRH,RH')->group(function () {
+    Route::middleware('role:RRH,RH,Manager')->group(function () {
         Route::get('/volets', [VoletController::class, 'index']);
         Route::get('/volets/{volet}', [VoletController::class, 'show']);
     });
@@ -53,7 +57,7 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     // ── Habilitations ──────────────────────────────────
-    Route::middleware('role:RRH,RH')->group(function () {
+    Route::middleware('role:RRH,RH,Manager')->group(function () {
         Route::get('/habilitations/volet/{volet_id}', [HabilitationController::class, 'getByVolet']);
         Route::get('/habilitations', [HabilitationController::class, 'index']);
         Route::get('/habilitations/{habilitation}', [HabilitationController::class, 'show']);
@@ -163,9 +167,16 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/users/{user}', [UserController::class, 'update']);
         Route::delete('/users/{user}', [UserController::class, 'destroy']);
     });
-
-        Route::post('/validations/initier/{employeeHabilitation}', 
-        [ValidationController::class, 'initier']);
-    Route::get('/validations/{employeeHabilitation}', 
-        [ValidationController::class, 'statut']);
+    Route::middleware(['auth:sanctum', 'role:Manager'])->group(function () {
+        Route::get('/manager/mon-equipe', [UserController::class, 'monEquipe']);
+        Route::get('/manager/recherche-habilitation', [UserController::class, 'rechercheHabilitation']);
+    });
+    Route::post(
+        '/validations/initier/{employeeHabilitation}',
+        [ValidationController::class, 'initier']
+    );
+    Route::get(
+        '/validations/{employeeHabilitation}',
+        [ValidationController::class, 'statut']
+    );
 });

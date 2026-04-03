@@ -15,6 +15,25 @@ class DocumentController extends Controller
      //Get all documents for a specific employee habilitation
      public function getAllDocuments(): JsonResponse
 {
+     $user = auth()->user();
+
+        if ($user->role === 'Manager') {
+                  $serviceId = $user->service_id;
+               $documents = Document::whereHas('employeeHabilitation.employee', function ($query) use ($serviceId) {
+                    $query->where('service_id', $serviceId);
+               })
+               ->with('employeeHabilitation.employee', 'employeeHabilitation.habilitation')
+               ->orderBy('created_at', 'desc')
+               ->get()
+               ->map(function ($doc) {
+                    $doc->url = Storage::url($doc->chemin);
+                    $doc->employee_nom = $doc->employeeHabilitation->employee->nom ?? null;
+                    $doc->employee_prenom = $doc->employeeHabilitation->employee->prenom ?? null;
+                    $doc->habilitation_nom = $doc->employeeHabilitation->habilitation->nom ?? null;
+                    $doc->employee_matricule = $doc->employeeHabilitation->employee->matricule ?? null;
+                    return $doc;
+               });
+    }else {
     $documents = Document::with('employeeHabilitation.employee', 'employeeHabilitation.habilitation')
         ->orderBy('created_at', 'desc')
         ->get()
@@ -26,7 +45,7 @@ class DocumentController extends Controller
             $doc->employee_matricule = $doc->employeeHabilitation->employee->matricule ?? null;
             return $doc;
         });
-
+    }
     return response()->json($documents, 200);
 }
 

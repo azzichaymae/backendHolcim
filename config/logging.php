@@ -51,6 +51,14 @@ return [
     */
 
     'channels' => [
+        'logstash' => [
+            'driver' => 'single',
+            'path' => storage_path('logs/logstash.log'),
+            'level' => 'debug',
+            'formatter' => Monolog\Formatter\JsonFormatter::class,
+        ],
+
+
 
         'stack' => [
             'driver' => 'stack',
@@ -89,7 +97,7 @@ return [
             'handler_with' => [
                 'host' => env('PAPERTRAIL_URL'),
                 'port' => env('PAPERTRAIL_PORT'),
-                'connectionString' => 'tls://'.env('PAPERTRAIL_URL').':'.env('PAPERTRAIL_PORT'),
+                'connectionString' => 'tls://' . env('PAPERTRAIL_URL') . ':' . env('PAPERTRAIL_PORT'),
             ],
             'processors' => [PsrLogMessageProcessor::class],
         ],

@@ -262,7 +262,7 @@
       </template>
     </div>
 
-    <!-- ── NEW SEARCH SECTION (added above document table) ── -->
+    <!-- ── NEW SEARCH SECTION  ── -->
     <div class="search-section-card" v-if="!activeType && !loading">
       <div class="search-row">
         <!-- Nom, matricule ou département... -->
@@ -317,7 +317,7 @@
       </div>
     </div>
 
-    <!-- Document Table Card (with search integration) -->
+    <!-- Document Table Card -->
     <div class="doc-table-card" v-if="!activeType && !loading">
       <table class="doc-data-table">
         <thead>

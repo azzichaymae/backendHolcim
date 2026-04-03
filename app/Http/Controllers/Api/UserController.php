@@ -6,6 +6,8 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Hash;
+use App\Models\Employee;
+use App\Models\EmployeeHabilitation;
 
 class UserController extends Controller
 {
@@ -18,12 +20,12 @@ class UserController extends Controller
     public function store(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'nom'        => 'required|string|max:100',
-            'prenom'     => 'required|string|max:100',
-            'email'      => 'required|email|unique:users,email',
-            'role'       => 'required|in:RRH,RH,Manager',
+            'nom' => 'required|string|max:100',
+            'prenom' => 'required|string|max:100',
+            'email' => 'required|email|unique:users,email',
+            'role' => 'required|in:RRH,RH,Manager',
             'service_id' => 'nullable|exists:services,id',
-            'password'   => 'required|min:8|confirmed',
+            'password' => 'required|min:8|confirmed',
         ]);
 
         $user = User::create([
@@ -37,12 +39,12 @@ class UserController extends Controller
     public function update(Request $request, User $user): JsonResponse
     {
         $validated = $request->validate([
-            'nom'        => 'required|string|max:100',
-            'prenom'     => 'required|string|max:100',
-            'email'      => 'required|email|unique:users,email,' . $user->id,
-            'role'       => 'required|in:RRH,RH,Manager',
+            'nom' => 'required|string|max:100',
+            'prenom' => 'required|string|max:100',
+            'email' => 'required|email|unique:users,email,' . $user->id,
+            'role' => 'required|in:RRH,RH,Manager',
             'service_id' => 'nullable|exists:services,id',
-            'password'   => 'nullable|min:8|confirmed',
+            'password' => 'nullable|min:8|confirmed',
         ]);
 
         if (!empty($validated['password'])) {
@@ -65,4 +67,60 @@ class UserController extends Controller
         $user->delete();
         return response()->json(null, 204);
     }
+
+    // GET /api/manager/mon-equipe
+    public function monEquipe(): JsonResponse
+    {
+        $user = auth()->user();
+        $employees = Employee::where('service_id', $user->service_id)
+            ->with([
+                'service.departement',
+                'employeeHabilitations.habilitation.volet',
+                'employeeHabilitations.documents',
+                'employeeHabilitations.alerts',
+            ])
+            ->whereNull('deleted_at')
+            ->get();
+
+        return response()->json($employees);
+    }
+
+    // GET /api/manager/recherche-habilitation?q=sauveteur
+    public function rechercheHabilitation(Request $request): JsonResponse
+{
+    $q    = $request->query('q');
+    $habId = $request->query('habilitation_id');
+
+    $query = EmployeeHabilitation::whereHas('employee')
+        ->with([
+            'employee:id,nom,prenom,matricule,service_id',
+            'employee.service:id,nom',
+            'habilitation:id,nom',
+        ]);
+
+    if ($habId) {
+        $query->where('habilitation_id', $habId);
+    } elseif ($q) {
+        $query->whereHas('habilitation', fn($q2) => $q2->where('nom', 'like', "%{$q}%"));
+    } else {
+        return response()->json([]);
+    }
+
+    $results = $query->get()
+        ->groupBy('habilitation_id')
+        ->map(function ($group) {
+            return [
+                'habilitation' => $group->first()->habilitation->nom,
+                'employes'     => $group->map(fn($eh) => [
+                    'nom_complet' => $eh->employee->prenom . ' ' . $eh->employee->nom,
+                    'matricule'   => $eh->employee->matricule,
+                    'service'     => $eh->employee->service->nom,
+                    'statut'      => $eh->statut,
+                ])->values(),
+            ];
+        })->values();
+
+    return response()->json($results);
+}
+
 }

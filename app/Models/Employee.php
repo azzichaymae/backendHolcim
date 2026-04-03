@@ -22,7 +22,7 @@ class Employee extends Model
         'email_pro',
         'position',
         'type',        // ← add
-    'societe',  
+        'societe',
         'service_id',
     ];
 
@@ -60,8 +60,9 @@ class Employee extends Model
         );
     }
 
-    public function getNomCompletAttribute(): string
+    public function employeeHabilitations()
     {
-        return "{$this->prenom} {$this->nom}";
+        return $this->hasMany(EmployeeHabilitation::class, 'employee_id');
     }
+
 }

@@ -2,16 +2,14 @@
   <div class="app-shell">
 
     <!-- ── Mobile overlay ────────────────────────────── -->
-    <div class="sidebar-overlay"
-      v-if="sidebarOpen"
-      @click="sidebarOpen = false">
+    <div class="sidebar-overlay" v-if="sidebarOpen" @click="sidebarOpen = false">
     </div>
 
     <!-- ── Sidebar ───────────────────────────────────── -->
     <aside class="sidebar" :class="{ open: sidebarOpen }">
 
       <!-- Logo -->
-    
+
       <div class="sidebar-logo">
         <img :src="`/images/holcim_logo.png`" alt="Holcim" class="logo-img" />
 
@@ -21,11 +19,8 @@
       <div class="nav-section">
         <div class="nav-section-label">NAVIGATION</div>
         <nav class="sidebar-nav">
-          <router-link
-            v-for="item in visibleNavItems" :key="item.name"
-            :to="item.path" class="nav-item"
-            :class="{ active: isActive(item) }"
-            @click="sidebarOpen = false">
+          <router-link v-for="item in visibleNavItems" :key="item.name" :to="item.path" class="nav-item"
+            :class="{ active: isActive(item) }" @click="sidebarOpen = false">
             <span class="nav-icon" v-html="item.icon"></span>
             <span class="nav-label">{{ item.label }}</span>
             <span class="active-dot" v-if="isActive(item)"></span>
@@ -37,11 +32,8 @@
       <div class="nav-section" v-if="visibleSystemItems.length > 0">
         <div class="nav-section-label">SYSTÈME</div>
         <nav class="sidebar-nav">
-          <router-link
-            v-for="item in visibleSystemItems" :key="item.name"
-            :to="item.path" class="nav-item"
-            :class="{ active: isActive(item) }"
-            @click="sidebarOpen = false">
+          <router-link v-for="item in visibleSystemItems" :key="item.name" :to="item.path" class="nav-item"
+            :class="{ active: isActive(item) }" @click="sidebarOpen = false">
             <span class="nav-icon" v-html="item.icon"></span>
             <span class="nav-label">{{ item.label }}</span>
             <span class="active-dot" v-if="isActive(item)"></span>
@@ -87,16 +79,7 @@
               <span class="user-name">{{ auth.user?.nom }} {{ auth.user?.prenom }}</span>
               <span class="user-role">{{ auth.user?.role }}</span>
             </div>
-            <!-- <span v-html="icons.chevronDown"></span> -->
 
-            <!-- Dropdown — just info, no logout -->
-            <!-- <div class="user-dropdown" v-if="userDropdown" >
-              <div class="dropdown-header">
-                <div @click="profilePage" class="user-name">{{ auth.user?.nom }}</div>
-                <div class="user-email">{{ auth.user?.email }}</div>
-                <div class="user-service">{{ auth.user?.service }}</div>
-              </div>
-            </div> -->
           </div>
 
         </div>
@@ -105,6 +88,10 @@
       <!-- Page content -->
       <main class="page-content">
         <router-view />
+        <v-overlay :model-value="logoutAlert" class="align-center justify-center">
+          <v-progress-circular color="primary" size="24" indeterminate></v-progress-circular>
+        </v-overlay>
+
 
         <!-- Inactivity warning -->
         <Teleport to="body">
@@ -128,6 +115,7 @@
       </main>
 
     </div>
+
   </div>
 </template>
 <script setup>
@@ -149,13 +137,14 @@ const auth = useAuthStore();
 const route = useRoute();
 const router = useRouter();
 
-const collapsed = ref(false);
 const userDropdown = ref(false);
 const alertCount = ref(0);
 
+const logoutAlert = ref(false);
+
 // ── Icons (inline SVG) ────────────────────────────────
 const icons = {
-    menu: `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>`,
+  menu: `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>`,
   dashboard: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>`,
   employees: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>`,
   habilitations: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/></svg>`,
@@ -173,14 +162,13 @@ const icons = {
 
 // ── Navigation items ──────────────────────────────────
 const navItems = [
-  { name: 'dashboard', label: 'Dashboard', path: '/dashboard', icon: icons.dashboard, roles: ['RRH', 'RH','Manager'] },
+  { name: 'dashboard', label: 'Dashboard', path: '/dashboard', icon: icons.dashboard, roles: ['RRH', 'RH', 'Manager'] },
   { name: 'employees', label: 'Salariés', path: '/employees', icon: icons.employees, roles: ['RRH', 'RH', 'Manager'] },
-  // { name: 'volets', label: 'Catégories', path: '/volets', icon: icons.volets, roles: ['RRH', 'RH'] },
-  { name: 'habilitations', label: 'Habilitations', path: '/referentiel', icon: icons.habilitations, roles: ['RRH', 'RH','Manager'] },
-  { name: 'attributions', label: 'Associations', path: '/attributions', icon: icons.attributions, roles: ['RRH', 'RH'] },
-  { name: 'documents', label: 'Documents', path: '/documents', icon: icons.documents, roles: ['RRH', 'RH'] },
+  { name: 'habilitations', label: 'Habilitations', path: '/referentiel', icon: icons.habilitations, roles: ['RRH', 'RH', 'Manager'] },
+  { name: 'attributions', label: 'Associations', path: '/attributions', icon: icons.attributions, roles: ['RRH', 'RH', 'Manager'] },
+  { name: 'documents', label: 'Documents', path: '/documents', icon: icons.documents, roles: ['RRH', 'RH', 'Manager'] },
   { name: 'alerts', label: 'Alertes', path: '/alerts', icon: icons.alerts, roles: ['RRH', 'RH', 'Manager'] },
-  {name: 'profile', label: 'Profil', path: '/profile', icon: icons.settings, roles: ['RRH', 'RH', 'Manager'] },
+  { name: 'profile', label: 'Profil', path: '/profile', icon: icons.settings, roles: ['RRH', 'RH', 'Manager'] },
 ];
 
 // ── System items ──────────────────────────────────────
@@ -220,11 +208,14 @@ const isActive = (item) => route.path.startsWith(item.path);
 
 // ── Logout ────────────────────────────────────────────
 const handleLogout = async () => {
-  await auth.logout();
+  logoutAlert.value = true;
+  if (await auth.logout()) {
+    logoutAlert.value = false;
+  };
   router.push({ name: 'login' });
 };
 const profilePage = async () => {
-  router.push({name : 'profile'})
+  router.push({ name: 'profile' })
 }
 // ── Alert count ───────────────────────────────────────
 const fetchAlertCount = async () => {
