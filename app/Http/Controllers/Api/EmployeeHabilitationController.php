@@ -121,6 +121,8 @@ class EmployeeHabilitationController extends Controller
           $validated = $request->validate([
                'date_obtention' => 'required|date',
                'type' => 'required|in:initiale,recyclage',
+               'organisme_formation' => 'required|string|max:150',
+               'date_aptitude_medicale' => 'required|date',
           ]);
 
           // Recalculate date_expiration from existing habilitation

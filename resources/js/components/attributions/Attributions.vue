@@ -89,8 +89,10 @@
                     <td><span :class="['type-badge', eh.type]">{{ eh.type }}</span></td>
                     <td><span :class="['statut-badge', statutClass(eh)]">{{ statutLabel(eh) }}</span></td>
                     <td>
-                      <span v-if="eh.validation_statut === 'non_soumis'" class="valid-badge non-soumis">Non soumis</span>
-                      <span v-else-if="eh.validation_statut === 'en_cours'" class="valid-badge en-cours">⏳ En cours</span>
+                      <span v-if="eh.validation_statut === 'non_soumis'" class="valid-badge non-soumis">Non
+                        soumis</span>
+                      <span v-else-if="eh.validation_statut === 'en_cours'" class="valid-badge en-cours">⏳ En
+                        cours</span>
                       <span v-else-if="eh.validation_statut === 'valide'" class="valid-badge valide">✓ Validé</span>
                       <span v-else-if="eh.validation_statut === 'refuse'" class="valid-badge refuse">✗ Refusé</span>
                     </td>
@@ -107,82 +109,81 @@
     <!-- ══════════════════════════════════════════════════════════════ -->
     <!-- MANAGER — Recherche globale tab                               -->
     <!-- ══════════════════════════════════════════════════════════════ -->
-   <template v-if="isManager && mgrTab === 'recherche'">
-  <div class="mgr-cascade">
+    <template v-if="isManager && mgrTab === 'recherche'">
+      <div class="mgr-cascade">
 
-    <!-- Step 1: Volet -->
-    <div class="mgr-cascade-row">
-      <div class="mgr-cascade-step">
-        <label class="mgr-step-label">
-          <span class="mgr-step-num">1</span>
-          Catégorie (Volet)
-        </label>
-        <select v-model="cascadeVolet" @change="onCascadeVoletChange" class="filter-select mgr-select">
-          <option value="">Sélectionner une catégorie...</option>
-          <option v-for="v in mgrVolets" :key="v.id" :value="v.id">{{ v.nom }}</option>
-        </select>
-      </div>
-
-      <!-- Step 2: Habilitation -->
-      <div class="mgr-cascade-step">
-        <label class="mgr-step-label">
-          <span class="mgr-step-num">2</span>
-          Habilitation
-        </label>
-        <select v-model="cascadeHab" @change="onCascadeHabChange"
-          class="filter-select mgr-select"
-          :disabled="!cascadeVolet">
-          <option value="">{{ cascadeVolet ? 'Sélectionner une habilitation...' : '— Sélectionnez d\'abord un volet —' }}</option>
-          <option v-for="h in cascadeHabilitations" :key="h.id" :value="h.id">{{ h.nom }}</option>
-        </select>
-      </div>
-    </div>
-
-    <!-- Loading -->
-    <div class="loading-state" v-if="loadingMgrSearch">
-      <div class="spinner"></div>
-      <span>Chargement...</span>
-    </div>
-
-    <!-- Results -->
-    <div v-else-if="cascadeResults.length" class="employee-card" style="margin-top:16px">
-      <div class="mgr-result-header">
-        <span class="mgr-result-title">{{ cascadeResults.length }} employé(s) habilité(s)</span>
-        <div class="mgr-result-stats">
-          <span class="mgr-stat green">{{ cascadeResults.filter(e => e.statut === 'valide').length }} valides</span>
-          <span class="mgr-stat red">{{ cascadeResults.filter(e => e.statut === 'expirée').length }} expirés</span>
-        </div>
-      </div>
-      <div class="mgr-result-list">
-        <div v-for="emp in cascadeResults" :key="emp.matricule" class="mgr-result-row">
-          <div class="emp-avatar-circle" style="width:32px;height:32px;font-size:0.72rem">
-            {{ emp.nom_complet.split(' ').map(w => w[0]).slice(0,2).join('') }}
+        <!-- Step 1: Volet -->
+        <div class="mgr-cascade-row">
+          <div class="mgr-cascade-step">
+            <label class="mgr-step-label">
+              <span class="mgr-step-num">1</span>
+              Catégorie (Volet)
+            </label>
+            <select v-model="cascadeVolet" @change="onCascadeVoletChange" class="filter-select mgr-select">
+              <option value="">Sélectionner une catégorie...</option>
+              <option v-for="v in mgrVolets" :key="v.id" :value="v.id">{{ v.nom }}</option>
+            </select>
           </div>
-          <div class="mgr-result-emp">
-            <span class="emp-name">{{ emp.nom_complet }}</span>
-            <span class="mgr-result-service">· {{ emp.service }}</span>
+
+          <!-- Step 2: Habilitation -->
+          <div class="mgr-cascade-step">
+            <label class="mgr-step-label">
+              <span class="mgr-step-num">2</span>
+              Habilitation
+            </label>
+            <select v-model="cascadeHab" @change="onCascadeHabChange" class="filter-select mgr-select"
+              :disabled="!cascadeVolet">
+              <option value="">{{ cascadeVolet ? 'Sélectionner une habilitation...' : '— Sélectionnez d\'abord une catégorie' }}</option>
+              <option v-for="h in cascadeHabilitations" :key="h.id" :value="h.id">{{ h.nom }}</option>
+            </select>
           </div>
-          <span class="emp-mat">Mat. {{ emp.matricule ?? 'ST' }}</span>
-          <span :class="['statut-badge', emp.statut === 'valide' ? 'valide' : 'expire']">
-            {{ emp.statut }}
-          </span>
         </div>
+
+        <!-- Loading -->
+        <div class="loading-state" v-if="loadingMgrSearch">
+          <div class="spinner"></div>
+          <span>Chargement...</span>
+        </div>
+
+        <!-- Results -->
+        <div v-else-if="cascadeResults.length" class="employee-card" style="margin-top:16px">
+          <div class="mgr-result-header">
+            <span class="mgr-result-title">{{ cascadeResults.length }} employé(s) habilité(s)</span>
+            <div class="mgr-result-stats">
+              <span class="mgr-stat green">{{cascadeResults.filter(e => e.statut === 'valide').length}} valides</span>
+              <span class="mgr-stat red">{{cascadeResults.filter(e => e.statut === 'expirée').length}} expirés</span>
+            </div>
+          </div>
+          <div class="mgr-result-list">
+            <div v-for="emp in cascadeResults" :key="emp.matricule" class="mgr-result-row">
+              <div class="emp-avatar-circle" style="width:32px;height:32px;font-size:0.72rem">
+                {{emp.nom_complet.split(' ').map(w => w[0]).slice(0, 2).join('')}}
+              </div>
+              <div class="mgr-result-emp">
+                <span class="emp-name">{{ emp.nom_complet }}</span>
+                <span class="mgr-result-service">· {{ emp.service }}</span>
+              </div>
+              <span class="emp-mat">Mat. {{ emp.matricule ?? 'ST' }}</span>
+              <span :class="['statut-badge', emp.statut === 'valide' ? 'valide' : 'expire']">
+                {{ emp.statut }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Empty -->
+        <div class="empty-state" v-else-if="cascadeHab && !loadingMgrSearch">
+          <p>Aucun employé trouvé pour cette habilitation.</p>
+        </div>
+
+        <!-- Hint -->
+        <div class="mgr-search-hint" v-else-if="!cascadeHab">
+          <span v-html="icons.search"></span>
+          Sélectionnez une catégorie puis une habilitation pour voir les employés.
+        </div>
+
       </div>
-    </div>
-
-    <!-- Empty -->
-    <div class="empty-state" v-else-if="cascadeHab && !loadingMgrSearch">
-      <p>Aucun employé trouvé pour cette habilitation.</p>
-    </div>
-
-    <!-- Hint -->
-    <div class="mgr-search-hint" v-else-if="!cascadeHab">
-      <span v-html="icons.search"></span>
-      Sélectionnez un volet puis une habilitation pour voir les employés.
-    </div>
-
-  </div>
-</template>
+    </template>
 
     <!-- ══════════════════════════════════════════════════════════════ -->
     <!-- RRH / RH — normal view                                        -->
@@ -198,7 +199,7 @@
         </div>
         <div class="filter-group">
           <select v-model="filterVolet" class="filter-select">
-            <option value="">Tous les volets</option>
+            <option value="">Toutes les catégories</option>
             <option v-for="v in volets" :key="v.id" :value="v.id">{{ v.nom }}</option>
           </select>
           <select v-model="filterType" class="filter-select">
@@ -287,8 +288,10 @@
                     <td><span :class="['type-badge', item.type]">{{ item.type }}</span></td>
                     <td><span :class="['statut-badge', statutClass(item)]">{{ statutLabel(item) }}</span></td>
                     <td>
-                      <span v-if="item.validation_statut === 'non_soumis'" class="valid-badge non-soumis">Non soumis</span>
-                      <span v-else-if="item.validation_statut === 'en_cours'" class="valid-badge en-cours">⏳ En cours</span>
+                      <span v-if="item.validation_statut === 'non_soumis'" class="valid-badge non-soumis">Non
+                        soumis</span>
+                      <span v-else-if="item.validation_statut === 'en_cours'" class="valid-badge en-cours">⏳ En
+                        cours</span>
                       <span v-else-if="item.validation_statut === 'valide'" class="valid-badge valide">✓ Validé</span>
                       <span v-else-if="item.validation_statut === 'refuse'" class="valid-badge refuse">✗ Refusé</span>
                     </td>
@@ -307,67 +310,164 @@
                           @click="voirValidation(item.id)" title="Voir la progression">
                           <span v-html="icons.eye"></span>
                         </button>
+                        <button class="action-btn edit-association" title="Mise à jour de l'association"
+                          @click="editAssociation(item)">
+                          <span v-html="icons.pen"></span>
+                        </button>
                       </div>
                     </td>
                   </tr>
                 </tbody>
               </table>
+              <ValidationDialog v-model="dialog" :etapes="etapes" />
+              <v-layout min-height="100">
+                <v-snackbar v-model="loadingSnackbar" :timeout="-1" location="top center" rounded="lg" contained>
+                  <div class="d-flex align-center ga-3" style="padding: 4px 8px;">
+                    <v-progress-circular indeterminate size="16" width="2" color="white" />
+                    <span>Envoi en cours...</span>
+                  </div>
+                </v-snackbar>
+
+                <v-snackbar v-model="successSnackbar" :timeout="3000" color="#1D9E75" location="top center" rounded="lg"
+                  contained>
+                  <div class="d-flex align-center ga-3" style="padding: 4px 8px;">
+                    <v-icon size="18">mdi-check-circle-outline</v-icon>
+                    <div>
+                      <div style="font-size: 13px; font-weight: 600;">Succès</div>
+                      <div style="font-size: 12px; opacity: 0.85;">Document envoyé avec succès !</div>
+                    </div>
+                  </div>
+                </v-snackbar>
+              </v-layout>
+
+              <v-snackbar v-model="errorSnackbar" :timeout="3500" color="#E24B4A" location="top center" rounded="lg">
+                <div class="d-flex align-center ga-3" style="padding: 4px 8px;">
+                  <v-icon size="18">mdi-alert-circle-outline</v-icon>
+                  <div>
+                    <div style="font-size: 13px; font-weight: 600;">Erreur</div>
+                    <div style="font-size: 12px; opacity: 0.85;">{{ errorMessage }}</div>
+                  </div>
+                </div>
+
+              </v-snackbar>
             </div>
           </transition>
 
         </div>
       </div>
-
+      <Teleport to="body">
+        <Transition name="adm-fade">
+          <div class="adm-backdrop" v-if="showModal" @click.self="closeModal">
+            <Transition name="adm-slide">
+              <div class="adm-dialog" v-if="showModal">
+                <div class="adm-header">
+                  <div>
+                    <h3 style="margin:0;font-size:1rem;font-weight:700;color:#1a2e44">
+                      <span style="white-space: pre;">Modifier l'association</span>
+                      <span style="font-weight:400;color:#4b5563;font-size:0.875rem;margin-left:8px">
+                        {{ form.habilitation }} — {{ form.empNom }} ({{ form.empMatricule }})
+                      </span>
+                    </h3>
+                  </div>
+                  <button class="adm-close" @click="closeModal"><span v-html="icons.x"></span></button>
+                </div>
+                <div style="padding:20px 22px;display:flex;flex-direction:column;gap:14px;">
+                
+                  <div class="modal-field">
+                    <label>Organisme de formation</label>
+                    <input v-model="form.organisme_formation" placeholder="Ex: AFPA, CNAM..." />
+                    <span class="error-msg" v-if="errors.organisme_formation">{{ errors.organisme_formation }}</span>
+                  </div>
+                  <div class="modal-field">
+                    <label>Date d'obtention <span style="color:#ef4444">*</span></label>
+                    <input v-model="form.date_obtention" type="date" :class="{ 'input-error': errors.date_obtention }" />
+                    <span class="error-msg" v-if="errors.date_obtention">{{ errors.date_obtention }}</span>
+                  </div>
+                    <div class="modal-field">
+                      <label>Date d'aptitude médicale <span style="color:#ef4444">*</span></label>
+                      <input v-model="form.date_appt_medicale" type="date" :class="{ 'input-error': errors.date_appt_medicale }" />
+                      <span class="error-msg" v-if="errors.date_appt_medicale">{{ errors.date_appt_medicale }}</span>
+                  </div>
+                  <div class="modal-field">
+                    <label>Type <span style="color:#ef4444">*</span></label>
+                    <select v-model="form.type" :class="{ 'input-error': errors.type }">
+                      <option value="">Sélectionner un type...</option>
+                      <option value="initiale">Initiale</option>
+                      <option value="recyclage">Recyclage</option>
+                    </select>
+                    <span class="error-msg" v-if="errors.type">{{ errors.type }}</span>
+                  </div>
+                  
+                  <span class="error-msg" v-if="errors.global">{{ errors.global }}</span>
+                </div>
+                <div
+                  style="display:flex;justify-content:flex-end;gap:10px;padding:14px 22px;border-top:1px solid #f0f4f8">
+                  <button class="btn-cancel-import" @click="closeModal">Annuler</button>
+                  <button class="btn-do-import" @click="updateAssociation" :disabled="submitting">
+                    <span v-if="submitting" class="spinner-sm"></span>
+                    Enregistrer </button>
+                </div>
+              </div>
+            </Transition>
+          </div>
+        </Transition>
+      </Teleport>
     </template>
 
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, reactive } from 'vue';
 import api from '@/services/api';
 import { useRouter, useRoute } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
 import '@/../css/components/attributions/attributions.css';
+import ValidationDialog from './ValidationDialog.vue';
 
-const router     = useRouter();
-const route      = useRoute();
-const authStore  = useAuthStore();
-const isManager  = computed(() => authStore.user?.role === 'Manager');
-
+const router = useRouter();
+const route = useRoute();
+const authStore = useAuthStore();
+const isManager = computed(() => authStore.user?.role === 'Manager');
+const snackbar = ref(false)
+const loadingSnackbar = ref(false)
+const successSnackbar = ref(false)
 // ── RRH/RH state ──────────────────────────────────────────────────────────
-const attributions  = ref([]);
-const volets        = ref([]);
-const loading       = ref(true);
-const search        = ref('');
-const filterVolet   = ref('');
-const filterType    = ref('');
-const filterStatut  = ref('');
+const attributions = ref([]);
+const volets = ref([]);
+const loading = ref(true);
+const search = ref('');
+const filterVolet = ref('');
+const filterType = ref('');
+const filterStatut = ref('');
 const openEmployees = ref({});
 
 // ── Manager state ──────────────────────────────────────────────────────────
-const mgrTab           = ref('equipe');
-const equipe           = ref([]);
-const loadingEquipe    = ref(true);
-const openEquipe       = ref({});
-const mgrSearchQ       = ref('');
+const mgrTab = ref('equipe');
+const equipe = ref([]);
+const loadingEquipe = ref(true);
+const openEquipe = ref({});
+const mgrSearchQ = ref('');
 const mgrSearchResults = ref([]);
 const loadingMgrSearch = ref(false);
 
-const cascadeVolet        = ref('');
-const cascadeHab          = ref('');
+const cascadeVolet = ref('');
+const cascadeHab = ref('');
 const cascadeHabilitations = ref([]);
-const cascadeResults      = ref([]);
-const mgrVolets           = ref([]);
+const cascadeResults = ref([]);
+const mgrVolets = ref([]);
 
 // ── Icons ──────────────────────────────────────────────────────────────────
 const icons = {
-  eye:      `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>`,
-  pdf:      `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5 5-5M12 15V3"/></svg>`,
-  send:     `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>`,
-  plus:     `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>`,
-  search:   `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>`,
-  users:    `<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>`,
+    x: `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>`,
+
+  pen: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>`,
+  eye: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>`,
+  pdf: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5 5-5M12 15V3"/></svg>`,
+  send: `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>`,
+  plus: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>`,
+  search: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>`,
+  users: `<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>`,
   emptyBox: `<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>`,
 };
 
@@ -414,8 +514,8 @@ const filtered = computed(() => {
       a.organisme_formation?.toLowerCase().includes(s)
     );
   }
-  if (filterVolet.value)  list = list.filter(a => a.habilitation?.volet?.id === filterVolet.value);
-  if (filterType.value)   list = list.filter(a => a.type === filterType.value);
+  if (filterVolet.value) list = list.filter(a => a.habilitation?.volet?.id === filterVolet.value);
+  if (filterType.value) list = list.filter(a => a.type === filterType.value);
   if (filterStatut.value) list = list.filter(a => statutClass(a) === filterStatut.value);
   return list;
 });
@@ -429,9 +529,9 @@ const groupedEmployees = computed(() =>
   }, {}))
 );
 
-const totalCount  = computed(() => filtered.value.length);
+const totalCount = computed(() => filtered.value.length);
 const valideCount = computed(() => filtered.value.filter(a => statutClass(a) === 'valide').length);
-const bientotCount= computed(() => filtered.value.filter(a => statutClass(a) === 'bientot').length);
+const bientotCount = computed(() => filtered.value.filter(a => statutClass(a) === 'bientot').length);
 const expireCount = computed(() => filtered.value.filter(a => statutClass(a) === 'expire').length);
 
 const toggle = (empId) => {
@@ -439,9 +539,9 @@ const toggle = (empId) => {
 };
 
 // ── Manager helpers ────────────────────────────────────────────────────────
-const mgrValidCount   = (emp) => emp.employee_habilitations?.filter(eh => statutClass(eh) === 'valide').length ?? 0;
+const mgrValidCount = (emp) => emp.employee_habilitations?.filter(eh => statutClass(eh) === 'valide').length ?? 0;
 const mgrExpiredCount = (emp) => emp.employee_habilitations?.filter(eh => statutClass(eh) === 'expire').length ?? 0;
-const mgrSoonCount    = (emp) => emp.employee_habilitations?.filter(eh => statutClass(eh) === 'bientot').length ?? 0;
+const mgrSoonCount = (emp) => emp.employee_habilitations?.filter(eh => statutClass(eh) === 'bientot').length ?? 0;
 
 const toggleEquipe = (empId) => {
   openEquipe.value[empId] = !openEquipe.value[empId];
@@ -462,7 +562,7 @@ const fetchData = async () => {
       api.get('/volets'),
     ]);
     attributions.value = attribRes.data;
-    volets.value       = voletRes.data;
+    volets.value = voletRes.data;
   } finally {
     loading.value = false;
   }
@@ -478,31 +578,43 @@ const fetchEquipe = async () => {
   }
 };
 
+const errorSnackbar = ref(false)
+const errorMessage = ref('')
+
 // ── Validation ─────────────────────────────────────────────────────────────
 const soumettreValidation = async (id) => {
+  loadingSnackbar.value = true
   try {
     await api.post(`/validations/initier/${id}`);
     await fetchData();
-    alert('Workflow de validation initié. Le premier signataire a été notifié.');
+    loadingSnackbar.value = false
+    successSnackbar.value = true
   } catch (e) {
-    alert(e.response?.data?.message ?? 'Erreur lors de l\'initiation.');
+    loadingSnackbar.value = false
+    errorMessage.value = e.response?.data?.message ?? "Erreur lors de l'initiation."
+    errorSnackbar.value = true
   }
 };
 
-const voirValidation = async (id) => {
+const dialog = ref(false)
+const etapes = ref([])
+async function voirValidation(id) {
+
   try {
-    const { data } = await api.get(`/validations/${id}`);
-    const etapes = data.etapes.map(e =>
-      `${e.ordre}. ${e.signataire_nom} — ${e.statut}${e.confirmed_at ? ' (' + new Date(e.confirmed_at).toLocaleDateString('fr-FR') + ')' : ''}`
-    ).join('\n');
-    alert(`Progression de validation :\n\n${etapes}`);
-  } catch (e) { console.error(e); }
-};
+    const { data } = await api.get(`/validations/${id}`)
+    etapes.value = data.etapes
+    dialog.value = true
+    console.log(dialog.value)
+  } catch (e) {
+    console.error(e)
+  }
+}
+
 
 const onCascadeVoletChange = async () => {
-  cascadeHab.value          = '';
+  cascadeHab.value = '';
   cascadeHabilitations.value = [];
-  cascadeResults.value      = [];
+  cascadeResults.value = [];
   if (!cascadeVolet.value) return;
   try {
     const { data } = await api.get('/habilitations/volet/' + cascadeVolet.value);
@@ -528,6 +640,53 @@ const fetchMgrVolets = async () => {
   mgrVolets.value = data;
   console.log('Volets pour manager :', data);
 };
+
+// ── Edit association modal ─────────────────────────────────────────────────
+const defaultForm = () => ({ id: null,
+date_appt_medicale: '', date_obtention: '', type: 'initiale', organisme_formation: '', habilitation:'', empNom:'', empMatricule:''
+});
+const form = reactive(defaultForm());
+const errors = reactive({date_appt_medicale:'', date_obtention: '', type: '', organisme_formation: '', global: '' });
+
+const showModal = ref(false);
+
+const editAssociation = (association) => {
+  console.log('Editer association', association);
+  Object.keys(errors).forEach(k => errors[k] = '');
+  form.id = association.id;
+  form.empNom = association.employee.prenom + ' ' + association.employee.nom;
+  form.empMatricule = association.employee.matricule;
+  form.habilitation = association.habilitation.nom;
+ form.date_obtention = association.date_obtention.split('T')[0];
+  form.type = association.type;
+  form.organisme_formation = association.organisme_formation;
+  form.date_appt_medicale = association.date_aptitude_medicale.split('T')[0];
+ 
+  showModal.value = true;
+};
+const closeModal = () => { showModal.value = false; };
+
+const updateAssociation = async () => {
+  Object.keys(errors).forEach(k => errors[k] = '');
+  try {
+    await api.put(`/employee-habilitations/${form.id}`, {
+      date_obtention: form.date_obtention,
+      type: form.type,
+      organisme_formation: form.organisme_formation,
+      date_aptitude_medicale: form.date_appt_medicale,
+    });
+    await fetchData();
+    closeModal();
+  } catch (e) {
+    if (e.response?.status === 422) {
+      const data = e.response.data;
+      Object.keys(errors).forEach(k => errors[k] = data.errors[k]?.[0] || '');
+      errors.global = data.message || 'Erreur de validation.';
+    } else {
+      errors.global = 'Erreur lors de la mise à jour.';
+    }
+  }
+};
 onMounted(async () => {
   if (isManager.value) {
     await Promise.all([fetchEquipe(), fetchMgrVolets()]);
@@ -536,74 +695,313 @@ onMounted(async () => {
     if (route.query.statut) filterStatut.value = route.query.statut;
   }
 });
+
 </script>
 
 <style scoped>
-.mgr-cascade { display: flex; flex-direction: column; gap: 16px; }
-.mgr-cascade-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-.mgr-cascade-step { display: flex; flex-direction: column; gap: 8px; }
+.snackbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 15px;
+}
+
+
+.mgr-cascade {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.mgr-cascade-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.mgr-cascade-step {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
 .mgr-step-label {
-  display: flex; align-items: center; gap: 8px;
-  font-size: 0.82rem; font-weight: 600; color: #374151;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #374151;
 }
+
 .mgr-step-num {
-  width: 22px; height: 22px; border-radius: 50%;
-  background: #1a4a6b; color: white;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 0.72rem; font-weight: 700; flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #1a4a6b;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.72rem;
+  font-weight: 700;
+  flex-shrink: 0;
 }
-.mgr-select { width: 100%; min-width: 0; }
-.mgr-select:disabled { background: #f4f6f9; color: #9ca3af; cursor: not-allowed; }
-.mgr-result-stats { display: flex; gap: 6px; }
+
+.mgr-select {
+  width: 100%;
+  min-width: 0;
+}
+
+.mgr-select:disabled {
+  background: #f4f6f9;
+  color: #9ca3af;
+  cursor: not-allowed;
+}
+
+.mgr-result-stats {
+  display: flex;
+  gap: 6px;
+}
 
 @media (max-width: 600px) {
-  .mgr-cascade-row { grid-template-columns: 1fr; }
+  .mgr-cascade-row {
+    grid-template-columns: 1fr;
+  }
 }
-.action-btn.validate { background: #f0fdf4; color: #16a34a; }
-.action-btn.validate:hover { background: #dcfce7; }
-.action-btn.pdf { background: #e0e7ff; color: #3730a3; }
-.action-btn.pdf:hover { background: #c7d2fe; }
 
-.valid-badge { display:inline-block; padding:2px 8px; border-radius:20px; font-size:0.7rem; font-weight:700; }
-.valid-badge.en-cours { background:#fffbeb; color:#d97706; }
-.valid-badge.valide   { background:#f0fdf4; color:#16a34a; }
-.valid-badge.refuse   { background:#fef2f2; color:#dc2626; }
-.valid-badge.non-soumis { background:#f4f6f9; color:#6b7280; }
+.action-btn.validate {
+  background: #f0fdf4;
+  color: #16a34a;
+}
 
-.cards-container { display:flex; flex-direction:column; gap:16px; }
-.employee-card { background:#fff; border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,0.05); overflow:hidden; }
-.card-header { display:flex; justify-content:space-between; align-items:center; padding:16px; cursor:pointer; }
-.card-header:hover { background:#f8fafc; }
-.emp-info { display:flex; gap:12px; align-items:center; }
-.card-actions { display:flex; align-items:center; gap:12px; }
-.arrow { transition:0.3s; }
-.arrow.open { transform:rotate(180deg); }
-.card-body { padding:10px; border-top:1px solid #eee; overflow:auto; max-height:400px; }
+.action-btn.validate:hover {
+  background: #dcfce7;
+}
+
+.action-btn.pdf {
+  background: #e0e7ff;
+  color: #3730a3;
+}
+
+.action-btn.pdf:hover {
+  background: #c7d2fe;
+}
+
+.valid-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.valid-badge.en-cours {
+  background: #fffbeb;
+  color: #d97706;
+}
+
+.valid-badge.valide {
+  background: #f0fdf4;
+  color: #16a34a;
+}
+
+.valid-badge.refuse {
+  background: #fef2f2;
+  color: #dc2626;
+}
+
+.valid-badge.non-soumis {
+  background: #f4f6f9;
+  color: #6b7280;
+}
+
+.cards-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.employee-card {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  cursor: pointer;
+}
+
+.card-header:hover {
+  background: #f8fafc;
+}
+
+.emp-info {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.card-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.arrow {
+  transition: 0.3s;
+}
+
+.arrow.open {
+  transform: rotate(180deg);
+}
+
+.card-body {
+  padding: 10px;
+  border-top: 1px solid #eee;
+  overflow: auto;
+  max-height: 400px;
+}
 
 /* Manager specific */
-.mgr-tabs { display:flex; gap:4px; margin-bottom:20px; background:white; border:1px solid #e8ecf0; border-radius:10px; padding:4px; width:fit-content; }
-.mgr-tab { display:flex; align-items:center; gap:7px; padding:8px 16px; border-radius:7px; border:none; font-size:0.875rem; font-weight:500; cursor:pointer; color:#6b7280; background:transparent; transition:all 0.15s; }
-.mgr-tab.active { background:#1a4a6b; color:white; }
-.mgr-tab:hover:not(.active) { background:#f4f6f9; }
+.mgr-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 20px;
+  background: white;
+  border: 1px solid #e8ecf0;
+  border-radius: 10px;
+  padding: 4px;
+  width: fit-content;
+}
 
-.emp-avatar-circle { width:38px; height:38px; min-width:38px; background:linear-gradient(135deg,#1a4a6b,#1a6b8a); color:white; border-radius:9px; display:flex; align-items:center; justify-content:center; font-size:0.8rem; font-weight:800; }
+.mgr-tab {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 16px;
+  border-radius: 7px;
+  border: none;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  color: #6b7280;
+  background: transparent;
+  transition: all 0.15s;
+}
 
-.mgr-emp-stats { display:flex; gap:5px; }
-.mgr-stat { font-size:0.7rem; font-weight:600; padding:2px 8px; border-radius:20px; }
-.mgr-stat.green  { background:#f0fdf4; color:#16a34a; }
-.mgr-stat.red    { background:#fef2f2; color:#dc2626; }
-.mgr-stat.orange { background:#fffbeb; color:#d97706; }
+.mgr-tab.active {
+  background: #1a4a6b;
+  color: white;
+}
 
-.mgr-no-hab { padding:14px 16px; font-size:0.82rem; color:#9ca3af; }
+.mgr-tab:hover:not(.active) {
+  background: #f4f6f9;
+}
 
-.mgr-search-bar { margin-bottom:20px; }
-.mgr-search-hint { display:flex; align-items:center; gap:8px; padding:20px; color:#9ca3af; font-size:0.875rem; }
+.emp-avatar-circle {
+  width: 38px;
+  height: 38px;
+  min-width: 38px;
+  background: linear-gradient(135deg, #1a4a6b, #1a6b8a);
+  color: white;
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  font-weight: 800;
+}
 
-.mgr-result-header { display:flex; align-items:center; justify-content:space-between; padding:12px 16px; background:#f8fafc; border-bottom:1px solid #e8ecf0; }
-.mgr-result-title { font-size:0.875rem; font-weight:700; color:#1a4a6b; }
-.mgr-result-list { display:flex; flex-direction:column; }
-.mgr-result-row { display:flex; align-items:center; gap:12px; padding:10px 16px; border-bottom:1px solid #f8fafc; }
-.mgr-result-row:last-child { border-bottom:none; }
-.mgr-result-emp { flex:1; }
-.mgr-result-service { font-size:0.75rem; color:#9ca3af; }
+.mgr-emp-stats {
+  display: flex;
+  gap: 5px;
+}
+
+.mgr-stat {
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 20px;
+}
+
+.mgr-stat.green {
+  background: #f0fdf4;
+  color: #16a34a;
+}
+
+.mgr-stat.red {
+  background: #fef2f2;
+  color: #dc2626;
+}
+
+.mgr-stat.orange {
+  background: #fffbeb;
+  color: #d97706;
+}
+
+.mgr-no-hab {
+  padding: 14px 16px;
+  font-size: 0.82rem;
+  color: #9ca3af;
+}
+
+.mgr-search-bar {
+  margin-bottom: 20px;
+}
+
+.mgr-search-hint {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 20px;
+  color: #9ca3af;
+  font-size: 0.875rem;
+}
+
+.mgr-result-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: #f8fafc;
+  border-bottom: 1px solid #e8ecf0;
+}
+
+.mgr-result-title {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #1a4a6b;
+}
+
+.mgr-result-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.mgr-result-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  border-bottom: 1px solid #f8fafc;
+}
+
+.mgr-result-row:last-child {
+  border-bottom: none;
+}
+
+.mgr-result-emp {
+  flex: 1;
+}
+
+.mgr-result-service {
+  font-size: 0.75rem;
+  color: #9ca3af;
+}
 </style>

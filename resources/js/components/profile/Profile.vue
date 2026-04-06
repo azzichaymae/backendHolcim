@@ -112,76 +112,104 @@
 
     <!-- ── User management (RRH only) ─────────────────── -->
     <div class="pcard pcard-full" v-if="auth.user?.role === 'RRH'">
-      <div class="pcard-header">
-        <div class="pcard-icon-wrap orange">
-          <span v-html="icons.users"></span>
-        </div>
-        <div>
-          <div class="pcard-title">Gestion des utilisateurs</div>
-          <div class="pcard-sub">{{ users.length }} utilisateur(s) enregistré(s)</div>
-        </div>
-        <button class="btn-add-user" @click="openUserModal()">
-          <span v-html="icons.plus"></span>
-          Ajouter
-        </button>
-      </div>
-
-      <div class="state-box" v-if="loadingUsers">
-        <div class="loader"></div>
-      </div>
-
-      <div class="state-box empty" v-else-if="users.length === 0">
-        <span class="empty-icon" v-html="icons.usersEmpty"></span>
-        <p>Aucun utilisateur trouvé.</p>
-        <button class="btn-add-user" @click="openUserModal()">
-          <span v-html="icons.plus"></span>
-          Créer le premier utilisateur
-        </button>
-      </div>
-
-      <div class="utbl-wrap" v-else>
-        <table class="utbl">
-          <thead>
-            <tr>
-              <th>Utilisateur</th>
-              <th>Email</th>
-              <th>Rôle</th>
-              <th>Service</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="u in users" :key="u.id" class="utbl-row">
-              <td>
-                <div class="ucell">
-                  <div class="u-avatar">
-                    {{ ((u.prenom?.charAt(0) ?? '') + (u.nom?.charAt(0) ?? '')).toUpperCase() }}
-                  </div>
-                  <div class="u-name">{{ u.nom }} {{ u.prenom }}</div>
-                </div>
-              </td>
-              <td class="td-muted">{{ u.email }}</td>
-              <td>
-                <span class="role-pill sm" :class="u.role?.toLowerCase()">{{ u.role }}</span>
-              </td>
-              <td class="td-muted">{{ u.service?.nom ?? '—' }}</td>
-              <td>
-                <div class="row-actions">
-                  <button class="act-btn edit" @click="openUserModal(u)" title="Modifier">
-                    <span v-html="icons.edit"></span>
-                  </button>
-                  <button class="act-btn del" @click="confirmDeleteUser(u)"
-                    title="Supprimer" :disabled="u.id === auth.user?.id">
-                    <span v-html="icons.trash"></span>
-                  </button>
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+  <div class="pcard-header">
+    <div class="pcard-icon-wrap orange">
+      <span v-html="icons.users"></span>
     </div>
+    <div>
+      <div class="pcard-title">Gestion des utilisateurs</div>
+      <div class="pcard-sub">{{ users.length }} utilisateur(s) enregistré(s)</div>
+    </div>
+    <button class="btn-add-user" @click="openUserModal()">
+      <span v-html="icons.plus"></span>
+      Ajouter
+    </button>
+  </div>
 
+  <div class="state-box" v-if="loadingUsers">
+    <div class="loader"></div>
+  </div>
+
+  <div class="state-box empty" v-else-if="users.length === 0">
+    <span class="empty-icon" v-html="icons.usersEmpty"></span>
+    <p>Aucun utilisateur trouvé.</p>
+    <button class="btn-add-user" @click="openUserModal()">
+      <span v-html="icons.plus"></span>
+      Créer le premier utilisateur
+    </button>
+  </div>
+
+  <div class="utbl-wrap" v-else>
+    <table class="utbl">
+      <thead>
+        <tr>
+          <th>Utilisateur</th>
+          <th>Email</th>
+          <th>Rôle</th>
+          <th>Service</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="u in paginatedUsers" :key="u.id" class="utbl-row">
+          <td>
+            <div class="ucell">
+              <div class="u-avatar">
+                {{ ((u.prenom?.charAt(0) ?? '') + (u.nom?.charAt(0) ?? '')).toUpperCase() }}
+              </div>
+              <div class="u-name">{{ u.nom }} {{ u.prenom }}</div>
+            </div>
+          </td>
+          <td class="td-muted">{{ u.email }}</td>
+          <td>
+            <span class="role-pill sm" :class="u.role?.toLowerCase()">{{ u.role }}</span>
+          </td>
+          <td class="td-muted">{{ u.service?.nom ?? '—' }}</td>
+          <td>
+            <div class="row-actions">
+              <button class="act-btn edit" @click="openUserModal(u)" title="Modifier">
+                <span v-html="icons.edit"></span>
+              </button>
+              <button class="act-btn del" @click="confirmDeleteUser(u)"
+                title="Supprimer" :disabled="u.id === auth.user?.id">
+                <span v-html="icons.trash"></span>
+              </button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Pagination -->
+    <div class="pagination" v-if="totalPages > 1">
+      <button
+        class="page-btn"
+        :disabled="currentPage === 1"
+        @click="currentPage--"
+      >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
+      </button>
+
+      <button
+        v-for="page in totalPages"
+        :key="page"
+        class="page-btn"
+        :class="{ active: page === currentPage }"
+        @click="currentPage = page"
+      >
+        {{ page }}
+      </button>
+
+      <button
+        class="page-btn"
+        :disabled="currentPage === totalPages"
+        @click="currentPage++"
+      >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>
+      </button>
+    </div>
+  </div>
+</div>
     <!-- ── Change password modal ───────────────────────── -->
     <Teleport to="body">
       <div v-if="showPwdModal" class="profile-modal-backdrop" @click.self="closePwdModal">
@@ -355,7 +383,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, reactive } from 'vue';
+import { ref, computed, onMounted, reactive,watch } from 'vue';
 import api from '@/services/api';
 import { useAuthStore } from '@/stores/auth';
 import ConfirmModal from '@/components/shared/ConfirmModal.vue';
@@ -516,6 +544,17 @@ const deleteUser = async () => {
   finally { deletingUser.value = false; }
 };
 
+const currentPage = ref(1)
+const perPage = 3
+
+const totalPages = computed(() => Math.ceil(users.value.length / perPage))
+
+const paginatedUsers = computed(() => {
+  const start = (currentPage.value - 1) * perPage
+  return users.value.slice(start, start + perPage)
+})
+
+watch(() => users.value.length, () => { currentPage.value = 1 })
 onMounted(async () => {
   await fetchProfile();
   if (auth.user?.role === 'RRH') fetchUsers();

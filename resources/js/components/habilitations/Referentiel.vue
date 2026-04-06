@@ -337,7 +337,7 @@
               <div class="adm-header">
                 <div>
                   <h3 style="margin:0;font-size:1rem;font-weight:700;color:#1a2e44">
-                    {{ editVoletTarget ? 'Modifier le volet' : 'Nouveau volet' }}
+                    {{ editVoletTarget ? 'Modifier la catégorie' : 'Nouvelle catégorie' }}
                   </h3>
                 </div>
                 <button class="adm-close" @click="closeVoletModal"><span v-html="icons.x"></span></button>
