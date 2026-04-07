@@ -15,7 +15,7 @@
 
     <!-- Right Panel -->
     <div class="right-panel">
-      <div class="form-container">
+      <div class="form-container" v-if="!showForgotPassword">
 
         <div class="welcome">
           <h1>Bienvenue</h1>
@@ -67,7 +67,7 @@
               <input type="checkbox" v-model="form.remember" />
               <span>Se souvenir de moi</span>
             </label>
-            <a href="#" class="forgot">Mot de passe oublié ?</a>
+            <a href="#" @click="()=>{showForgotPassword = !showForgotPassword}" class="forgot">Mot de passe oublié ?</a>
           </div>
 
           <!-- Global error -->
@@ -84,8 +84,22 @@
         </form>
 
         <div class="footer-text">
-          © 2026 Holcim 
+          © {{ currYear }} Holcim 
         </div>
+
+      </div>
+      <div class="forgetPassword-form" v-else>
+        <span v-html="icons.arrowLeft"  @click="()=>{showForgotPassword = !showForgotPassword}"></span> <span>Retour à la connexion</span>
+        <h1>Mot de passe oublié ?</h1>
+        <p>Entrez votre adresse email pour recevoir les instructions de réinitialisation.</p>
+        <form @submit.prevent="requestReset">
+          <input v-model="email" type="email" placeholder="Votre email" required />
+          <button type="submit" :disabled="loading">
+            {{ loading ? 'Envoi...' : 'Demander réinitialisation' }}
+          </button>
+          <p v-if="message" :class="success ? 'text-green' : 'text-red'">{{ message }}</p>
+        </form>
+
 
       </div>
     </div>
@@ -95,16 +109,18 @@
 
 <script setup>
 import '@/../css/components/auth/login.css';
-import { ref, reactive } from 'vue';
+import { ref, reactive, onMounted } from 'vue';
 import { useRouter }     from 'vue-router';
 import { useAuthStore }  from '@/stores/auth';
+import api from '@/services/api';
 
+const currYear = new Date().getFullYear();
 const router   = useRouter();
 const authStore = useAuthStore();
 
 const showPassword = ref(false);
 const loading      = ref(false);
-
+const showForgotPassword = ref(false);
 const form = reactive({
   email:    '',
   password: '',
@@ -158,4 +174,127 @@ const handleLogin = async () => {
     loading.value = false;
   }
 };
+const icons = {
+    arrowLeft: `<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>`,
+
+}
+
+//forgot password script
+const email = ref('')
+const message = ref('')
+const success = ref(false)
+
+const requestReset = async () => {
+  loading.value = true
+  try {
+    await api.post('/auth/request-password-reset', { email: email.value })
+    success.value = true
+    message.value = 'Demande envoyée au RRH. Vous recevrez un email une fois votre mot de passe réinitialisé.'
+    email.value = ''
+  } catch (error) {
+    success.value = false
+    message.value = error.response?.data?.message  
+  } finally {
+    loading.value = false
+  }
+}
+
+onMounted(() => {
+  if (authStore.isAuthenticated) {
+    router.push({ name: 'dashboard' });
+  }
+});
 </script>
+<style scoped>
+.forgetPassword-form span {
+  display: inline-flex;
+  align-items: center; /* aligne verticalement l’icône et le texte */
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #00695c;
+  cursor: pointer;
+  margin-bottom: 1rem;
+}
+
+.forgetPassword-form span svg {
+  width: 18px;
+  height: 18px;
+  stroke: #00695c;
+  margin-right: 8px;
+  vertical-align: middle; /* force l’alignement */
+  position: relative;
+  top: 1px; /* petit ajustement pour descendre l’icône */
+}
+.forgetPassword-form {
+  max-width: 450px;
+  margin: 0 auto;
+  padding: 2rem;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  font-family: "Segoe UI", Arial, sans-serif;
+  color: #333;
+}
+
+.forgetPassword-form h1 {
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+  color: #00695c; /* rappel du vert/teal Holcim */
+}
+
+.forgetPassword-form p {
+  font-size: 0.95rem;
+  margin-bottom: 1.5rem;
+  color: #555;
+}
+
+.forgetPassword-form input[type="email"] {
+  width: 100%;
+  padding: 0.75rem;
+  margin-bottom: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 0.95rem;
+}
+
+.forgetPassword-form button {
+  width: 100%;
+  padding: 0.75rem;
+  background: linear-gradient(90deg, #009688, #4caf50);
+  border: none;
+  border-radius: 6px;
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.forgetPassword-form button:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+.forgetPassword-form button:hover:not(:disabled) {
+  background: linear-gradient(90deg, #00796b, #388e3c);
+}
+
+.forgetPassword-form span {
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+  color: #00695c;
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+}
+
+.forgetPassword-form .text-green {
+  color: #2e7d32;
+  margin-top: 1rem;
+}
+
+.forgetPassword-form .text-red {
+  color: #c62828;
+  margin-top: 1rem;
+}
+</style>

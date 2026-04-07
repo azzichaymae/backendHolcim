@@ -456,12 +456,14 @@ const changePasswordRRH = async () => {
 const users = ref([]); const services = ref([]);
 const loadingUsers = ref(false); const savingUser = ref(false);
 const deletingUser = ref(false); const showUserModal = ref(false);
-const editUser = ref(null); const deleteUserTarget = ref(null);
+const editUser = ref(null); 
+const deleteUserTarget = ref(null);
 const resetPassword = ref(false);
 
 const defaultUserForm = () => ({ nom: '', prenom: '', email: '', role: '', service_id: '', password: '', password_confirmation: '' });
 const userForm   = reactive(defaultUserForm());
-const userErrors = reactive({ nom: '', prenom: '', email: '', role: '', password: '', password_confirmation: '', global: '' });
+const userErrors = reactive({ nom: '', prenom: '', email: '', role: '', password: '', password_confirmation: '', global: '' }
+);
 
 const fetchUsers = async () => {
   loadingUsers.value = true;
@@ -478,7 +480,7 @@ const openUserModal = (u = null) => {
 
   if (u) {
     const nom = u.nom;
-    const prenom    = u.prenom;
+    const prenom = u.prenom;
 
     Object.assign(userForm, {
       nom,
@@ -504,7 +506,7 @@ const validateUser = () => {
   if (!userForm.prenom) { userErrors.prenom = 'Obligatoire.'; v = false; }
   if (!userForm.email)  { userErrors.email  = 'Obligatoire.'; v = false; }
   if (!userForm.role)   { userErrors.role   = 'Obligatoire.'; v = false; }
-  if (!editUser.value) {
+  if (!editUser.value || resetPassword.value) {
     if (!userForm.password || userForm.password.length < 8) { userErrors.password = 'Minimum 8 caractères.'; v = false; }
     if (userForm.password !== userForm.password_confirmation) { userErrors.password_confirmation = 'Ne correspondent pas.'; v = false; }
   }
@@ -518,6 +520,16 @@ const submitUser = async () => {
   if (!editUser.value || resetPassword.value) { payload.password = userForm.password; payload.password_confirmation = userForm.password_confirmation; }
   try {
     if (editUser.value) {
+      if(resetPassword){
+        console.log('Resetting password for user ID:', editUser.value.id);
+        console.log('New password:', userForm.password);
+        const response = await api.post(`/auth/rrh/reset-password/${editUser.value.id}`, {
+      new_password: userForm.password,
+    });
+    
+    console.log(response.data);
+    alert('✅ Mot de passe modifié ! Un email a été envoyé à l\'utilisateur.');
+      }
       const { data } = await api.put(`/users/${editUser.value.id}`, payload);
       const idx = users.value.findIndex(u => u.id === editUser.value.id);
       if (idx !== -1) users.value[idx] = data;

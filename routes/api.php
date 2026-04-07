@@ -28,6 +28,10 @@ Route::get(
 );
 Route::get('/validations/info/{token}', [ValidationController::class, 'info']);
 
+// routes/api.php
+Route::post('/auth/request-password-reset', [AuthController::class, 'requestReset']); 
+Route::post('/auth/rrh/reset-password/{userId}', [AuthController::class, 'rrhResetPassword'])
+    ->middleware('auth:sanctum', 'role:RRH');
 // ── Protected routes ───────────────────────────────────
 Route::middleware('auth:sanctum')->group(function () {
 
