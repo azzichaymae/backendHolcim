@@ -120,16 +120,39 @@ class DocumentController extends Controller
      }
 
      // GET /api/documents/{id}/download
-     public function download(Document $document)
-     {
-          $fullPath = storage_path('app/public/' . $document->chemin);
+    public function download(Document $document)
+{
+    $fullPath = storage_path('app' . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . $document->chemin);
+    
+    // Normalize slashes for Windows
+    $fullPath = str_replace('/', DIRECTORY_SEPARATOR, $fullPath);
 
-          if (!file_exists($fullPath)) {
-               return response()->json([
-                    'message' => 'Fichier introuvable sur le serveur.'
-               ], 404);
-          }
+    if (!file_exists($fullPath)) {
+        return response()->json([
+            'message' => 'Fichier introuvable sur le serveur.',
+            'path' => $fullPath,
+        ], 404);
+    }
 
-          return response()->download($fullPath, $document->nom);
-     }
+    return response()->download($fullPath, $document->nom);
+}
+
+public function downloadByAttribution($employeeHabilitationId)
+{
+    $document = Document::where('employee_habilitation_id', $employeeHabilitationId)
+        ->latest()
+        ->first();
+
+    if (!$document) {
+        return response()->json(['message' => 'Aucun document trouvé pour cette attribution.'], 404);
+    }
+
+    $fullPath = str_replace('/', DIRECTORY_SEPARATOR, storage_path('app/public/' . $document->chemin));
+
+    if (!file_exists($fullPath)) {
+        return response()->json(['message' => 'Fichier introuvable sur le serveur.'], 404);
+    }
+
+    return response()->download($fullPath, $document->nom);
+}
 }

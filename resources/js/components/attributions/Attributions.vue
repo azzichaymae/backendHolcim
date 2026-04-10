@@ -500,8 +500,29 @@ const expirationClass = (item) => {
   return '';
 };
 
-const docGen = (id) => router.push({ name: 'documents.id', params: { id } });
-
+const docGen = async (id) => {
+  try {
+    const response = await api.get(`/documents/download-by-attribution/${id}`, {
+      responseType: 'blob'
+    });
+    const blob = new Blob([response.data], { type: 'application/pdf' });
+    const url  = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href  = url;
+    link.setAttribute('download', `habilitation_${id}.pdf`);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
+  } catch (e) {
+    if (e.response?.status === 404) {
+      alert('Aucun document généré pour cette habilitation. Veuillez d\'abord générer le document depuis la page Documents.');
+    } else {
+      console.error(e);
+      alert('Erreur lors du téléchargement.');
+    }
+  }
+};
 // ── RRH/RH computed ───────────────────────────────────────────────────────
 const filtered = computed(() => {
   let list = attributions.value;

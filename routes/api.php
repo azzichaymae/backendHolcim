@@ -122,22 +122,24 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     // ── Documents ──────────────────────────────────────
-    Route::middleware('role:RRH,RH,Manager')->group(function () {
-        Route::get('/documents', [DocumentController::class, 'index']);
-        Route::get('/documents/all', [DocumentController::class, 'getAllDocuments']);
-        Route::get('/documents/{document}', [DocumentController::class, 'show']);
-        Route::get('/documents/download/{document}', [DocumentController::class, 'download']);
-    });
-    Route::middleware('role:RRH,RH')->group(function () {
-        Route::get('/documents/employees-par-habilitation/{habilitation}', [DocumentGenerationController::class, 'employeesParHabilitation']);
-        Route::post('/documents/generate/individuelle', [DocumentGenerationController::class, 'generateIndividuelle']);
-        Route::post('/documents/generate/note', [DocumentGenerationController::class, 'generateNote']);
-        Route::post('/documents', [DocumentController::class, 'store']);
-        Route::delete('/documents/{document}', [DocumentController::class, 'destroy']);
-        Route::get('/documents/{document}/download', [DocumentGenerationController::class, 'download']);
+ Route::middleware('role:RRH,RH,Manager')->group(function () {
+    Route::get('/documents', [DocumentController::class, 'index']);
+    Route::get('/documents/all', [DocumentController::class, 'getAllDocuments']);
+    Route::get('/documents/download/{document}', [DocumentController::class, 'download']); 
+Route::get('/documents/download-by-attribution/{employeeHabilitationId}', [DocumentController::class, 'downloadByAttribution']);
+    Route::get('/documents/{document}', [DocumentController::class, 'show']);
 
 
-    });
+});
+
+Route::middleware('role:RRH,RH')->group(function () {
+    Route::get('/documents/employees-par-habilitation/{habilitation}', [DocumentGenerationController::class, 'employeesParHabilitation']);
+    Route::post('/documents/generate/individuelle', [DocumentGenerationController::class, 'generateIndividuelle']);
+    Route::post('/documents/generate/note', [DocumentGenerationController::class, 'generateNote']);
+    Route::post('/documents', [DocumentController::class, 'store']);
+    Route::delete('/documents/{document}', [DocumentController::class, 'destroy']);
+   
+});
 
     // ── Alerts ─────────────────────────────────────────
     Route::middleware('role:RRH,RH,Manager')->group(function () {
