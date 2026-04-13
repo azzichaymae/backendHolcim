@@ -52,10 +52,7 @@ class Alert extends Model
 
     // ── Scopes ─────────────────────────────────────────────
 
-    public function scopeActives($query)
-    {
-        return $query->where('statut', 'active');
-    }
+   
 
     public function scopeVues($query)
     {
@@ -77,6 +74,34 @@ class Alert extends Model
         return $query->where('jours_avant_expiration', 0)
                      ->where('statut', 'active');
     }
+public function scopeActives($query)
+{
+    return $query->where('alerts.statut', 'active'); // add table prefix
+}
+
+public function scopePourAujourdhui($query)
+{
+    $today = now()->startOfDay();
+
+    return $query
+        ->join('employee_habilitations as eh', 'eh.id', '=', 'alerts.employee_habilitation_id')
+        ->selectRaw("
+            COUNT(DISTINCT alerts.employee_habilitation_id) as total,
+            SUM(CASE 
+                WHEN alerts.jours_avant_expiration = 30 
+                AND DATEDIFF(eh.date_expiration, ?) > 7
+                THEN 1 ELSE 0 END) as a_30j,
+            SUM(CASE 
+                WHEN alerts.jours_avant_expiration = 7 
+                AND DATEDIFF(eh.date_expiration, ?) BETWEEN 1 AND 7
+                THEN 1 ELSE 0 END) as a_7j,
+            SUM(CASE 
+                WHEN alerts.jours_avant_expiration = 0 
+                AND DATEDIFF(eh.date_expiration, ?) <= 0
+                THEN 1 ELSE 0 END) as urgentes
+        ", [$today, $today, $today])
+        ->where('alerts.alert_date', '<=', $today);
+}
 
     // ── Helpers ────────────────────────────────────────────
 
@@ -99,21 +124,20 @@ class Alert extends Model
     }
 
     // ── Static Factory ─────────────────────────────────────
-
-   public static function genererPourHabilitation(EmployeeHabilitation $eh): void
+public static function genererPourHabilitation(EmployeeHabilitation $eh): void
 {
-    $dateExpiration = $eh->date_expiration;
+    $dateExpiration = Carbon::parse($eh->date_expiration);
     $today          = Carbon::today();
+
+    // If already expired, no point generating future alerts
+    if ($dateExpiration->lt($today)) {
+        return;
+    }
 
     foreach ([30, 7, 0] as $jours) {
         $alertDate = $dateExpiration->copy()->subDays($jours);
 
-        // Only create if alert doesn't already exist
-        $exists = self::where('employee_habilitation_id', $eh->id)
-                      ->where('jours_avant_expiration', $jours)
-                      ->exists();
-
-        if (!$exists && $alertDate->gte($today)) {
+        if ($alertDate->gte($today)) {
             self::create([
                 'employee_habilitation_id' => $eh->id,
                 'alert_type'               => 'expiration_proche',

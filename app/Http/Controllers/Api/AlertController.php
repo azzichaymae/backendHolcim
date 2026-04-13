@@ -60,9 +60,7 @@ class AlertController extends Controller
         ->get();
 
     // ── Group by employee_habilitation_id ──────────────────────────────
-    // Keep one row per attribution. The alert with the smallest
-    // jours_avant_expiration drives urgence. All sibling IDs are
-    // bundled so the frontend can mark all of them as seen at once.
+    
     $grouped = $alerts
         ->groupBy('employee_habilitation_id')
         ->map(function ($group) {
@@ -144,28 +142,26 @@ class AlertController extends Controller
     }
      // GET /api/alerts/count
     public function count(): JsonResponse
-    {
-        $user = auth()->user();
+{
+    $user  = auth()->user();
+    $query = Alert::actives();
 
-        $query = Alert::actives();
-
-        if ($user->role === 'Manager') {
-            $query->whereHas('employeeHabilitation.employee', function ($q) use ($user) {
-                $q->where('departement_id', $user->departement_id);
-            });
-        }
-
-        $total    = (clone $query)->count();
-        $urgentes = (clone $query)->urgentes()->count();
-        $trente   = (clone $query)->where('jours_avant_expiration', 30)->count();
-        $sept     = (clone $query)->where('jours_avant_expiration', 7)->count();
-
-        return response()->json([
-            'total'    => $total,
-            'urgentes' => $urgentes,
-            'a_30j'    => $trente,
-            'a_7j'     => $sept,
-        ], 200);
+    if ($user->role === 'Manager') {
+        $query->whereHas('employeeHabilitation.employee', function ($q) use ($user) {
+            $q->where('departement_id', $user->departement_id);
+        });
     }
+
+    // Reuse the same filtered $query, don't start a new Alert::actives()
+    $counts = (clone $query)->pourAujourdhui()->first();
+
+    return response()->json([
+        'total'    => (int) ($counts->total    ?? 0),
+        'a_30j'    => (int) ($counts->a_30j    ?? 0),
+        'a_7j'     => (int) ($counts->a_7j     ?? 0),
+        'urgentes' => (int) ($counts->urgentes ?? 0),
+    ], 200);
 }
+}
+
 

@@ -137,17 +137,10 @@ class EmployeeHabilitationController extends Controller
           $employeeHabilitation->update($validated);
 
           // Regenerate alerts
-          $employeeHabilitation->alerts()->delete();
-          Alert::genererPourHabilitation($employeeHabilitation);
+    Alert::where('employee_habilitation_id', $employeeHabilitation->id)->delete();
+          Alert::genererPourHabilitation($employeeHabilitation->fresh());
 
-          $employeeHabilitation->load([
-               'employee.departement',
-               'habilitation.volet',
-               'documents',
-               'alerts',
-          ]);
-
-          return response()->json($employeeHabilitation, 200);
+    return response()->json($employeeHabilitation->fresh()->load(['employee', 'habilitation']));
      }
 
      // DELETE /api/employee-habilitations/{id}
@@ -210,8 +203,7 @@ public function alertes(Request $request): JsonResponse
         'date_expiration' => $eh->date_expiration,
         'jours_restants'  => (int) Carbon::today()->diffInDays($eh->date_expiration, false),
         'statut'          => $eh->statut,
-        'acknowledged'    => !is_null($eh->acknowledged_at),
-        'acknowledged_at' => $eh->acknowledged_at,
+		'attribution'     => $eh->id,
     ]);
 
     return response()->json($results);

@@ -221,7 +221,7 @@ const profilePage = async () => {
 const fetchAlertCount = async () => {
   try {
     const { data } = await api.get('/alerts/count');
-    
+    console.log(data)
     alertCount.value = data.urgentes;
   } catch { }
 };

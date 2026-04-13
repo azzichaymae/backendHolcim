@@ -501,10 +501,18 @@ const expirationClass = (item) => {
 };
 
 const docGen = async (id) => {
+
   try {
-    const response = await api.get(`/documents/download-by-attribution/${id}`, {
-      responseType: 'blob'
-    });
+    const response = await api.get(`/documents/download/${id}`, {
+  responseType: 'blob'
+});
+
+    // Log the actual content to see what came back
+    const text = await response.data.text();
+    console.log('First 100 chars:', text.substring(0, 100));
+    console.log('Content-Type:', response.headers['content-type']);
+    console.log('Blob size:', response.data.size);
+
     const blob = new Blob([response.data], { type: 'application/pdf' });
     const url  = window.URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -514,13 +522,9 @@ const docGen = async (id) => {
     link.click();
     link.remove();
     window.URL.revokeObjectURL(url);
+
   } catch (e) {
-    if (e.response?.status === 404) {
-      alert('Aucun document généré pour cette habilitation. Veuillez d\'abord générer le document depuis la page Documents.');
-    } else {
-      console.error(e);
-      alert('Erreur lors du téléchargement.');
-    }
+    console.error(e);
   }
 };
 // ── RRH/RH computed ───────────────────────────────────────────────────────
