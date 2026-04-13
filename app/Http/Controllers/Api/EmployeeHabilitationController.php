@@ -203,7 +203,7 @@ public function alertes(Request $request): JsonResponse
         'date_expiration' => $eh->date_expiration,
         'jours_restants'  => (int) Carbon::today()->diffInDays($eh->date_expiration, false),
         'statut'          => $eh->statut,
-		'attribution'     => $eh->id,
+	   'attribution'     => $eh->id,
     ]);
 
     return response()->json($results);

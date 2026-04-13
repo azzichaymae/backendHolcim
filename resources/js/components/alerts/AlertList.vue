@@ -270,9 +270,13 @@ const formatDate    = (d) => d ? new Date(d).toLocaleDateString('fr-FR') : '—'
 const initiales     = (emp) => `${emp?.prenom?.[0] ?? ''}${emp?.nom?.[0] ?? ''}`.toUpperCase();
 const resetFilters  = () => { filters.urgence = 'all'; filters.search = ''; };
 
-// Navigate to the attribution update page
 const goToAttribution = (row) => {
-  //router.push({ name: 'employee-habilitations.edit', params: { id: row.attribution } });
+   router.push({ 
+    name: 'attributions',
+    query: { 
+      editId: row.id,
+    }
+  });
 };
 
 // ── API ────────────────────────────────────────────────────────────────────

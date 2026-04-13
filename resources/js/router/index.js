@@ -22,7 +22,7 @@ import ValidationRefuse from "@/components/validation/ValidationRefuse.vue";
 const routes = [
     // Public
     { path: "/login", component: Login, name: "login" },
-     
+
     {
         path: "/validation/confirmer/:token",
         component: ValidationConfirm,
@@ -89,7 +89,11 @@ const routes = [
                 component: Referentiel,
                 name: "referentiel",
             },
-            
+            {
+                path: "attributions/:id/edit",
+                component: AttributionForm,
+                name: "attributions.edit",
+            },
         ],
     },
 

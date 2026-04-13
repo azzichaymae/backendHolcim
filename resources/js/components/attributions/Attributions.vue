@@ -372,7 +372,7 @@
                   <button class="adm-close" @click="closeModal"><span v-html="icons.x"></span></button>
                 </div>
                 <div style="padding:20px 22px;display:flex;flex-direction:column;gap:14px;">
-                
+
                   <div class="modal-field">
                     <label>Organisme de formation</label>
                     <input v-model="form.organisme_formation" placeholder="Ex: AFPA, CNAM..." />
@@ -380,13 +380,15 @@
                   </div>
                   <div class="modal-field">
                     <label>Date d'obtention <span style="color:#ef4444">*</span></label>
-                    <input v-model="form.date_obtention" type="date" :class="{ 'input-error': errors.date_obtention }" />
+                    <input v-model="form.date_obtention" type="date"
+                      :class="{ 'input-error': errors.date_obtention }" />
                     <span class="error-msg" v-if="errors.date_obtention">{{ errors.date_obtention }}</span>
                   </div>
-                    <div class="modal-field">
-                      <label>Date d'aptitude médicale <span style="color:#ef4444">*</span></label>
-                      <input v-model="form.date_appt_medicale" type="date" :class="{ 'input-error': errors.date_appt_medicale }" />
-                      <span class="error-msg" v-if="errors.date_appt_medicale">{{ errors.date_appt_medicale }}</span>
+                  <div class="modal-field">
+                    <label>Date d'aptitude médicale <span style="color:#ef4444">*</span></label>
+                    <input v-model="form.date_appt_medicale" type="date"
+                      :class="{ 'input-error': errors.date_appt_medicale }" />
+                    <span class="error-msg" v-if="errors.date_appt_medicale">{{ errors.date_appt_medicale }}</span>
                   </div>
                   <div class="modal-field">
                     <label>Type <span style="color:#ef4444">*</span></label>
@@ -397,7 +399,7 @@
                     </select>
                     <span class="error-msg" v-if="errors.type">{{ errors.type }}</span>
                   </div>
-                  
+
                   <span class="error-msg" v-if="errors.global">{{ errors.global }}</span>
                 </div>
                 <div
@@ -459,7 +461,7 @@ const mgrVolets = ref([]);
 
 // ── Icons ──────────────────────────────────────────────────────────────────
 const icons = {
-    x: `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>`,
+  x: `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>`,
 
   pen: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>`,
   eye: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>`,
@@ -504,8 +506,8 @@ const docGen = async (id) => {
 
   try {
     const response = await api.get(`/documents/download/${id}`, {
-  responseType: 'blob'
-});
+      responseType: 'blob'
+    });
 
     // Log the actual content to see what came back
     const text = await response.data.text();
@@ -514,9 +516,9 @@ const docGen = async (id) => {
     console.log('Blob size:', response.data.size);
 
     const blob = new Blob([response.data], { type: 'application/pdf' });
-    const url  = window.URL.createObjectURL(blob);
+    const url = window.URL.createObjectURL(blob);
     const link = document.createElement('a');
-    link.href  = url;
+    link.href = url;
     link.setAttribute('download', `habilitation_${id}.pdf`);
     document.body.appendChild(link);
     link.click();
@@ -667,26 +669,38 @@ const fetchMgrVolets = async () => {
 };
 
 // ── Edit association modal ─────────────────────────────────────────────────
-const defaultForm = () => ({ id: null,
-date_appt_medicale: '', date_obtention: '', type: 'initiale', organisme_formation: '', habilitation:'', empNom:'', empMatricule:''
+const defaultForm = () => ({
+  id: null,
+  date_appt_medicale: '', date_obtention: '', type: 'initiale', organisme_formation: '', habilitation: '', empNom: '', empMatricule: ''
 });
 const form = reactive(defaultForm());
-const errors = reactive({date_appt_medicale:'', date_obtention: '', type: '', organisme_formation: '', global: '' });
+const errors = reactive({ date_appt_medicale: '', date_obtention: '', type: '', organisme_formation: '', global: '' });
 
 const showModal = ref(false);
+const fetchAndOpenEditModal = async (id) => {
+  try {
+    // Fetch the association data by ID
+    const association = await api.get(`/employee-habilitations/${id}`);
+    editAssociation(association);
 
+    // Clear the query parameter after opening modal
+    router.replace({ query: {} });
+  } catch (error) {
+    console.error('Error fetching association:', error);
+  }
+};
 const editAssociation = (association) => {
-  console.log('Editer association', association);
+  const assoc = route.query.editId ? association.data : association;
   Object.keys(errors).forEach(k => errors[k] = '');
-  form.id = association.id;
-  form.empNom = association.employee.prenom + ' ' + association.employee.nom;
-  form.empMatricule = association.employee.matricule;
-  form.habilitation = association.habilitation.nom;
- form.date_obtention = association.date_obtention.split('T')[0];
-  form.type = association.type;
-  form.organisme_formation = association.organisme_formation;
-  form.date_appt_medicale = association.date_aptitude_medicale.split('T')[0];
- 
+  form.id = assoc.id;
+  form.empNom = assoc.employee.prenom + ' ' + assoc.employee.nom;
+  form.empMatricule = assoc.employee.matricule;
+  form.habilitation = assoc.habilitation.nom;
+  form.date_obtention = assoc.date_obtention.split('T')[0];
+  form.type = assoc.type;
+  form.organisme_formation = assoc.organisme_formation;
+  form.date_appt_medicale = assoc.date_aptitude_medicale.split('T')[0];
+
   showModal.value = true;
 };
 const closeModal = () => { showModal.value = false; };
@@ -713,6 +727,9 @@ const updateAssociation = async () => {
   }
 };
 onMounted(async () => {
+  if (route.query.editId) {
+    fetchAndOpenEditModal(route.query.editId);
+  }
   if (isManager.value) {
     await Promise.all([fetchEquipe(), fetchMgrVolets()]);
   } else {
