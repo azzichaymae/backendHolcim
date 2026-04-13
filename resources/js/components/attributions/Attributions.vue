@@ -319,101 +319,61 @@
                   </tr>
                 </tbody>
               </table>
-              <ValidationDialog v-model="dialog" :etapes="etapes" />
-              <v-layout min-height="100">
-                <v-snackbar v-model="loadingSnackbar" :timeout="-1" location="top center" rounded="lg" contained>
-                  <div class="d-flex align-center ga-3" style="padding: 4px 8px;">
-                    <v-progress-circular indeterminate size="16" width="2" color="white" />
-                    <span>Envoi en cours...</span>
-                  </div>
-                </v-snackbar>
+               
 
-                <v-snackbar v-model="successSnackbar" :timeout="3000" color="#1D9E75" location="top center" rounded="lg"
-                  contained>
-                  <div class="d-flex align-center ga-3" style="padding: 4px 8px;">
-                    <v-icon size="18">mdi-check-circle-outline</v-icon>
-                    <div>
-                      <div style="font-size: 13px; font-weight: 600;">Succès</div>
-                      <div style="font-size: 12px; opacity: 0.85;">Document envoyé avec succès !</div>
-                    </div>
-                  </div>
-                </v-snackbar>
-              </v-layout>
-
-              <v-snackbar v-model="errorSnackbar" :timeout="3500" color="#E24B4A" location="top center" rounded="lg">
-                <div class="d-flex align-center ga-3" style="padding: 4px 8px;">
-                  <v-icon size="18">mdi-alert-circle-outline</v-icon>
-                  <div>
-                    <div style="font-size: 13px; font-weight: 600;">Erreur</div>
-                    <div style="font-size: 12px; opacity: 0.85;">{{ errorMessage }}</div>
-                  </div>
-                </div>
-
-              </v-snackbar>
+              
             </div>
           </transition>
 
         </div>
       </div>
+      
+
+
       <Teleport to="body">
-        <Transition name="adm-fade">
-          <div class="adm-backdrop" v-if="showModal" @click.self="closeModal">
-            <Transition name="adm-slide">
-              <div class="adm-dialog" v-if="showModal">
-                <div class="adm-header">
-                  <div>
-                    <h3 style="margin:0;font-size:1rem;font-weight:700;color:#1a2e44">
-                      <span style="white-space: pre;">Modifier l'association</span>
-                      <span style="font-weight:400;color:#4b5563;font-size:0.875rem;margin-left:8px">
-                        {{ form.habilitation }} — {{ form.empNom }} ({{ form.empMatricule }})
-                      </span>
-                    </h3>
-                  </div>
-                  <button class="adm-close" @click="closeModal"><span v-html="icons.x"></span></button>
-                </div>
-                <div style="padding:20px 22px;display:flex;flex-direction:column;gap:14px;">
+      <Transition name="adm-fade">
+        <div class="adm-backdrop" v-if="showModal" @click.self="closeModal">
+          <Transition name="adm-slide">
+            <div class="adm-dialog" v-if="showModal">
+              <!-- Modal content -->
+            </div>
+          </Transition>
+        </div>
+      </Transition>
+    </Teleport>
+    
+    <!-- Validation Dialog -->
+    <ValidationDialog v-model="dialog" :etapes="etapes" />
+    
+    <!-- Snackbars -->
+    <v-snackbar v-model="loadingSnackbar" :timeout="-1" location="top center" rounded="lg" contained>
+      <div class="d-flex align-center ga-3" style="padding: 4px 8px;">
+        <v-progress-circular indeterminate size="16" width="2" color="white" />
+        <span>Envoi en cours...</span>
+      </div>
+    </v-snackbar>
 
-                  <div class="modal-field">
-                    <label>Organisme de formation</label>
-                    <input v-model="form.organisme_formation" placeholder="Ex: AFPA, CNAM..." />
-                    <span class="error-msg" v-if="errors.organisme_formation">{{ errors.organisme_formation }}</span>
-                  </div>
-                  <div class="modal-field">
-                    <label>Date d'obtention <span style="color:#ef4444">*</span></label>
-                    <input v-model="form.date_obtention" type="date"
-                      :class="{ 'input-error': errors.date_obtention }" />
-                    <span class="error-msg" v-if="errors.date_obtention">{{ errors.date_obtention }}</span>
-                  </div>
-                  <div class="modal-field">
-                    <label>Date d'aptitude médicale <span style="color:#ef4444">*</span></label>
-                    <input v-model="form.date_appt_medicale" type="date"
-                      :class="{ 'input-error': errors.date_appt_medicale }" />
-                    <span class="error-msg" v-if="errors.date_appt_medicale">{{ errors.date_appt_medicale }}</span>
-                  </div>
-                  <div class="modal-field">
-                    <label>Type <span style="color:#ef4444">*</span></label>
-                    <select v-model="form.type" :class="{ 'input-error': errors.type }">
-                      <option value="">Sélectionner un type...</option>
-                      <option value="initiale">Initiale</option>
-                      <option value="recyclage">Recyclage</option>
-                    </select>
-                    <span class="error-msg" v-if="errors.type">{{ errors.type }}</span>
-                  </div>
+    <v-snackbar v-model="successSnackbar" :timeout="3000" color="#1D9E75" location="top center" rounded="lg" contained>
+      <div class="d-flex align-center ga-3" style="padding: 4px 8px;">
+        <v-icon size="18">mdi-check-circle-outline</v-icon>
+        <div>
+          <div style="font-size: 13px; font-weight: 600;">Succès</div>
+          <div style="font-size: 12px; opacity: 0.85;">Document envoyé avec succès !</div>
+        </div>
+      </div>
+    </v-snackbar>
 
-                  <span class="error-msg" v-if="errors.global">{{ errors.global }}</span>
-                </div>
-                <div
-                  style="display:flex;justify-content:flex-end;gap:10px;padding:14px 22px;border-top:1px solid #f0f4f8">
-                  <button class="btn-cancel-import" @click="closeModal">Annuler</button>
-                  <button class="btn-do-import" @click="updateAssociation" :disabled="submitting">
-                    <span v-if="submitting" class="spinner-sm"></span>
-                    Enregistrer </button>
-                </div>
-              </div>
-            </Transition>
-          </div>
-        </Transition>
-      </Teleport>
+    <v-snackbar v-model="errorSnackbar" :timeout="3500" color="#E24B4A" location="top center" rounded="lg">
+      <div class="d-flex align-center ga-3" style="padding: 4px 8px;">
+        <v-icon size="18">mdi-alert-circle-outline</v-icon>
+        <div>
+          <div style="font-size: 13px; font-weight: 600;">Erreur</div>
+          <div style="font-size: 12px; opacity: 0.85;">{{ errorMessage }}</div>
+        </div>
+      </div>
+    </v-snackbar>
+    
+  
     </template>
 
   </div>
@@ -904,10 +864,10 @@ onMounted(async () => {
 }
 
 .card-body {
-  padding: 10px;
+  max-height: 350px;
   border-top: 1px solid #eee;
   overflow: auto;
-  max-height: 400px;
+  
 }
 
 /* Manager specific */

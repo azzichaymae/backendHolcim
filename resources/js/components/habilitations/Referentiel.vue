@@ -228,7 +228,8 @@
 
             </div>
           </Transition>
-          <div class="ref-pagination" v-if="totalPages > 1">
+          
+        </div><div class="ref-pagination" v-if="totalPages > 1">
             <button class="page-btn" :disabled="currentPage === 1" @click="currentPage--">
               <span v-html="icons.chevronLeft"></span>
             </button>
@@ -238,7 +239,6 @@
               <span v-html="icons.chevronRight"></span>
             </button>
           </div>
-        </div>
       </div>
     </div>
 
@@ -450,7 +450,7 @@
 import { ref, reactive, computed, onMounted, watch } from 'vue';
 import api from '@/services/api';
 import ConfirmModal from '@/components/shared/ConfirmModal.vue';
-import '@/../css/components/habilitations/referentiel.css';
+// import '@/../css/components/habilitations/referentiel.css';
 import '@/../css/components/habilitations/habilitation-list.css';
 
 // ── State ──────────────────────────────────────────────────────────────────
@@ -750,160 +750,4 @@ watch([search, activeVoletId], () => { currentPage.value = 1; });
 onMounted(fetchAll);
 </script>
 
-<style scoped>
-/* ── Scrollable Table Container ───────────────────────────────────────── */
-.table-container {
-  overflow-x: auto;
-  overflow-y: auto;
-  max-height: 400px;
-  /* Only activates scrolling when content exceeds this */
-  width: 100%;
-  padding-bottom: 10px;
-}
-
-/* Optional: Add a class to force scroll on specific tables if needed */
-.table-container.always-scroll {
-  overflow-y: scroll;
-}
-
-.data-table {
-  width: 100%;
-  border-collapse: collapse;
-  border-spacing: 0;
-}
-
-.data-table thead {
-  position: sticky;
-  top: 0;
-  z-index: 10;
-}
-
-.data-table thead tr {
-  background: #f8fafc;
-}
-
-.data-table th {
-  padding: 12px 16px;
-  text-align: left;
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: #6b7280;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  background: #f8fafc;
-  border-bottom: 1px solid #e8ecf0;
-  white-space: nowrap;
-}
-
-.data-table td {
-  padding: 14px 16px;
-  font-size: 0.875rem;
-  color: #374151;
-  border-bottom: 1px solid #f0f4f8;
-  white-space: nowrap;
-}
-
-/* Allow specific columns to wrap text if needed */
-.data-table td:first-child {
-  white-space: normal;
-  min-width: 150px;
-  max-width: 250px;
-}
-
-/* ── Sticky Header for Group Header ───────────────────────────────────── */
-.hab-group {
-  background: white;
-  border: 1px solid #e8ecf0;
-  border-radius: 12px;
-  margin-bottom: 16px;
-  position: relative;
-  width: 100%;
-  overflow: hidden;
-  /* This prevents the group from causing page scroll */
-  display: flex;
-  flex-direction: column;
-}
-
-.hab-group-header {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 16px;
-  background: #f8fafc;
-  border-bottom: 1px solid #e8ecf0;
-  border-radius: 12px 12px 0 0;
-  position: sticky;
-  top: 0;
-  z-index: 20;
-  flex-shrink: 0;
-  /* Prevents header from shrinking */
-}
-
-/* Table container will expand to fit content when needed */
-.table-container {
-  overflow-x: auto;
-  overflow-y: auto;
-  max-height: 250px;
-  width: 100%;
-  flex: 1;
-}
-
-/* When content is less than max-height, no scrollbar appears */
-.table-container:has(tbody tr:only-child) {
-  overflow-y: visible;
-}
-
-.table-container.auto-scroll {
-  max-height: 100px;
-  overflow-y: auto;
-}
-
-.table-container:not(.force-scroll) {
-  overflow-y: visible;
-}
-
-.table-container {
-  overflow-x: auto;
-}
-
-@media (max-width: 768px) {
-  .table-container {
-    max-height: 300px;
-  }
-
-  .data-table th,
-  .data-table td {
-    padding: 10px 12px;
-  }
-}
-
-.hab-group.large-table .table-container {
-  overflow-y: auto;
-  max-height: 100px;
-}
-
-/* Ensure the detail panel doesn't interfere with horizontal scrolling */
-.detail-panel {
-  overflow-x: hidden;
-}
-
-/* Style scrollbars for better UX */
-.table-container::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-
-.table-container::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 4px;
-}
-
-.table-container::-webkit-scrollbar-thumb {
-  background: #c1c1c1;
-  border-radius: 4px;
-}
-
-.table-container::-webkit-scrollbar-thumb:hover {
-  background: #a8a8a8;
-}
-</style>
+ 
