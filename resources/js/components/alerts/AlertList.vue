@@ -190,6 +190,7 @@ const expandedEmployees = ref(new Set());
 
 // ── Derived ────────────────────────────────────────────────────────────────
 const expires  = computed(() => rows.value.filter(r => r.jours_restants < 0));
+console.log('Expires:', rows.value);
 const critiques = computed(() => rows.value.filter(r => r.jours_restants >= 0 && r.jours_restants <= 7));
 const proches   = computed(() => rows.value.filter(r => r.jours_restants > 7 && r.jours_restants <= 30));
 

@@ -80,13 +80,13 @@ class EmployeeHabilitationController extends Controller
      public function store(Request $request): JsonResponse
      {
           $validated = $request->validate([
-               'employee_id'            => 'required|exists:employees,id',
-               'habilitation_id'        => 'required|exists:habilitations,id',
-               'date_obtention'         => 'required|date',
-               'type'                   => 'required|in:initiale,recyclage',
-               'organisme_formation'    => 'required|string|max:150',
+               'employee_id' => 'required|exists:employees,id',
+               'habilitation_id' => 'required|exists:habilitations,id',
+               'date_obtention' => 'required|date',
+               'type' => 'required|in:initiale,recyclage',
+               'organisme_formation' => 'required|string|max:150',
                'date_aptitude_medicale' => 'required|date',
-           ]);
+          ]);
 
           // Fetch habilitation to get duration
           $habilitation = \App\Models\Habilitation::findOrFail($validated['habilitation_id']);
@@ -137,10 +137,10 @@ class EmployeeHabilitationController extends Controller
           $employeeHabilitation->update($validated);
 
           // Regenerate alerts
-    Alert::where('employee_habilitation_id', $employeeHabilitation->id)->delete();
+          Alert::where('employee_habilitation_id', $employeeHabilitation->id)->delete();
           Alert::genererPourHabilitation($employeeHabilitation->fresh());
 
-    return response()->json($employeeHabilitation->fresh()->load(['employee', 'habilitation']));
+          return response()->json($employeeHabilitation->fresh()->load(['employee', 'habilitation']));
      }
 
      // DELETE /api/employee-habilitations/{id}
@@ -182,53 +182,52 @@ class EmployeeHabilitationController extends Controller
           return response()->json($results, 200);
      }
      // GET /api/employee-habilitations/alertes
-public function alertes(Request $request): JsonResponse
-{
-    $query = EmployeeHabilitation::with([
-        'employee.service.departement',
-        'habilitation.volet',
-    ])->where('date_expiration', '<=', Carbon::today()->addDays(30))
-      ->orderBy('date_expiration');
+     public function alertes(Request $request): JsonResponse
+     {
+          $query = EmployeeHabilitation::with([
+               'employee.service.departement',
+               'habilitation.volet',
+          ])->where('date_expiration', '<=', Carbon::today()->addDays(30))
+               ->orderBy('date_expiration');
 
-    if (auth()->user()->role === 'Manager') {
-        $query->whereHas('employee', fn($q) =>
-            $q->where('service_id', auth()->user()->service_id)
-        );
-    }
+          if (auth()->user()->role === 'Manager') {
+               $query->whereHas(
+                    'employee',
+                    fn($q) =>
+                    $q->where('service_id', auth()->user()->service_id)
+               );
+          }
 
-    $results = $query->get()->map(fn($eh) => [
-        'id'              => $eh->id,
-        'employee'        => $eh->employee,
-        'habilitation'    => $eh->habilitation,
-        'date_expiration' => $eh->date_expiration,
-        'jours_restants'  => (int) Carbon::today()->diffInDays($eh->date_expiration, false),
-        'statut'          => $eh->statut,
-	   'attribution'     => $eh->id,
-    ]);
+          $results = $query->get()->map(fn($eh) => [
+               'id' => $eh->id,
+               'employee' => $eh->employee,
+               'habilitation' => $eh->habilitation,
+               'date_expiration' => $eh->date_expiration,
+               'jours_restants' => (int) Carbon::today()->diffInDays($eh->date_expiration, false),
+               'statut' => $eh->statut,
+               'attribution' => $eh->id,
+          ]);
 
-    return response()->json($results);
-}
+          return response()->json($results);
+     }
 
-// PATCH /api/employee-habilitations/{id}/acknowledge
-public function acknowledge(EmployeeHabilitation $employeeHabilitation): JsonResponse
-{
-    $employeeHabilitation->acknowledge();
-    return response()->json(['acknowledged' => true]);
-}
+     // PATCH /api/employee-habilitations/{id}/acknowledge
+     public function acknowledge(EmployeeHabilitation $employeeHabilitation): JsonResponse
+     {
+          $employeeHabilitation->acknowledge();
+          return response()->json(['acknowledged' => true]);
+     }
 
-// POST /api/employee-habilitations/acknowledge-bulk
-public function acknowledgeBulk(Request $request): JsonResponse
-{
-    $validated = $request->validate([
-        'ids'   => 'required|array',
-        'ids.*' => 'integer|exists:employee_habilitations,id',
-    ]);
+     // GET /api/employee-habilitations/{empId}/history
+     public function history($empId): JsonResponse
+     {
+          $history = EmployeeHabilitation::with(['habilitation.volet'])
+               ->where('employee_id', $empId)
+               ->orderBy('date_obtention', 'desc')
+               ->get();
 
-    EmployeeHabilitation::whereIn('id', $validated['ids'])
-        ->whereNull('acknowledged_at')
-        ->update(['acknowledged_at' => now()]);
+          return response()->json($history, 200);
+     }
 
-    return response()->json(['acknowledged' => true]);
-}
-
+       
 }

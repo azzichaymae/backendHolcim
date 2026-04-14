@@ -250,33 +250,47 @@
         <div v-for="emp in groupedEmployees" :key="emp.employee.id" class="employee-card">
 
           <div class="card-header" @click="toggle(emp.employee.id)">
-            <div class="emp-info">
-              <div>
-                <div class="emp-name">{{ emp.employee.prenom }} {{ emp.employee.nom }}</div>
-                <div class="emp-mat">Matricule: {{ emp.employee.matricule }}</div>
-              </div>
-            </div>
-            <div class="card-actions">
-              <span class="hab-count">{{ emp.habilitations.length }} habilitation(s)</span>
-              <span :class="['arrow', openEmployees[emp.employee.id] ? 'open' : '']">▼</span>
-            </div>
-          </div>
+  <div class="emp-info">
+
+    <!-- Avatar -->
+    <div class="emp-avatar">
+      {{ emp.employee.prenom[0] }}{{ emp.employee.nom[0] }}
+    </div>
+
+    <!-- Info -->
+    <div>
+      <div class="emp-name">
+        {{ emp.employee.prenom }} {{ emp.employee.nom }}
+      </div>
+      <div class="emp-meta">
+        Matricule: {{ emp.employee.matricule }} · {{ emp.employee.service.nom }}
+      </div>
+    </div>
+  </div>
+
+  <div class="card-actions">
+    <span class="hab-count">
+      {{ emp.habilitations.length }} habilitation(s)
+    </span>
+    <span :class="['arrow', openEmployees[emp.employee.id] ? 'open' : '']" v-html="icons.arrowUp"></span>
+  </div>
+</div>
 
           <transition name="collapse">
             <div v-if="openEmployees[emp.employee.id]" class="card-body">
               <table class="attr-data-table">
                 <thead>
-                  <tr>
-                    <th>Habilitation</th>
-                    <th>Organisme</th>
-                    <th>Date obtention</th>
-                    <th>Date expiration</th>
-                    <th>Type</th>
-                    <th>Statut</th>
-                    <th>Validation</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
+  <tr>
+    <th>Habilitation</th>
+    <th>Organisme</th>
+    <th>Obtention</th>
+    <th>Expiration</th>
+    <th>Type</th>
+    <th>Statut</th>
+    <th>Validation</th>
+    <th></th>
+  </tr>
+</thead>
                 <tbody>
                   <tr v-for="item in emp.habilitations" :key="item.id" class="data-row">
                     <td class="hab-name">{{ item.habilitation?.nom }}</td>
@@ -285,9 +299,23 @@
                     <td class="date-cell">
                       <span :class="['exp-date', expirationClass(item)]">{{ formatDate(item.date_expiration) }}</span>
                     </td>
-                    <td><span :class="['type-badge', item.type]">{{ item.type }}</span></td>
-                    <td><span :class="['statut-badge', statutClass(item)]">{{ statutLabel(item) }}</span></td>
-                    <td>
+<td>
+  <span :class="['badge', 'type', item.type]">
+    {{ item.type }}
+  </span>
+</td>
+
+<td>
+  <span :class="['badge', statutClass(item)]">
+    {{ statutLabel(item) }}
+  </span>
+</td>
+
+<td>
+  <span :class="['badge', 'validation', item.validation_statut]">
+    {{ item.validation_statut }}
+  </span>
+</td>                    <td>
                       <span v-if="item.validation_statut === 'non_soumis'" class="valid-badge non-soumis">Non
                         soumis</span>
                       <span v-else-if="item.validation_statut === 'en_cours'" class="valid-badge en-cours">⏳ En
@@ -319,61 +347,100 @@
                   </tr>
                 </tbody>
               </table>
-               
-
-              
+              <ValidationDialog v-model="dialog" :etapes="etapes" />
+             
             </div>
           </transition>
 
         </div>
       </div>
-      
-
-
       <Teleport to="body">
-      <Transition name="adm-fade">
-        <div class="adm-backdrop" v-if="showModal" @click.self="closeModal">
-          <Transition name="adm-slide">
-            <div class="adm-dialog" v-if="showModal">
-              <!-- Modal content -->
-            </div>
-          </Transition>
-        </div>
-      </Transition>
-    </Teleport>
-    
-    <!-- Validation Dialog -->
-    <ValidationDialog v-model="dialog" :etapes="etapes" />
-    
-    <!-- Snackbars -->
-    <v-snackbar v-model="loadingSnackbar" :timeout="-1" location="top center" rounded="lg" contained>
-      <div class="d-flex align-center ga-3" style="padding: 4px 8px;">
-        <v-progress-circular indeterminate size="16" width="2" color="white" />
-        <span>Envoi en cours...</span>
-      </div>
-    </v-snackbar>
+        <Transition name="adm-fade">
+          <div class="adm-backdrop" v-if="showModal" @click.self="closeModal">
+            <Transition name="adm-slide">
+              <div class="adm-dialog" v-if="showModal">
+                <div class="adm-header">
+                  <div>
+                    <h3 style="margin:0;font-size:1rem;font-weight:700;color:#1a2e44">
+                      <span style="white-space: pre;">Modifier l'association</span>
+                      <span style="font-weight:400;color:#4b5563;font-size:0.875rem;margin-left:8px">
+                        {{ form.habilitation }} — {{ form.empNom }} ({{ form.empMatricule }})
+                      </span>
+                    </h3>
+                  </div>
+                  <button class="adm-close" @click="closeModal"><span v-html="icons.x"></span></button>
+                </div>
+                <div style="padding:20px 22px;display:flex;flex-direction:column;gap:14px;">
+                
+                  <div class="modal-field">
+                    <label>Organisme de formation</label>
+                    <input v-model="form.organisme_formation" placeholder="Ex: AFPA, CNAM..." />
+                    <span class="error-msg" v-if="errors.organisme_formation">{{ errors.organisme_formation }}</span>
+                  </div>
+                  <div class="modal-field">
+                    <label>Date d'obtention <span style="color:#ef4444">*</span></label>
+                    <input v-model="form.date_obtention" type="date" :class="{ 'input-error': errors.date_obtention }" />
+                    <span class="error-msg" v-if="errors.date_obtention">{{ errors.date_obtention }}</span>
+                  </div>
+                    <div class="modal-field">
+                      <label>Date d'aptitude médicale <span style="color:#ef4444">*</span></label>
+                      <input v-model="form.date_appt_medicale" type="date" :class="{ 'input-error': errors.date_appt_medicale }" />
+                      <span class="error-msg" v-if="errors.date_appt_medicale">{{ errors.date_appt_medicale }}</span>
+                  </div>
+                  <div class="modal-field">
+                    <label>Type <span style="color:#ef4444">*</span></label>
+                    <select v-model="form.type" :class="{ 'input-error': errors.type }">
+                      <option value="">Sélectionner un type...</option>
+                      <option value="initiale">Initiale</option>
+                      <option value="recyclage">Recyclage</option>
+                    </select>
+                    <span class="error-msg" v-if="errors.type">{{ errors.type }}</span>
+                  </div>
+                  
+                  <span class="error-msg" v-if="errors.global">{{ errors.global }}</span>
+                </div>
+                <div
+                  style="display:flex;justify-content:flex-end;gap:10px;padding:14px 22px;border-top:1px solid #f0f4f8">
+                  <button class="btn-cancel-import" @click="closeModal">Annuler</button>
+                  <button class="btn-do-import" @click="updateAssociation" :disabled="submitting">
+                    <span v-if="submitting" class="spinner-sm"></span>
+                    Enregistrer </button>
+                </div>
+              </div>
+            </Transition>
+          </div>
+        </Transition>
+      </Teleport>
+       <v-layout min-height="100">
+                <v-snackbar v-model="loadingSnackbar" :timeout="-1" location="top center" rounded="lg" contained>
+                  <div class="d-flex align-center ga-3" style="padding: 4px 8px;">
+                    <v-progress-circular indeterminate size="16" width="2" color="white" />
+                    <span>Envoi en cours...</span>
+                  </div>
+                </v-snackbar>
 
-    <v-snackbar v-model="successSnackbar" :timeout="3000" color="#1D9E75" location="top center" rounded="lg" contained>
-      <div class="d-flex align-center ga-3" style="padding: 4px 8px;">
-        <v-icon size="18">mdi-check-circle-outline</v-icon>
-        <div>
-          <div style="font-size: 13px; font-weight: 600;">Succès</div>
-          <div style="font-size: 12px; opacity: 0.85;">Document envoyé avec succès !</div>
-        </div>
-      </div>
-    </v-snackbar>
+                <v-snackbar v-model="successSnackbar" :timeout="3000" color="#1D9E75" location="top center" rounded="lg"
+                  contained>
+                  <div class="d-flex align-center ga-3" style="padding: 4px 8px;">
+                    <v-icon size="18">mdi-check-circle-outline</v-icon>
+                    <div>
+                      <div style="font-size: 13px; font-weight: 600;">Succès</div>
+                      <div style="font-size: 12px; opacity: 0.85;">Document envoyé avec succès !</div>
+                    </div>
+                  </div>
+                </v-snackbar>
+              </v-layout>
 
-    <v-snackbar v-model="errorSnackbar" :timeout="3500" color="#E24B4A" location="top center" rounded="lg">
-      <div class="d-flex align-center ga-3" style="padding: 4px 8px;">
-        <v-icon size="18">mdi-alert-circle-outline</v-icon>
-        <div>
-          <div style="font-size: 13px; font-weight: 600;">Erreur</div>
-          <div style="font-size: 12px; opacity: 0.85;">{{ errorMessage }}</div>
-        </div>
-      </div>
-    </v-snackbar>
-    
-  
+              <v-snackbar v-model="errorSnackbar" :timeout="3500" color="#E24B4A" location="top center" rounded="lg">
+                <div class="d-flex align-center ga-3" style="padding: 4px 8px;">
+                  <v-icon size="18">mdi-alert-circle-outline</v-icon>
+                  <div>
+                    <div style="font-size: 13px; font-weight: 600;">Erreur</div>
+                    <div style="font-size: 12px; opacity: 0.85;">{{ errorMessage }}</div>
+                  </div>
+                </div>
+
+              </v-snackbar>
     </template>
 
   </div>
@@ -391,8 +458,7 @@ const router = useRouter();
 const route = useRoute();
 const authStore = useAuthStore();
 const isManager = computed(() => authStore.user?.role === 'Manager');
-const snackbar = ref(false)
-const loadingSnackbar = ref(false)
+ const loadingSnackbar = ref(false)
 const successSnackbar = ref(false)
 // ── RRH/RH state ──────────────────────────────────────────────────────────
 const attributions = ref([]);
@@ -421,8 +487,8 @@ const mgrVolets = ref([]);
 
 // ── Icons ──────────────────────────────────────────────────────────────────
 const icons = {
-  x: `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>`,
-
+    x: `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>`,
+  arrowUp: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"/></svg>`,
   pen: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>`,
   eye: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>`,
   pdf: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5 5-5M12 15V3"/></svg>`,
@@ -466,8 +532,8 @@ const docGen = async (id) => {
 
   try {
     const response = await api.get(`/documents/download/${id}`, {
-      responseType: 'blob'
-    });
+  responseType: 'blob'
+});
 
     // Log the actual content to see what came back
     const text = await response.data.text();
@@ -476,9 +542,9 @@ const docGen = async (id) => {
     console.log('Blob size:', response.data.size);
 
     const blob = new Blob([response.data], { type: 'application/pdf' });
-    const url = window.URL.createObjectURL(blob);
+    const url  = window.URL.createObjectURL(blob);
     const link = document.createElement('a');
-    link.href = url;
+    link.href  = url;
     link.setAttribute('download', `habilitation_${id}.pdf`);
     document.body.appendChild(link);
     link.click();
@@ -492,18 +558,28 @@ const docGen = async (id) => {
 // ── RRH/RH computed ───────────────────────────────────────────────────────
 const filtered = computed(() => {
   let list = attributions.value;
+
+   list = list.filter(a => a.employee && a.employee.id);
+
   if (search.value) {
     const s = search.value.toLowerCase();
     list = list.filter(a =>
-      `${a.employee?.prenom} ${a.employee?.nom}`.toLowerCase().includes(s) ||
-      a.employee?.matricule?.toString().includes(s) ||
+      `${a.employee.prenom} ${a.employee.nom}`.toLowerCase().includes(s) ||
+      a.employee.matricule?.toString().includes(s) ||
       a.habilitation?.nom?.toLowerCase().includes(s) ||
       a.organisme_formation?.toLowerCase().includes(s)
     );
   }
-  if (filterVolet.value) list = list.filter(a => a.habilitation?.volet?.id === filterVolet.value);
-  if (filterType.value) list = list.filter(a => a.type === filterType.value);
-  if (filterStatut.value) list = list.filter(a => statutClass(a) === filterStatut.value);
+
+  if (filterVolet.value)
+    list = list.filter(a => a.habilitation?.volet?.id === filterVolet.value);
+
+  if (filterType.value)
+    list = list.filter(a => a.type === filterType.value);
+
+  if (filterStatut.value)
+    list = list.filter(a => statutClass(a) === filterStatut.value);
+
   return list;
 });
 
@@ -512,10 +588,10 @@ const groupedEmployees = computed(() =>
     const empId = item.employee_id;
     if (!acc[empId]) acc[empId] = { employee: item.employee, habilitations: [] };
     acc[empId].habilitations.push(item);
-    return acc;
+     return acc;
   }, {}))
-);
 
+);
 const totalCount = computed(() => filtered.value.length);
 const valideCount = computed(() => filtered.value.filter(a => statutClass(a) === 'valide').length);
 const bientotCount = computed(() => filtered.value.filter(a => statutClass(a) === 'bientot').length);
@@ -549,6 +625,7 @@ const fetchData = async () => {
       api.get('/volets'),
     ]);
     attributions.value = attribRes.data;
+    console.log(attributions.value)
     volets.value = voletRes.data;
   } finally {
     loading.value = false;
@@ -606,7 +683,10 @@ const onCascadeVoletChange = async () => {
   try {
     const { data } = await api.get('/habilitations/volet/' + cascadeVolet.value);
     cascadeHabilitations.value = data;
-  } catch (e) { console.error(e); }
+
+} catch (e) { console.error(e); 
+  
+}
 };
 
 const onCascadeHabChange = async () => {
@@ -629,20 +709,19 @@ const fetchMgrVolets = async () => {
 };
 
 // ── Edit association modal ─────────────────────────────────────────────────
-const defaultForm = () => ({
-  id: null,
-  date_appt_medicale: '', date_obtention: '', type: 'initiale', organisme_formation: '', habilitation: '', empNom: '', empMatricule: ''
+const defaultForm = () => ({ id: null,
+date_appt_medicale: '', date_obtention: '', type: 'initiale', organisme_formation: '', habilitation:'', empNom:'', empMatricule:''
 });
 const form = reactive(defaultForm());
-const errors = reactive({ date_appt_medicale: '', date_obtention: '', type: '', organisme_formation: '', global: '' });
+const errors = reactive({date_appt_medicale:'', date_obtention: '', type: '', organisme_formation: '', global: '' });
 
 const showModal = ref(false);
 const fetchAndOpenEditModal = async (id) => {
   try {
     // Fetch the association data by ID
-    const association = await api.get(`/employee-habilitations/${id}`);
+    const association = await api.get(`/employee-habilitations/${id}`); 
     editAssociation(association);
-
+    
     // Clear the query parameter after opening modal
     router.replace({ query: {} });
   } catch (error) {
@@ -650,17 +729,17 @@ const fetchAndOpenEditModal = async (id) => {
   }
 };
 const editAssociation = (association) => {
-  const assoc = route.query.editId ? association.data : association;
+  const assocData = route.query.editId ? association.data : association
   Object.keys(errors).forEach(k => errors[k] = '');
-  form.id = assoc.id;
-  form.empNom = assoc.employee.prenom + ' ' + assoc.employee.nom;
-  form.empMatricule = assoc.employee.matricule;
-  form.habilitation = assoc.habilitation.nom;
-  form.date_obtention = assoc.date_obtention.split('T')[0];
-  form.type = assoc.type;
-  form.organisme_formation = assoc.organisme_formation;
-  form.date_appt_medicale = assoc.date_aptitude_medicale.split('T')[0];
-
+  form.id = assocData.id;
+  form.empNom = assocData.employee.prenom + ' ' + assocData.employee.nom;
+  form.empMatricule = assocData.employee.matricule;
+  form.habilitation = assocData.habilitation.nom;
+  form.date_obtention = assocData.date_obtention.split('T')[0];
+  form.type = assocData.type;
+  form.organisme_formation = assocData.organisme_formation;
+  form.date_appt_medicale = assocData.date_aptitude_medicale.split('T')[0];
+ 
   showModal.value = true;
 };
 const closeModal = () => { showModal.value = false; };
@@ -687,13 +766,14 @@ const updateAssociation = async () => {
   }
 };
 onMounted(async () => {
-  if (route.query.editId) {
+   if (route.query.editId) {
     fetchAndOpenEditModal(route.query.editId);
   }
   if (isManager.value) {
     await Promise.all([fetchEquipe(), fetchMgrVolets()]);
   } else {
     await fetchData();
+    console.log(groupedEmployees.value)
     if (route.query.statut) filterStatut.value = route.query.statut;
   }
 });
@@ -701,6 +781,160 @@ onMounted(async () => {
 </script>
 
 <style scoped>
+/* CARD */
+.employee-card {
+  background: #fff;
+  border: 1px solid #e6ecf2;
+  border-radius: 14px;
+  overflow: hidden;
+  margin-bottom: 16px;
+  transition: all 0.2s ease;
+}
+
+.employee-card:hover {
+  box-shadow: 0 4px 14px rgba(0,0,0,0.05);
+}
+
+/* HEADER */
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  cursor: pointer;
+}
+
+.emp-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.emp-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: #e6f0ff;
+  color: #2f6fed;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+}
+
+.emp-name {
+  font-weight: 600;
+  color: #1a2e44;
+}
+
+.emp-meta {
+  font-size: 12px;
+  color: #6b7a90;
+}
+
+.card-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.hab-count {
+  font-size: 13px;
+  color: #6b7a90;
+}
+
+/* TABLE */
+.attr-data-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.attr-data-table thead {
+  background: #f8fafc;
+}
+
+.attr-data-table th {
+  text-transform: uppercase;
+  font-size: 11px;
+  letter-spacing: 0.5px;
+  color: #8a99ad;
+  padding: 12px;
+  text-align: left;
+}
+
+.attr-data-table td {
+  padding: 14px 12px;
+  border-top: 1px solid #edf2f7;
+  font-size: 13px;
+  color: #2d3748;
+}
+
+/* BADGES */
+.badge {
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+/* TYPE */
+.badge.type.initiale {
+  background: #e6f0ff;
+  color: #2f6fed;
+}
+.badge.type.recyclage {
+  background: #eee9ff;
+  color: #6b4eff;
+}
+
+/* STATUT */
+.badge.valide {
+  background: #e6f7ee;
+  color: #1d9e75;
+}
+.badge.bientot {
+  background: #fff4e5;
+  color: #f59e0b;
+}
+.badge.expire {
+  background: #fdeaea;
+  color: #e24b4a;
+}
+
+/* VALIDATION */
+.badge.validation.valide {
+  background: #e6f7ee;
+  color: #1d9e75;
+}
+.badge.validation.en_cours {
+  background: #fff4e5;
+  color: #f59e0b;
+}
+.badge.validation.non_soumis {
+  background: #edf2f7;
+  color: #6b7280;
+}
+.badge.validation.refuse {
+  background: #fdeaea;
+  color: #e24b4a;
+}
+
+/* ACTIONS */
+.actions {
+  display: flex;
+  gap: 10px;
+}
+
+.action-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  opacity: 0.7;
+}
+
+.action-btn:hover {
+  opacity: 1;
+}
 .snackbar {
   display: flex;
   align-items: center;
@@ -864,10 +1098,10 @@ onMounted(async () => {
 }
 
 .card-body {
-  max-height: 350px;
+  padding: 10px;
   border-top: 1px solid #eee;
   overflow: auto;
-  
+  max-height: 400px;
 }
 
 /* Manager specific */

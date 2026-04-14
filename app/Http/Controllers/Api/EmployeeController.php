@@ -102,13 +102,6 @@ class EmployeeController extends Controller
     // DELETE /api/employees/{id}
     public function destroy(Employee $employee): JsonResponse
     {
-        if ($employee->habilitations()->exists()) {
-            return response()->json([
-                'message' => 'Impossible de supprimer cet employé : des habilitations lui sont attribuées.',
-                'nombre_habilitations' => $employee->habilitations()->count(),
-            ], 409);
-        }
-
         $employee->delete();
 
         return response()->json([

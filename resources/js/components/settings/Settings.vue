@@ -331,8 +331,10 @@ const form = reactive({
   societe:               '',
   site:                  '',
   directeur_usine:       '',
+  email_directeur:       '',
   titre_directeur:       '',
   resp_sante_securite:   '',
+  email_resp_sante_securite: '',
   medecin:               '',
 });
 
@@ -372,8 +374,10 @@ const loadSettings = async () => {
       societe:               data.societe               ?? '',
       site:                  data.site                  ?? '',
       directeur_usine:       data.directeur_usine       ?? '',
+      email_directeur:       data.email_directeur       ?? '',
       titre_directeur:       data.titre_directeur       ?? '',
       resp_sante_securite:   data.resp_sante_securite   ?? '',
+      email_resp_sante_securite: data.email_resp_sante_securite ?? '',
       medecin:               data.medecin               ?? '',
     });
   } catch {
@@ -416,7 +420,7 @@ const loadDepartements = async () => {
   try {
     const { data } = await api.get('/departements');
     departements.value = data;
-  } finally { depLoading.value = false; }
+   } finally { depLoading.value = false; }
 };
 
 const addDepartement = async () => {
@@ -438,6 +442,7 @@ const saveDepartement = async () => {
     const idx = departements.value.findIndex(d => d.id === data.id);
     if (idx !== -1) departements.value[idx] = data;
     editingDep.value = null;
+    loadDepartements(); 
   } catch (e) { alert(e.response?.data?.message ?? 'Erreur'); }
 };
 
@@ -460,8 +465,7 @@ const loadServices = async () => {
   try {
     const { data } = await api.get('/services');
     services.value = data;
-    console.log('Services chargés :', data);
-  } finally { svcLoading.value = false; }
+   } finally { svcLoading.value = false; }
 };
 
 const addService = async () => {
@@ -489,6 +493,7 @@ const saveService = async () => {
     const idx = services.value.findIndex(s => s.id === data.id);
     if (idx !== -1) services.value[idx] = data;
     editingSvc.value = null;
+    loadServices();
   } catch (e) { alert(e.response?.data?.message ?? 'Erreur'); }
 };
 

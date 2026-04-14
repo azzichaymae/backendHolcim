@@ -75,7 +75,7 @@
         </thead>
         <tbody>
           <tr v-for="emp in employees" :key="emp.id" class="table-row"
-            :class="{ 'row-clickable': !authStore.isManager }" @click="goToDetail(emp.id)">
+           :class="{ 'row-clickable': !authStore.isManager && !showArchived}" @click="showArchived ? showArchiveHab(emp.id) : goToDetail(emp.id)">
             <td data-label="Matricule">
               <span class="matricule-badge">{{ emp.matricule || 'ST' }}</span>
             </td>
@@ -98,7 +98,12 @@
 
             <td data-label="Actions" @click.stop>
               <div class="actions">
-                <router-link :to="`/employees/${emp.id}/edit`" class="action-btn edit" v-if="canWrite" title="Modifier">
+                 
+                    <span v-if="showArchived" class="archived-icon" v-html="icons.archive"></span>
+          
+                  
+                <router-link v-else   :to="`/employees/${emp.id}/edit`" class="action-btn edit" v-if="canWrite"
+ title="Modifier">
                   <span v-html="icons.edit"></span>
                 </router-link>
                 <button class="action-btn delete" v-if="canDelete" @click="confirmDelete(emp)" title="Supprimer">
@@ -190,6 +195,43 @@
       </div>
     </Teleport>
 
+    <Teleport to="body">
+  <div v-if="showArchivedModal" class="archived-habs-backdrop" @click.self="closeArchivedModal">
+    <div class="archived-habs-dialog">
+      <h3>Historique des habilitations</h3>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>HABILITATION</th>
+            <th>TYPE</th>
+            <th>DATE D'ATTRIBUTION</th>
+            <th>DATE DE RÉVOCATION</th>
+            <th>STATUT</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="hab in archivedHabs" :key="hab.id">
+            <td>{{ hab.habilitation.nom }}</td>
+            <td>{{ hab.type === 'initiale' ? 'Initiale' : 'Recyclage' }}</td>
+            <td>{{ new Date(hab.date_obtention).toLocaleDateString('fr-FR') }}</td>
+            <td>{{ hab.date_expiration ? new Date(hab.date_expiration).toLocaleDateString('fr-FR') : '—' }}</td>
+            <td>
+              <span :class="{
+                'status-valid': hab.statut === 'valide',
+                'status-expiring': hab.statut === 'expire_bientot',
+                'status-expired': hab.statut === 'expire',
+                
+              }">
+                {{ hab.statut}}
+              </span>
+            </td>
+          </tr>
+        </tbody>    
+      </table>
+      <button class="btn-close-archived" @click="closeArchivedModal()">Fermer</button>
+    </div>
+  </div>
+</Teleport>
   </div>
 </template>
 
@@ -200,6 +242,7 @@ import { useAuthStore } from '@/stores/auth';
 import api from '@/services/api';
 import '@/../css/components/employees/employee-list.css';
 import ConfirmModal from '@/components/shared/ConfirmModal.vue';
+import { fa } from 'vuetify/locale';
 
 const router = useRouter();
 const auth = useAuthStore();
@@ -393,9 +436,114 @@ const downloadTemplate = () => {
   a.href = url; a.download = 'modele_import_salaries.csv';
   a.click(); URL.revokeObjectURL(url);
 };
+const showArchivedModal = ref(false);
+const archivedHabs = ref([]);
+const showArchiveHab = async (id) => {
+  showArchivedModal.value = true;
+  const {data} = await api.get(`/employee-habilitations/${id}/history`);
+  archivedHabs.value = data;
+};
+const closeArchivedModal = () => {
+  console.log(showArchivedModal.value);
+  showArchivedModal.value = false;
+  archivedHabs.value = [];
+
+};
 
 onMounted(async () => {
   await fetchReferentials();
   await fetchEmployees();
 });
 </script>
+<style scoped>
+.archived-habs-dialog {
+  background: white;
+  border-radius: 8px;
+  padding: 24px;
+  width: 90%;
+  max-width: 1200px;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.archived-habs-dialog h3 {
+  margin-bottom: 20px;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 20px;
+}
+
+.data-table thead tr {
+  background-color: #f3f4f6;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.data-table th {
+  text-align: left;
+  padding: 12px 16px;
+  font-weight: 600;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #6b7280;
+}
+
+.data-table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.status-valid {
+  color: #10b981;
+  font-weight: 500;
+}
+
+.status-expiring {
+  color: #f59e0b;
+  font-weight: 500;
+}
+
+.status-expired {
+  color: #ef4444;
+  font-weight: 500;
+}
+
+.status-revoked {
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.btn-close-archived {
+  background-color: #3b82f6;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.btn-close-archived:hover {
+  background-color: #2563eb;
+}
+
+.archived-habs-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+</style>

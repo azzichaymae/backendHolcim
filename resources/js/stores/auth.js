@@ -38,25 +38,18 @@ export const useAuthStore = defineStore("auth", {
              localStorage.removeItem('tokenTimestamp');
         },
 initTabExpiryCheck() {
-    console.log('[Auth] Initializing tab expiry check');
-    
+     
     const handleVisibilityChange = () => {
-        console.log('[Auth] Visibility changed. Hidden:', document.hidden);
-        console.log('[Auth] Has token:', !!this.token);
-        
+         
         if (!document.hidden && this.token) {
             const timestamp = localStorage.getItem('tokenTimestamp');
-            console.log('[Auth] Token timestamp:', timestamp);
-            
+             
             if (timestamp) {
                 const age = Date.now() - parseInt(timestamp);
                 const maxAge = 15 * 60 * 1000;
-                console.log(`[Auth] Token age: ${age}ms (${age/60000} minutes)`);
-                console.log(`[Auth] Max age: ${maxAge}ms (${maxAge/60000} minutes)`);
-                
+                 
                 if (age > maxAge) {
-                    console.log('[Auth] TOKEN EXPIRED! Logging out...');
-                    this.logout();
+                     this.logout();
                     window.location.href = '/login';
                 } else {
                     console.log('[Auth] Token still valid');
@@ -66,12 +59,10 @@ initTabExpiryCheck() {
     };
     
     document.addEventListener('visibilitychange', handleVisibilityChange);
-    console.log('[Auth] Event listener added');
-    
+     
     return () => {
         document.removeEventListener('visibilitychange', handleVisibilityChange);
-        console.log('[Auth] Event listener removed');
-    };
+     };
 }
     },  
 });

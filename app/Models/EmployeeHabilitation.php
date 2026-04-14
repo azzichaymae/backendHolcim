@@ -99,7 +99,7 @@ class EmployeeHabilitation extends Model
 
     public function scopeExpirees($query)
     {
-        return $query->where('statut', 'expirée');
+        return $query->whereDate('date_expiration', '<=', Carbon::today());
     }
 
     public function scopeExpirantDans($query, int $jours)

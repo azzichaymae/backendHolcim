@@ -79,29 +79,7 @@ public function scopeActives($query)
     return $query->where('alerts.statut', 'active'); // add table prefix
 }
 
-public function scopePourAujourdhui($query)
-{
-    $today = now()->startOfDay();
 
-    return $query
-        ->join('employee_habilitations as eh', 'eh.id', '=', 'alerts.employee_habilitation_id')
-        ->selectRaw("
-            COUNT(DISTINCT alerts.employee_habilitation_id) as total,
-            SUM(CASE 
-                WHEN alerts.jours_avant_expiration = 30 
-                AND DATEDIFF(eh.date_expiration, ?) > 7
-                THEN 1 ELSE 0 END) as a_30j,
-            SUM(CASE 
-                WHEN alerts.jours_avant_expiration = 7 
-                AND DATEDIFF(eh.date_expiration, ?) BETWEEN 1 AND 7
-                THEN 1 ELSE 0 END) as a_7j,
-            SUM(CASE 
-                WHEN alerts.jours_avant_expiration = 0 
-                AND DATEDIFF(eh.date_expiration, ?) <= 0
-                THEN 1 ELSE 0 END) as urgentes
-        ", [$today, $today, $today])
-        ->where('alerts.alert_date', '<=', $today);
-}
 
     // ── Helpers ────────────────────────────────────────────
 

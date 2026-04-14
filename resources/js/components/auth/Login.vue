@@ -161,6 +161,7 @@ const handleLogin = async () => {
     await authStore.login({
       email:    form.email,
       password: form.password,
+      remember: form.remember,
     });
     router.push({ name: 'dashboard' });
   } catch (err) {

@@ -96,12 +96,12 @@ Route::middleware('auth:sanctum')->group(function () {
         // Static routes first
         Route::get('/employee-habilitations/expiring', [EmployeeHabilitationController::class, 'expiring']);
         Route::get('/employee-habilitations/alertes', [EmployeeHabilitationController::class, 'alertes']);
-        Route::post('/employee-habilitations/acknowledge-bulk', [EmployeeHabilitationController::class, 'acknowledgeBulk']);
-
+ 
         // Collection + item routes after
         Route::get('/employee-habilitations', [EmployeeHabilitationController::class, 'index']);
         Route::get('/employee-habilitations/{employeeHabilitation}', [EmployeeHabilitationController::class, 'show']);
         Route::patch('/employee-habilitations/{employeeHabilitation}/acknowledge', [EmployeeHabilitationController::class, 'acknowledge']);
+        Route::get('/employee-habilitations/{empId}/history', [EmployeeHabilitationController::class, 'history']);
     });
 
     Route::middleware('role:RRH,RH')->group(function () {
@@ -145,10 +145,7 @@ Route::middleware('role:RRH,RH')->group(function () {
     Route::middleware('role:RRH,RH,Manager')->group(function () {
         Route::get('/alerts', [AlertController::class, 'index']);
         Route::get('/alerts/count', [AlertController::class, 'count']);
-
         Route::get('/alerts/{alert}', [AlertController::class, 'show']);
-        Route::patch('/alerts/{alert}/vu', [AlertController::class, 'markAsViewed']);
-        Route::post('/alerts/vu-grp', [AlertController::class, 'markManyAsViewed']);
         Route::delete('/alerts/{alert}', [AlertController::class, 'destroy']);
     });
 
