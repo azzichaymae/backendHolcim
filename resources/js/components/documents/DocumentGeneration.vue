@@ -309,99 +309,105 @@
 
     <!-- Document Table Card -->
     <div class="doc-table-card" v-if="!activeType && !loading">
-      <table class="doc-data-table">
+      <!-- In the doc-table-card, replace the single table with two sections -->
 
-        <tbody>
+<!-- Section 1: Habilitations Individuelles (grouped by employee) -->
+<div class="doc-section" v-if="individualDocs.length">
+  <div class="doc-section-header">
+    <span class="doc-section-icon indiv" v-html="icons.user"></span>
+    <span class="doc-section-title">Habilitations Individuelles</span>
+    <span class="doc-section-count">{{ individualDocs.length }}</span>
+  </div>
 
-          <template v-for="group in paginatedFilteredDocs" :key="group.employee_matricule">
+  <div v-for="group in paginatedIndividualGroups" :key="group.employee_matricule" class="employee-card">
+    <!-- Employee header -->
+    <div class="doc-group-header" @click="toggleGroup('ind_' + group.employee_matricule)">
+      <div class="doc-group-info">
+        <div class="doc-avatar">{{ group.employee_nom?.[0] }}{{ group.employee_prenom?.[0] }}</div>
+        <div>
+          <div class="doc-emp-name">{{ group.employee_nom }} {{ group.employee_prenom }}</div>
+          <div class="doc-emp-mat">Mat. {{ group.employee_matricule }}</div>
+        </div>
+        <span class="hab-count">{{ group.documents.length }} document(s)</span>
+        <span class="doc-arrow" :class="{ open: openGroups['ind_' + group.employee_matricule] }">▼</span>
+      </div>
+    </div>
 
-            <!-- 🔷 GROUP HEADER (CLICKABLE) -->
-            <tr class="doc-group-header" @click="toggleGroup(group.employee_matricule)">
-              <td colspan="5">
-                <div class="doc-group-info">
+    <!-- Documents list -->
+    <div v-if="openGroups['ind_' + group.employee_matricule]" class="card-body">
+      <div v-for="doc in group.documents" :key="doc.id" class="doc-row-inner">
+        <div class="doc-cell">
+          <div class="doc-icon icon-indiv" v-html="icons.user"></div>
+          <div>
+            <div class="doc-name">{{ doc.habilitation_nom }}</div>
+            <span class="doc-type-badge">Habilitation individuelle</span>
+          </div>
+        </div>
+        <div class="doc-date">
+          <span v-html="icons.calendar"></span>
+          {{ formatDate(doc.created_at) }}
+        </div>
+        <div class="doc-actions">
+          <button class="doc-btn preview" @click="previewDocument(doc)" title="Aperçu">
+            <span v-html="icons.eye"></span>
+          </button>
+          <button class="doc-btn download" @click="downloadDocument(doc)" title="Télécharger">
+            <span v-html="icons.download"></span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
-                  <div class="doc-avatar">
-                    {{ group.employee_nom?.[0] }}{{ group.employee_prenom?.[0] }}
-                  </div>
+<!-- Section 2: Notes d'Habilitation (grouped by habilitation) -->
+<div class="doc-section" v-if="noteDocs.length">
+  <div class="doc-section-header">
+    <span class="doc-section-icon note" v-html="icons.list"></span>
+    <span class="doc-section-title">Notes d'Habilitation</span>
+    <span class="doc-section-count">{{ noteDocs.length }}</span>
+  </div>
 
-                  <div>
-                    <div class="doc-emp-name">
-                      {{ group.employee_nom }} {{ group.employee_prenom }}
-                    </div>
-                    <div class="doc-emp-mat">
-                      Mat. {{ group.employee_matricule }}
-                    </div>
-                  </div>
+  <div v-for="group in paginatedNoteGroups" :key="group.habilitation_nom" class="employee-card">
+    <!-- Habilitation header -->
+    <div class="doc-group-header" @click="toggleGroup('note_' + group.habilitation_nom)">
+      <div class="doc-group-info">
+        <div class="doc-icon icon-note" v-html="icons.list"></div>
+        <div>
+          <div class="doc-emp-name">{{ group.habilitation_nom }}</div>
+          <div class="doc-emp-mat">Document général</div>
+        </div>
+        <span class="hab-count">{{ group.documents.length }} version(s)</span>
+        <span class="doc-arrow" :class="{ open: openGroups['note_' + group.habilitation_nom] }">▼</span>
+      </div>
+    </div>
 
-                  <span class="doc-count">
-                    {{ group.documents.length }} document(s)
-                  </span>
-
-                  <!-- Arrow -->
-                  <span class="doc-arrow" :class="{ open: openGroups[group.employee_matricule] }">
-                    ▼
-                  </span>
-
-                </div>
-              </td>
-            </tr>
-
-            <!-- 🔽 COLLAPSIBLE CONTENT -->
-            <tr v-if="openGroups[group.employee_matricule]">
-              <td colspan="5" class="doc-collapse-cell">
-
-                <transition name="collapse">
-                  <table class="inner-doc-table">
-                    <tbody>
-
-                      <tr v-for="doc in group.documents" :key="doc.id" class="doc-row">
-                        <!-- Document -->
-                        <td>
-                          <div class="doc-cell">
-                            <div class="doc-icon" :class="doc.type === 'individuelle' ? 'icon-indiv' : 'icon-note'">
-                              <span v-html="doc.type === 'individuelle' ? icons.user : icons.file"></span>
-                            </div>
-                            <div>
-                              <div class="doc-name">{{ doc.habilitation_nom }}</div>
-                              <span class="doc-type-badge">
-                                {{ doc.type === 'individuelle'
-                                  ? 'Habilitation individuelle'
-                                  : 'Note d\'Habilitation' }}
-                              </span>
-                            </div>
-                          </div>
-                        </td>
-
-                        <td>
-                          <div class="doc-date">
-                            <span v-html="icons.calendar"></span>
-                            {{ formatDate(doc.created_at) }}
-                          </div>
-                        </td>
-                        <td>
-                          <div class="doc-actions">
-                            <button class="doc-btn preview" @click="previewDocument(doc)">
-                              <span v-html="icons.eye"></span>
-                            </button>
-                            <button class="doc-btn download" @click="downloadDocument(doc)">
-                              <span v-html="icons.download"></span>
-                            </button>
-                          </div>
-                        </td>
-
-                      </tr>
-
-                    </tbody>
-                  </table>
-                </transition>
-
-              </td>
-            </tr>
-
-          </template>
-
-        </tbody>
-      </table>
+    <!-- Documents list -->
+    <div v-if="openGroups['note_' + group.habilitation_nom]" class="card-body">
+      <div v-for="doc in group.documents" :key="doc.id" class="doc-row-inner">
+        <div class="doc-cell">
+          <div class="doc-icon icon-note" v-html="icons.list"></div>
+          <div>
+            <div class="doc-name">{{ doc.habilitation_nom }}</div>
+            <span class="doc-type-badge">Note d'Habilitation</span>
+          </div>
+        </div>
+        <div class="doc-date">
+          <span v-html="icons.calendar"></span>
+          {{ formatDate(doc.created_at) }}
+        </div>
+        <div class="doc-actions">
+          <button class="doc-btn preview" @click="previewDocument(doc)" title="Aperçu">
+            <span v-html="icons.eye"></span>
+          </button>
+          <button class="doc-btn download" @click="downloadDocument(doc)" title="Télécharger">
+            <span v-html="icons.download"></span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
       <!-- Pagination for filtered results -->
       <div class="doc-pagination" v-if="filteredTotalPages > 1">
@@ -497,21 +503,22 @@ const filteredDocs = computed(() => {
   let result = [...documents.value];
   // 1. Text search (nom, matricule, département, habilitation nom)
   if (searchQuery.value.trim()) {
-    const query = searchQuery.value.trim().toLowerCase();
+     const query = searchQuery.value.trim().toLowerCase();
+    console.log(result);
     result = result.filter(doc => {
       const fullName = (doc.employee_nom && doc.employee_prenom) ? `${doc.employee_nom} ${doc.employee_prenom}`.toLowerCase() : '';
-      const matricule = (doc.employee_matricule || '').toLowerCase();
+      const matricule = (doc.employee_matricule || '');
       const dept = (doc.employee_departement || '').toLowerCase();
       const habName = (doc.habilitation_nom || '').toLowerCase();
-      return fullName.includes(query) || matricule.includes(query) || dept.includes(query) || habName.includes(query);
+      return fullName.includes(query) || matricule.toString().includes(query) || dept.includes(query) || habName.includes(query);
     });
   }
 
   // 2. Type filter (initiale / note)
   if (selectedTypeFilter.value !== 'all') {
     result = result.filter(doc => {
-      const habType = doc.employee_habilitation?.type;
-      if (selectedTypeFilter.value === 'initiale') return habType === 'initiale';
+      const habType = doc.type;
+      if (selectedTypeFilter.value === 'individuelle') return habType === 'individuelle';
       if (selectedTypeFilter.value === 'note') return habType === 'note';
       return true;
     });
@@ -523,7 +530,8 @@ const filteredDocs = computed(() => {
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(now.getDate() - 30);
     result = result.filter(doc => {
-      const docDate = new Date(doc.created_at);
+      const docDate = new Date(doc.employee_habilitation.date_obtention || doc.created_at);
+      console.log('Doc date:', docDate, '30 days ago:', thirtyDaysAgo);
       if (selectedDateFilter.value === 'recent') return docDate >= thirtyDaysAgo;
       if (selectedDateFilter.value === 'older') return docDate < thirtyDaysAgo;
       return true;
@@ -795,7 +803,7 @@ const filteredGroupedDocs = computed(() => {
   let list = groupedDocuments.value;
 
   if (searchQuery.value) {
-    const s = search.value.toLowerCase();
+    const s = searchQuery.value.toLowerCase();
 
     list = list.filter(group =>
       `${group.employee_nom} ${group.employee_prenom}`.toLowerCase().includes(s) ||
@@ -814,6 +822,65 @@ const setType = (type) => {
 const goBack = () => {
   activeType.value = null;
 };
+
+// Split by type
+const individualDocs = computed(() => 
+  filteredDocs.value.filter(d => d.type === 'individuelle')
+);
+const noteDocs = computed(() => 
+  filteredDocs.value.filter(d => d.type === 'note')
+);
+
+// Group individuelle by employee
+const individualGroups = computed(() => {
+  const groups = {};
+  individualDocs.value.forEach(doc => {
+    const key = doc.employee_matricule ?? 'unknown';
+    if (!groups[key]) {
+      groups[key] = {
+        employee_matricule: doc.employee_matricule,
+        employee_nom: doc.employee_nom,
+        employee_prenom: doc.employee_prenom,
+        documents: [],
+      };
+    }
+    groups[key].documents.push(doc);
+  });
+  return Object.values(groups);
+});
+
+// Group notes by habilitation name
+const noteGroups = computed(() => {
+  const groups = {};
+  noteDocs.value.forEach(doc => {
+    const key = doc.habilitation_nom ?? 'unknown';
+    if (!groups[key]) {
+      groups[key] = {
+        habilitation_nom: doc.habilitation_nom,
+        documents: [],
+      };
+    }
+    groups[key].documents.push(doc);
+  });
+  return Object.values(groups);
+});
+
+// Pagination for each section
+const indPage  = ref(1);
+const notePage = ref(1);
+const perPage  = 5;
+
+const paginatedIndividualGroups = computed(() =>
+  individualGroups.value.slice((indPage.value - 1) * perPage, indPage.value * perPage)
+);
+const paginatedNoteGroups = computed(() =>
+  noteGroups.value.slice((notePage.value - 1) * perPage, notePage.value * perPage)
+);
+
+const indTotalPages  = computed(() => Math.ceil(individualGroups.value.length / perPage));
+const noteTotalPages = computed(() => Math.ceil(noteGroups.value.length / perPage));
+
+
 onMounted(() => {
   fetchAll();
   if (route.params.id) {
@@ -824,6 +891,28 @@ onMounted(() => {
 </script>
 
 <style scoped>
+.doc-section { margin-bottom: 24px; }
+.doc-section-header {
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px 16px; margin-bottom: 8px;
+  background: white; border-radius: 10px;
+  border: 1px solid #e8ecf0;
+}
+.doc-section-title { font-weight: 700; color: #1a2e44; font-size: 0.9rem; flex: 1; }
+.doc-section-count {
+  background: #f0f4f8; color: #6b7280;
+  font-size: 0.72rem; font-weight: 600;
+  padding: 2px 10px; border-radius: 20px;
+}
+.doc-section-icon { display: flex; align-items: center; }
+.doc-section-icon.indiv { color: #1a6b8a; }
+.doc-section-icon.note  { color: #7c3aed; }
+.doc-row-inner {
+  display: flex; align-items: center; gap: 16px;
+  padding: 10px 16px; border-bottom: 1px solid #f8fafc;
+}
+.doc-row-inner:last-child { border-bottom: none; }
+.doc-row-inner .doc-cell { flex: 1; }
 .doc-group-header td {
   background: #f8fafc;
   padding: 12px;

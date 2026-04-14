@@ -61,7 +61,6 @@ class DocumentGenerationController extends Controller
             'employee.service.departement',
             'habilitation',
         ])->findOrFail($request->employee_habilitation_id);
-        echo "<script>console.log('PHP variable:', '" . $eh . "');</script>";
         $settings = Setting::getInstance();
 
         Carbon::setLocale('fr');
@@ -135,7 +134,22 @@ class DocumentGenerationController extends Controller
 
         $relativePath = 'documents/' . $filename;
         $pdf->save(storage_path('app/public/' . $relativePath));
+        $baseName = $filename;
+        $counter = 1;
 
+        while (
+            Document::where('nom', $filename)
+                ->exists()
+        ) {
+            $filename = pathinfo($baseName, PATHINFO_FILENAME) . '_' . $counter . '.' . pathinfo($baseName, PATHINFO_EXTENSION);
+            $counter++;
+        }
+
+        $docDB = Document::create([
+            'nom' => $filename,
+            'type' => 'note',
+            'chemin' => $relativePath,
+        ]);
 
         return $pdf->download($filename);
     }
