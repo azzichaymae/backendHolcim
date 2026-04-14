@@ -284,7 +284,7 @@
           <label>📄 TYPE DE DOCUMENT</label>
           <select class="custom-select" v-model="selectedTypeFilter">
             <option value="all">Tous les types</option>
-            <option value="initiale">Habilitation initiale</option>
+            <option value="individuelle">Habilitation individuelle</option>
             <option value="note">Note d'Habilitation</option>
           </select>
         </div>
@@ -296,16 +296,6 @@
             <option value="all">Toutes les dates</option>
             <option value="recent">30 derniers jours</option>
             <option value="older">Plus ancien</option>
-          </select>
-        </div>
-
-        <!-- Statut filter -->
-        <div class="filter-group">
-          <label>⚙️ STATUT</label>
-          <select class="custom-select" v-model="selectedStatusFilter">
-            <option value="all">Tous les statuts</option>
-            <option value="downloaded">Téléchargé</option>
-            <option value="generated">Généré</option>
           </select>
         </div>
       </div>
@@ -320,73 +310,96 @@
     <!-- Document Table Card -->
     <div class="doc-table-card" v-if="!activeType && !loading">
       <table class="doc-data-table">
-        <thead>
-          <th>Document</th>
-          <th>Employé</th>
-          <th>Date</th>
-          <th>Statut</th>
-          <th>Actions</th>
-        </thead>
+
         <tbody>
-          <tr v-for="doc in paginatedFilteredDocs" :key="doc.id" class="doc-row">
-            <!-- Document -->
-            <td>
-              <div class="doc-cell">
-                <div class="doc-icon" :class="doc.type === 'individuelle' ? 'icon-indiv' : 'icon-note'">
-                  <span v-html="doc.type === 'individuelle' ? icons.user : icons.file"></span>
-                </div>
-                <div>
-                  <div class="doc-name">{{ doc.habilitation_nom }}</div>
-                  <span class="doc-type-badge">
-                    {{ doc.employee_habilitation?.type === 'initiale' ? 'Habilitation initiale' : 'Note d\'Habilitation'
-                    }}
+
+          <template v-for="group in paginatedFilteredDocs" :key="group.employee_matricule">
+
+            <!-- 🔷 GROUP HEADER (CLICKABLE) -->
+            <tr class="doc-group-header" @click="toggleGroup(group.employee_matricule)">
+              <td colspan="5">
+                <div class="doc-group-info">
+
+                  <div class="doc-avatar">
+                    {{ group.employee_nom?.[0] }}{{ group.employee_prenom?.[0] }}
+                  </div>
+
+                  <div>
+                    <div class="doc-emp-name">
+                      {{ group.employee_nom }} {{ group.employee_prenom }}
+                    </div>
+                    <div class="doc-emp-mat">
+                      Mat. {{ group.employee_matricule }}
+                    </div>
+                  </div>
+
+                  <span class="doc-count">
+                    {{ group.documents.length }} document(s)
                   </span>
+
+                  <!-- Arrow -->
+                  <span class="doc-arrow" :class="{ open: openGroups[group.employee_matricule] }">
+                    ▼
+                  </span>
+
                 </div>
-              </div>
-            </td>
+              </td>
+            </tr>
 
-            <!-- Employé -->
-            <td>
-              <template v-if="doc.employee_nom">
-                <div class="doc-emp-name">{{ doc.employee_nom }} {{ doc.employee_prenom }}</div>
-                <div class="doc-emp-mat">Mat. {{ doc.employee_matricule ?? '—' }}</div>
-              </template>
-              <span v-else class="doc-general">Document général</span>
-            </td>
+            <!-- 🔽 COLLAPSIBLE CONTENT -->
+            <tr v-if="openGroups[group.employee_matricule]">
+              <td colspan="5" class="doc-collapse-cell">
 
-            <!-- Date -->
-            <td>
-              <div class="doc-date">
-                <span v-html="icons.calendar"></span>
-                {{ formatDate(doc.created_at) }}
-              </div>
-              <div class="doc-recent" v-if="isRecent(doc.created_at)">
-                <span v-html="icons.clock"></span> Récent
-              </div>
-            </td>
+                <transition name="collapse">
+                  <table class="inner-doc-table">
+                    <tbody>
 
-            <!-- Statut -->
-            <td>
-              <span class="doc-statut" :class="doc.downloaded ? 'telecharge' : 'genere'">
-                {{ doc.downloaded ? 'Téléchargé' : 'Généré' }}
-              </span>
-            </td>
+                      <tr v-for="doc in group.documents" :key="doc.id" class="doc-row">
+                        <!-- Document -->
+                        <td>
+                          <div class="doc-cell">
+                            <div class="doc-icon" :class="doc.type === 'individuelle' ? 'icon-indiv' : 'icon-note'">
+                              <span v-html="doc.type === 'individuelle' ? icons.user : icons.file"></span>
+                            </div>
+                            <div>
+                              <div class="doc-name">{{ doc.habilitation_nom }}</div>
+                              <span class="doc-type-badge">
+                                {{ doc.type === 'individuelle'
+                                  ? 'Habilitation individuelle'
+                                  : 'Note d\'Habilitation' }}
+                              </span>
+                            </div>
+                          </div>
+                        </td>
 
-            <!-- Actions -->
-            <td>
-              <div class="doc-actions">
-                <button class="doc-btn preview" title="Aperçu" @click="previewDocument(doc)">
-                  <span v-html="icons.eye"></span>
-                </button>
-                <button class="doc-btn download" title="Télécharger" @click="downloadDocument(doc)">
-                  <span v-html="icons.download"></span>
-                </button>
-              </div>
-            </td>
-          </tr>
-          <tr v-if="filteredDocs.length === 0">
-            <td colspan="5" style="text-align: center; padding: 2rem;">Aucun document correspondant aux critères</td>
-          </tr>
+                        <td>
+                          <div class="doc-date">
+                            <span v-html="icons.calendar"></span>
+                            {{ formatDate(doc.created_at) }}
+                          </div>
+                        </td>
+                        <td>
+                          <div class="doc-actions">
+                            <button class="doc-btn preview" @click="previewDocument(doc)">
+                              <span v-html="icons.eye"></span>
+                            </button>
+                            <button class="doc-btn download" @click="downloadDocument(doc)">
+                              <span v-html="icons.download"></span>
+                            </button>
+                          </div>
+                        </td>
+
+                      </tr>
+
+                    </tbody>
+                  </table>
+                </transition>
+
+              </td>
+            </tr>
+
+          </template>
+
         </tbody>
       </table>
 
@@ -482,7 +495,6 @@ const isRecent = (dateStr) => {
 // ── FILTERED DOCUMENTS (with search, type, date, status) ──
 const filteredDocs = computed(() => {
   let result = [...documents.value];
-
   // 1. Text search (nom, matricule, département, habilitation nom)
   if (searchQuery.value.trim()) {
     const query = searchQuery.value.trim().toLowerCase();
@@ -534,7 +546,8 @@ const filteredTotalPages = computed(() => Math.ceil(filteredDocs.value.length / 
 const paginatedFilteredDocs = computed(() => {
   const start = (filteredCurrentPage.value - 1) * filterPageSize;
   const end = start + filterPageSize;
-  return filteredDocs.value.slice(start, end);
+
+  return filteredGroupedDocs.value.slice(start, end);
 });
 
 const activeFiltersCount = computed(() => {
@@ -722,7 +735,6 @@ const fetchDocuments = async () => {
   try {
     const { data } = await api.get('/documents/all');
     documents.value = data;
-    console.log('Documents fetched:', data);
   } catch (e) {
     console.error(e);
   }
@@ -752,7 +764,47 @@ const previewDocument = async (doc) => {
     alert('Erreur lors de l\'aperçu du document.');
   }
 };
+const openGroups = ref({});
+const toggleGroup = (matricule) => {
+  openGroups.value[matricule] = !openGroups.value[matricule];
+};
+const groupedDocuments = computed(() => {
+  const groups = {};
 
+  documents.value.forEach(doc => {
+    if (!doc.employee_matricule) return;
+
+    const key = doc.employee_matricule;
+
+    if (!groups[key]) {
+      groups[key] = {
+        employee_matricule: doc.employee_matricule,
+        employee_nom: doc.employee_nom,
+        employee_prenom: doc.employee_prenom,
+        documents: [],
+      };
+    }
+
+    groups[key].documents.push(doc);
+  });
+
+  return Object.values(groups);
+});
+
+const filteredGroupedDocs = computed(() => {
+  let list = groupedDocuments.value;
+
+  if (searchQuery.value) {
+    const s = search.value.toLowerCase();
+
+    list = list.filter(group =>
+      `${group.employee_nom} ${group.employee_prenom}`.toLowerCase().includes(s) ||
+      group.employee_matricule?.toString().includes(s)
+    );
+  }
+
+  return list;
+});
 const isOpen = ref(false);
 const setType = (type) => {
   activeType.value = type;
@@ -772,6 +824,37 @@ onMounted(() => {
 </script>
 
 <style scoped>
+.doc-group-header td {
+  background: #f8fafc;
+  padding: 12px;
+  border-top: 1px solid #e6ecf2;
+}
+
+.doc-group-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.doc-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #e6f0ff;
+  color: #2f6fed;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 12px;
+}
+
+.doc-count {
+  margin-left: auto;
+  font-size: 12px;
+  color: #6b7a90;
+}
+
 .page-title-block {
   display: flex;
   align-items: center;
@@ -779,6 +862,7 @@ onMounted(() => {
 }
 
 .btn-back-doc {
+  padding-bottom: 5px;
   display: flex;
   align-items: center;
   justify-content: center;

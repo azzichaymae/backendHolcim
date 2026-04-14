@@ -99,37 +99,7 @@ class AlertController extends Controller
 
         return response()->json($alert, 200);
     }
-
-    // PATCH /api/alerts/{id}/mark-as-viewed
-    public function markAsViewed(Alert $alert): JsonResponse
-    {
-        $alert->marquerVue();
-
-        $alert->load([
-            'employeeHabilitation.employee.service.departement',
-            'employeeHabilitation.habilitation.volet',
-        ]);
-
-        return response()->json($alert, 200);
-    }
-
-    // POST /api/alerts/mark-as-viewed-bulk
-    public function markManyAsViewed(Request $request): JsonResponse
-    {
-        $validated = $request->validate([
-            'ids' => 'required|array',
-            'ids.*' => 'integer|exists:alerts,id',
-        ]);
-
-        $updatedCount = Alert::whereIn('id', $validated['ids'])
-            ->where('statut', '!=', 'vu')
-            ->update(['statut' => 'vu']);
-
-        return response()->json([
-            'message' => 'Alertes marquées comme vues avec succès.',
-            'count' => $updatedCount,
-        ], 200);
-    }
+ 
 
     // DELETE /api/alerts/{id}
     public function destroy(Alert $alert): JsonResponse

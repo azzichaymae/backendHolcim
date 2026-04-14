@@ -79,7 +79,10 @@ public function scopeActives($query)
     return $query->where('alerts.statut', 'active'); // add table prefix
 }
 
-
+public function scopePourAujourdhui($query)
+{
+    return $query->whereDate('alert_date', Carbon::today());
+}
 
     // ── Helpers ────────────────────────────────────────────
 
