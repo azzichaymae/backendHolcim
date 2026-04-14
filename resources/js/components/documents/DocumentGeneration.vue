@@ -4,7 +4,6 @@
     <!-- ── Header ─────────────────────────────────────── -->
     <div class="page-header">
       <div class="page-title-block">
-        <!-- Back button — only when form is open -->
         <button v-if="activeType" class="btn-back-doc" @click="goBack">
           <span v-html="icons.chevronLeft"></span>
         </button>
@@ -61,7 +60,6 @@
         </div>
 
         <div class="form-grid">
-          <!-- Département -->
           <div class="field">
             <label>Département <span class="required">*</span></label>
             <select v-model="ind.departement_id" @change="onIndDepartementChange" :disabled="loadingRefs">
@@ -72,13 +70,8 @@
                 {{ d.nom }}
               </option>
             </select>
-            <span class="select-loading-hint" v-if="loadingRefs">
-              <span class="mini-spinner"></span>
-              Chargement des données...
-            </span>
           </div>
 
-          <!-- Service -->
           <div class="field">
             <label>Service <span class="required">*</span></label>
             <select v-model="ind.service_id" @change="onIndServiceChange" :disabled="!ind.departement_id">
@@ -89,14 +82,8 @@
             </select>
           </div>
 
-          <!-- Salarié -->
           <div class="field">
-            <label>
-              Salarié <span class="required">*</span>
-              <span class="hint" v-if="!ind.service_id">
-                — sélectionnez un service d'abord
-              </span>
-            </label>
+            <label>Salarié <span class="required">*</span></label>
             <select v-model="ind.employee_id" @change="onEmployeeChange" :disabled="!ind.service_id">
               <option value="">Sélectionner un employé</option>
               <option v-for="e in indFilteredEmployees" :key="e.id" :value="e.id">
@@ -105,34 +92,22 @@
             </select>
           </div>
 
-          <!-- Employé habilitation select -->
           <div class="field">
-            <label>
-              Habilitation <span class="required">*</span>
-              <span class="hint" v-if="!ind.employee_id">
-                — sélectionnez un employé d'abord
-              </span>
-            </label>
+            <label>Habilitation <span class="required">*</span></label>
             <select v-model="ind.employee_habilitation_id" :disabled="!ind.employee_id || loadingHabs">
-              <option value="" disabled v-if="loadingHabs">
-                ⏳ Chargement...
+              <option value="" disabled v-if="loadingHabs">⏳ Chargement...</option>
+              <option value="" disabled v-else-if="employeeHabilitations.length === 0 && ind.employee_id">
+                ❌ Aucune habilitation
               </option>
-              <option value="" disabled
-                v-else-if="!loadingHabs && employeeHabilitations.length === 0 && ind.employee_id">
-                ❌ Aucune habilitation trouvée pour cet employé
-              </option>
-              <option value="" disabled v-else>
-                Sélectionner une habilitation
-              </option>
-              <option v-if="!loadingHabs" v-for="eh in employeeHabilitations" :key="eh.employee_habilitation_id"
+              <option value="" disabled v-else>Sélectionner une habilitation</option>
+              <option v-for="eh in employeeHabilitations" :key="eh.employee_habilitation_id"
                 :value="eh.employee_habilitation_id">
-                {{ eh.habilitation_nom }} — Obtenu le {{ eh.date_obtention }} ({{ eh.statut }})
+                {{ eh.habilitation_nom }} — {{ eh.date_obtention }}
               </option>
             </select>
           </div>
         </div>
 
-        <!-- Preview card -->
         <div class="preview-card" v-if="selectedEH">
           <div class="preview-title">Aperçu du document</div>
           <div class="preview-grid">
@@ -149,10 +124,6 @@
               <span class="preview-value">{{ selectedEH.habilitation }}</span>
             </div>
             <div class="preview-item">
-              <span class="preview-label">Service</span>
-              <span class="preview-value">{{ selectedEH.service }}</span>
-            </div>
-            <div class="preview-item">
               <span class="preview-label">Date obtention</span>
               <span class="preview-value">{{ selectedEH.date_obtention }}</span>
             </div>
@@ -164,8 +135,7 @@
         </div>
 
         <div class="form-actions">
-          <button class="btn-generate" @click="generateIndividuelle()"
-            :disabled="!ind.employee_habilitation_id || generating">
+          <button class="btn-generate" @click="generateIndividuelle()" :disabled="!ind.employee_habilitation_id || generating">
             <span v-if="generating" class="spinner"></span>
             <span v-else v-html="icons.download"></span>
             Générer et télécharger
@@ -180,7 +150,6 @@
         </div>
 
         <div class="form-grid">
-          <!-- Catégorie filter -->
           <div class="field">
             <label>Catégorie</label>
             <select v-model="note.volet_id" @change="note.habilitation_id = ''">
@@ -191,7 +160,6 @@
             </select>
           </div>
 
-          <!-- Habilitation -->
           <div class="field">
             <label>Habilitation <span class="required">*</span></label>
             <select v-model="note.habilitation_id" @change="fetchEmployeesParHabilitation">
@@ -205,7 +173,6 @@
           </div>
         </div>
 
-        <!-- Employees preview table -->
         <div class="employees-preview" v-if="note.habilitation_id">
           <div class="preview-title">
             Salariés habilités
@@ -235,25 +202,20 @@
             </thead>
             <tbody>
               <tr v-for="emp in noteEmployees" :key="emp.employee_habilitation_id">
-                <td>
-                  <span class="matricule-badge">{{ emp.matricule }}</span>
-                </td>
+                <td><span class="matricule-badge">{{ emp.matricule }}</span></td>
                 <td class="td-name">{{ emp.nom_complet }}</td>
                 <td class="td-muted">{{ emp.position }}</td>
                 <td class="td-muted">{{ emp.service }}</td>
                 <td class="td-muted">{{ emp.date_obtention }}</td>
                 <td class="td-muted">{{ emp.date_expiration }}</td>
-                <td>
-                  <span class="statut-badge valide">{{ emp.statut }}</span>
-                </td>
+                <td><span class="statut-badge valide">{{ emp.statut }}</span></td>
               </tr>
             </tbody>
           </table>
         </div>
 
         <div class="form-actions">
-          <button class="btn-generate" @click="generateNote" :disabled="!note.habilitation_id ||
-            noteEmployees.length === 0 || generating">
+          <button class="btn-generate" @click="generateNote" :disabled="!note.habilitation_id || noteEmployees.length === 0 || generating">
             <span v-if="generating" class="spinner"></span>
             <span v-else v-html="icons.download"></span>
             Générer et télécharger
@@ -262,163 +224,126 @@
       </template>
     </div>
 
-    <!-- ── NEW SEARCH SECTION  ── -->
-    <div class="search-section-card" v-if="!activeType && !loading">
-      <div class="search-row">
-        <!-- Nom, matricule ou département... -->
-        <div class="search-input-group">
-          <label>🔍 RECHERCHE</label>
-          <div class="search-input-wrapper">
-            <span class="search-icon">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-                <circle cx="10" cy="10" r="7"></circle>
-                <line x1="21" y1="21" x2="15" y2="15"></line>
-              </svg>
-            </span>
-            <input type="text" v-model="searchQuery" placeholder="Nom, matricule ou département...">
+    <!-- ── TWO COLUMN LAYOUT like the image ── -->
+    <div class="two-column-layout" v-if="!activeType && !loading">
+      
+      <!-- LEFT COLUMN: Habilitations Individuelles -->
+      <div class="doc-column">
+        <div class="column-header">
+          <div class="column-icon indiv-icon" v-html="icons.user"></div>
+          <h2 class="column-title">Habilitations Individuelles</h2>
+        </div>
+        
+        <div v-if="individualDocs.length === 0" class="column-empty">
+          <p>Aucun document individuel</p>
+        </div>
+        
+        <div v-else>
+          <div v-for="group in paginatedIndividualGroups" :key="group.employee_matricule" class="doc-group">
+            <!-- Employee header with initials avatar -->
+            <div class="group-header" @click="toggleGroup('ind_' + group.employee_matricule)">
+              <div class="group-avatar">
+                {{ getInitials(group.employee_nom, group.employee_prenom) }}
+              </div>
+              <div class="group-info">
+                <div class="group-name">{{ group.employee_nom }} {{ group.employee_prenom }}</div>
+                <div class="group-meta">Mat. {{ group.employee_matricule }}</div>
+              </div>
+              <div class="group-count">{{ group.documents.length }} document(s)</div>
+              <span class="group-arrow" :class="{ open: openGroups['ind_' + group.employee_matricule] }">▼</span>
+            </div>
+            
+            <!-- Documents under each employee -->
+            <div v-if="openGroups['ind_' + group.employee_matricule]" class="group-documents">
+              <div v-for="doc in group.documents" :key="doc.id" class="doc-item">
+                <div class="doc-info">
+                  <div class="doc-title">{{ doc.habilitation_nom }}</div>
+                  <div class="doc-date">
+                    <span v-html="icons.calendar"></span>
+                    {{ formatDate(doc.created_at) }}
+                  </div>
+                  <div class="doc-author" v-if="doc.created_by">
+                    par {{ doc.created_by }}
+                  </div>
+                </div>
+                <div class="doc-actions">
+                  <button class="doc-btn preview" @click="previewDocument(doc)" title="Aperçu">
+                    <span v-html="icons.eye"></span>
+                  </button>
+                  <button class="doc-btn download" @click="downloadDocument(doc)" title="Télécharger">
+                    <span v-html="icons.download"></span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Pagination for individual docs -->
+          <div class="column-pagination" v-if="indTotalPages > 1">
+            <button class="page-btn" :disabled="indPage === 1" @click="indPage--">‹</button>
+            <span class="page-current">{{ indPage }} / {{ indTotalPages }}</span>
+            <button class="page-btn" :disabled="indPage === indTotalPages" @click="indPage++">›</button>
           </div>
         </div>
-
-        <!-- Type de document filter -->
-        <div class="filter-group">
-          <label>📄 TYPE DE DOCUMENT</label>
-          <select class="custom-select" v-model="selectedTypeFilter">
-            <option value="all">Tous les types</option>
-            <option value="individuelle">Habilitation individuelle</option>
-            <option value="note">Note d'Habilitation</option>
-          </select>
-        </div>
-
-        <!-- Période filter -->
-        <div class="filter-group">
-          <label>📅 PÉRIODE</label>
-          <select class="custom-select" v-model="selectedDateFilter">
-            <option value="all">Toutes les dates</option>
-            <option value="recent">30 derniers jours</option>
-            <option value="older">Plus ancien</option>
-          </select>
-        </div>
       </div>
-
-      <div class="results-badge">
-        <span class="doc-count">{{ filteredDocs.length }} document{{ filteredDocs.length > 1 ? 's' : '' }} trouvé{{
-          filteredDocs.length > 1 ? 's' : '' }}</span>
-        <span class="filter-summary" v-if="activeFiltersCount">Filtres actifs</span>
-      </div>
-    </div>
-
-    <!-- Document Table Card -->
-    <div class="doc-table-card" v-if="!activeType && !loading">
-      <!-- In the doc-table-card, replace the single table with two sections -->
-
-<!-- Section 1: Habilitations Individuelles (grouped by employee) -->
-<div class="doc-section" v-if="individualDocs.length">
-  <div class="doc-section-header">
-    <span class="doc-section-icon indiv" v-html="icons.user"></span>
-    <span class="doc-section-title">Habilitations Individuelles</span>
-    <span class="doc-section-count">{{ individualDocs.length }}</span>
-  </div>
-
-  <div v-for="group in paginatedIndividualGroups" :key="group.employee_matricule" class="employee-card">
-    <!-- Employee header -->
-    <div class="doc-group-header" @click="toggleGroup('ind_' + group.employee_matricule)">
-      <div class="doc-group-info">
-        <div class="doc-avatar">{{ group.employee_nom?.[0] }}{{ group.employee_prenom?.[0] }}</div>
-        <div>
-          <div class="doc-emp-name">{{ group.employee_nom }} {{ group.employee_prenom }}</div>
-          <div class="doc-emp-mat">Mat. {{ group.employee_matricule }}</div>
+      
+      <!-- RIGHT COLUMN: Notes d'Habilitations -->
+      <div class="doc-column">
+        <div class="column-header">
+          <div class="column-icon note-icon" v-html="icons.list"></div>
+          <h2 class="column-title">Notes d'Habilitations</h2>
         </div>
-        <span class="hab-count">{{ group.documents.length }} document(s)</span>
-        <span class="doc-arrow" :class="{ open: openGroups['ind_' + group.employee_matricule] }">▼</span>
-      </div>
-    </div>
-
-    <!-- Documents list -->
-    <div v-if="openGroups['ind_' + group.employee_matricule]" class="card-body">
-      <div v-for="doc in group.documents" :key="doc.id" class="doc-row-inner">
-        <div class="doc-cell">
-          <div class="doc-icon icon-indiv" v-html="icons.user"></div>
-          <div>
-            <div class="doc-name">{{ doc.habilitation_nom }}</div>
-            <span class="doc-type-badge">Habilitation individuelle</span>
+        
+        <div v-if="noteDocs.length === 0" class="column-empty">
+          <p>Aucune note d'habilitation</p>
+        </div>
+        
+        <div v-else>
+          <div v-for="group in paginatedNoteGroups" :key="group.habilitation_nom" class="doc-group">
+            <!-- Habilitation header -->
+            <div class="group-header" @click="toggleGroup('note_' + group.habilitation_nom)">
+              <div class="group-icon-note" v-html="icons.file"></div>
+              <div class="group-info">
+                <div class="group-name">{{ group.habilitation_nom }}</div>
+                <div class="group-meta">Document général</div>
+              </div>
+              <div class="group-count">{{ group.documents.length }} version(s)</div>
+              <span class="group-arrow" :class="{ open: openGroups['note_' + group.habilitation_nom] }">▼</span>
+            </div>
+            
+            <!-- Documents under each habilitation -->
+            <div v-if="openGroups['note_' + group.habilitation_nom]" class="group-documents">
+              <div v-for="doc in group.documents" :key="doc.id" class="doc-item">
+                <div class="doc-info">
+                  <div class="doc-title">{{ doc.habilitation_nom }}</div>
+                  <div class="doc-date">
+                    <span v-html="icons.calendar"></span>
+                    {{ formatDate(doc.created_at) }}
+                  </div>
+                  <div class="doc-author" v-if="doc.created_by">
+                    par {{ doc.created_by }}
+                  </div>
+                  <div class="doc-badge">Généré</div>
+                </div>
+                <div class="doc-actions">
+                  <button class="doc-btn preview" @click="previewDocument(doc)" title="Aperçu">
+                    <span v-html="icons.eye"></span>
+                  </button>
+                  <button class="doc-btn download" @click="downloadDocument(doc)" title="Télécharger">
+                    <span v-html="icons.download"></span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Pagination for note docs -->
+          <div class="column-pagination" v-if="noteTotalPages > 1">
+            <button class="page-btn" :disabled="notePage === 1" @click="notePage--">‹</button>
+            <span class="page-current">{{ notePage }} / {{ noteTotalPages }}</span>
+            <button class="page-btn" :disabled="notePage === noteTotalPages" @click="notePage++">›</button>
           </div>
         </div>
-        <div class="doc-date">
-          <span v-html="icons.calendar"></span>
-          {{ formatDate(doc.created_at) }}
-        </div>
-        <div class="doc-actions">
-          <button class="doc-btn preview" @click="previewDocument(doc)" title="Aperçu">
-            <span v-html="icons.eye"></span>
-          </button>
-          <button class="doc-btn download" @click="downloadDocument(doc)" title="Télécharger">
-            <span v-html="icons.download"></span>
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- Section 2: Notes d'Habilitation (grouped by habilitation) -->
-<div class="doc-section" v-if="noteDocs.length">
-  <div class="doc-section-header">
-    <span class="doc-section-icon note" v-html="icons.list"></span>
-    <span class="doc-section-title">Notes d'Habilitation</span>
-    <span class="doc-section-count">{{ noteDocs.length }}</span>
-  </div>
-
-  <div v-for="group in paginatedNoteGroups" :key="group.habilitation_nom" class="employee-card">
-    <!-- Habilitation header -->
-    <div class="doc-group-header" @click="toggleGroup('note_' + group.habilitation_nom)">
-      <div class="doc-group-info">
-        <div class="doc-icon icon-note" v-html="icons.list"></div>
-        <div>
-          <div class="doc-emp-name">{{ group.habilitation_nom }}</div>
-          <div class="doc-emp-mat">Document général</div>
-        </div>
-        <span class="hab-count">{{ group.documents.length }} version(s)</span>
-        <span class="doc-arrow" :class="{ open: openGroups['note_' + group.habilitation_nom] }">▼</span>
-      </div>
-    </div>
-
-    <!-- Documents list -->
-    <div v-if="openGroups['note_' + group.habilitation_nom]" class="card-body">
-      <div v-for="doc in group.documents" :key="doc.id" class="doc-row-inner">
-        <div class="doc-cell">
-          <div class="doc-icon icon-note" v-html="icons.list"></div>
-          <div>
-            <div class="doc-name">{{ doc.habilitation_nom }}</div>
-            <span class="doc-type-badge">Note d'Habilitation</span>
-          </div>
-        </div>
-        <div class="doc-date">
-          <span v-html="icons.calendar"></span>
-          {{ formatDate(doc.created_at) }}
-        </div>
-        <div class="doc-actions">
-          <button class="doc-btn preview" @click="previewDocument(doc)" title="Aperçu">
-            <span v-html="icons.eye"></span>
-          </button>
-          <button class="doc-btn download" @click="downloadDocument(doc)" title="Télécharger">
-            <span v-html="icons.download"></span>
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-      <!-- Pagination for filtered results -->
-      <div class="doc-pagination" v-if="filteredTotalPages > 1">
-        <button class="page-btn" :disabled="filteredCurrentPage === 1" @click="filteredCurrentPage--">
-          <span v-html="icons.chevronLeft"></span>
-        </button>
-        <button v-for="p in filteredTotalPages" :key="p" class="page-btn" :class="{ active: p === filteredCurrentPage }"
-          @click="filteredCurrentPage = p">{{ p }}</button>
-        <button class="page-btn" :disabled="filteredCurrentPage === filteredTotalPages" @click="filteredCurrentPage++">
-          <span v-html="icons.chevronRight"></span>
-        </button>
       </div>
     </div>
 
@@ -428,7 +353,6 @@
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue';
 import api from '@/services/api';
-import '@/../css/components/documents/document-generation.css';
 import { useRoute } from 'vue-router';
 
 const loading = ref(false);
@@ -446,14 +370,8 @@ const volets = ref([]);
 const employeeHabilitations = ref([]);
 const noteEmployees = ref([]);
 const documents = ref([]);
-
-// ── Search & Filter State ──────────────────────────────
-const searchQuery = ref('');
-const selectedTypeFilter = ref('all');
-const selectedDateFilter = ref('all');
-const selectedStatusFilter = ref('all');
-const filteredCurrentPage = ref(1);
-const filterPageSize = 8;
+const isOpen = ref(false);
+const openGroups = ref({});
 
 // ── Individuelle form ─────────────────────────────────
 const ind = reactive({
@@ -469,21 +387,29 @@ const note = reactive({
   habilitation_id: '',
 });
 
+// Pagination
+const indPage = ref(1);
+const notePage = ref(1);
+const perPage = 5;
+
+// Helper function for initials
+const getInitials = (nom, prenom) => {
+  if (!nom && !prenom) return '??';
+  return ((prenom?.[0] || '') + (nom?.[0] || '')).toUpperCase();
+};
+
 // ── Icons ─────────────────────────────────────────────
 const icons = {
   chevronDown: `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>`,
-  eye: `<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>`,
-  refresh: `<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>`,
-  calendar: `<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>`,
-  clock: `<svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`,
   chevronLeft: `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>`,
-  chevronRight: `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>`,
-  user: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>`,
+  eye: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>`,
+  calendar: `<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>`,
+  user: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>`,
   file: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><polyline points="13 2 13 9 20 9"></polyline></svg>`,
-  list: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>`,
-  check: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>`,
+  list: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>`,
   download: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>`,
   users: `<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>`,
+  plus: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>`,
 };
 
 const formatDate = (dateStr) => {
@@ -492,86 +418,7 @@ const formatDate = (dateStr) => {
   return d.toLocaleDateString('fr-FR') + ' ' + d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
 };
 
-const isRecent = (dateStr) => {
-  if (!dateStr) return false;
-  const diff = (Date.now() - new Date(dateStr)) / (1000 * 60 * 60 * 24);
-  return diff <= 30;
-};
-
-// ── FILTERED DOCUMENTS (with search, type, date, status) ──
-const filteredDocs = computed(() => {
-  let result = [...documents.value];
-  // 1. Text search (nom, matricule, département, habilitation nom)
-  if (searchQuery.value.trim()) {
-     const query = searchQuery.value.trim().toLowerCase();
-    console.log(result);
-    result = result.filter(doc => {
-      const fullName = (doc.employee_nom && doc.employee_prenom) ? `${doc.employee_nom} ${doc.employee_prenom}`.toLowerCase() : '';
-      const matricule = (doc.employee_matricule || '');
-      const dept = (doc.employee_departement || '').toLowerCase();
-      const habName = (doc.habilitation_nom || '').toLowerCase();
-      return fullName.includes(query) || matricule.toString().includes(query) || dept.includes(query) || habName.includes(query);
-    });
-  }
-
-  // 2. Type filter (initiale / note)
-  if (selectedTypeFilter.value !== 'all') {
-    result = result.filter(doc => {
-      const habType = doc.type;
-      if (selectedTypeFilter.value === 'individuelle') return habType === 'individuelle';
-      if (selectedTypeFilter.value === 'note') return habType === 'note';
-      return true;
-    });
-  }
-
-  // 3. Date filter (recent: 30 days, older: beyond 30 days)
-  if (selectedDateFilter.value !== 'all') {
-    const now = new Date();
-    const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(now.getDate() - 30);
-    result = result.filter(doc => {
-      const docDate = new Date(doc.employee_habilitation.date_obtention || doc.created_at);
-      console.log('Doc date:', docDate, '30 days ago:', thirtyDaysAgo);
-      if (selectedDateFilter.value === 'recent') return docDate >= thirtyDaysAgo;
-      if (selectedDateFilter.value === 'older') return docDate < thirtyDaysAgo;
-      return true;
-    });
-  }
-
-  // 4. Status filter (downloaded / generated)
-  if (selectedStatusFilter.value !== 'all') {
-    result = result.filter(doc => {
-      if (selectedStatusFilter.value === 'downloaded') return doc.downloaded === true;
-      if (selectedStatusFilter.value === 'generated') return doc.downloaded === false;
-      return true;
-    });
-  }
-
-  return result;
-});
-
-const filteredTotalPages = computed(() => Math.ceil(filteredDocs.value.length / filterPageSize));
-const paginatedFilteredDocs = computed(() => {
-  const start = (filteredCurrentPage.value - 1) * filterPageSize;
-  const end = start + filterPageSize;
-
-  return filteredGroupedDocs.value.slice(start, end);
-});
-
-const activeFiltersCount = computed(() => {
-  let count = 0;
-  if (searchQuery.value) count++;
-  if (selectedTypeFilter.value !== 'all') count++;
-  if (selectedDateFilter.value !== 'all') count++;
-  if (selectedStatusFilter.value !== 'all') count++;
-  return count;
-});
-
-// Reset filter page when filters change
-const resetFilterPage = () => { filteredCurrentPage.value = 1; };
-
-
-// ── Computed ──────────────────────────────────────────
+// Computed for individual form
 const indFilteredServices = computed(() =>
   ind.departement_id
     ? services.value.filter(s => s.departement_id == ind.departement_id)
@@ -602,9 +449,72 @@ const selectedEH = computed(() => {
   ) ?? null;
 });
 
+// Document grouping
+const individualDocs = computed(() => 
+  documents.value.filter(d => d.type === 'individuelle')
+);
 
+const noteDocs = computed(() => 
+  documents.value.filter(d => d.type === 'note')
+);
 
-// ── Cascade handlers — individuelle ───────────────────
+const individualGroups = computed(() => {
+  const groups = {};
+  individualDocs.value.forEach(doc => {
+    const key = doc.employee_matricule ?? 'unknown';
+    if (!groups[key]) {
+      groups[key] = {
+        employee_matricule: doc.employee_matricule,
+        employee_nom: doc.employee_nom,
+        employee_prenom: doc.employee_prenom,
+        documents: [],
+      };
+    }
+    groups[key].documents.push(doc);
+  });
+  return Object.values(groups);
+});
+
+const noteGroups = computed(() => {
+  const groups = {};
+  noteDocs.value.forEach(doc => {
+    const key = doc.habilitation_nom ?? 'unknown';
+    if (!groups[key]) {
+      groups[key] = {
+        habilitation_nom: doc.habilitation_nom,
+        documents: [],
+      };
+    }
+    groups[key].documents.push(doc);
+  });
+  return Object.values(groups);
+});
+
+const paginatedIndividualGroups = computed(() =>
+  individualGroups.value.slice((indPage.value - 1) * perPage, indPage.value * perPage)
+);
+
+const paginatedNoteGroups = computed(() =>
+  noteGroups.value.slice((notePage.value - 1) * perPage, notePage.value * perPage)
+);
+
+const indTotalPages = computed(() => Math.ceil(individualGroups.value.length / perPage));
+const noteTotalPages = computed(() => Math.ceil(noteGroups.value.length / perPage));
+
+// Methods
+const toggleGroup = (key) => {
+  openGroups.value[key] = !openGroups.value[key];
+};
+
+const setType = (type) => {
+  activeType.value = type;
+  isOpen.value = false;
+};
+
+const goBack = () => {
+  activeType.value = null;
+};
+
 const onIndDepartementChange = () => {
   ind.service_id = '';
   ind.employee_id = '';
@@ -646,7 +556,6 @@ const onEmployeeChange = async () => {
   }
 };
 
-// ── Fetch employees for note ──────────────────────────
 const fetchEmployeesParHabilitation = async () => {
   if (!note.habilitation_id) return;
   loadingNoteEmployees.value = true;
@@ -663,46 +572,7 @@ const fetchEmployeesParHabilitation = async () => {
   }
 };
 
-// ── Generate individuelle ─────────────────────────────
-const generateIndividuelle = async (id) => {
-  generating.value = true;
-  try {
-    const response = await api.post(
-      '/documents/generate/individuelle',
-      { employee_habilitation_id: id || ind.employee_habilitation_id },
-      { responseType: 'blob' }
-    );
-    downloadBlob(response);
-  } catch (e) {
-    console.error(e);
-    alert('Erreur lors de la génération du document.');
-  } finally {
-    loading.value = false;
-    generating.value = false;
-  }
-};
-
-// ── Generate note ─────────────────────────────────────
-const generateNote = async () => {
-  generating.value = true;
-  try {
-    const response = await api.post(
-      '/documents/generate/note',
-      { habilitation_id: note.habilitation_id },
-      { responseType: 'blob' }
-    );
-    downloadBlob(response);
-  } catch (e) {
-    console.error(e);
-    alert('Erreur lors de la génération du document.');
-  } finally {
-    generating.value = false;
-  }
-};
-
-// ── Download blob helper ──────────────────────────────
 const downloadBlob = (response) => {
-
   const disposition = response.headers['content-disposition'] ?? '';
   const match = disposition.match(/filename="?([^"]+)"?/);
   const filename = match ? match[1] : 'document.pdf';
@@ -717,25 +587,39 @@ const downloadBlob = (response) => {
   window.URL.revokeObjectURL(url);
 };
 
-// ── Fetch referentials ────────────────────────────────
-const fetchAll = async () => {
-  fetchDocuments();
-  loadingRefs.value = true;
+const generateIndividuelle = async (id) => {
+  generating.value = true;
   try {
-    const [depRes, svcRes, empRes, habRes, volRes] = await Promise.all([
-      api.get('/departements'),
-      api.get('/services'),
-      api.get('/employees'),
-      api.get('/habilitations'),
-      api.get('/volets'),
-    ]);
-    departements.value = depRes.data;
-    services.value = svcRes.data;
-    employees.value = empRes.data;
-    habilitations.value = habRes.data;
-    volets.value = volRes.data;
+    const response = await api.post(
+      '/documents/generate/individuelle',
+      { employee_habilitation_id: id || ind.employee_habilitation_id },
+      { responseType: 'blob' }
+    );
+    downloadBlob(response);
+    await fetchDocuments();
+  } catch (e) {
+    console.error(e);
+    alert('Erreur lors de la génération du document.');
   } finally {
-    loadingRefs.value = false;
+    generating.value = false;
+  }
+};
+
+const generateNote = async () => {
+  generating.value = true;
+  try {
+    const response = await api.post(
+      '/documents/generate/note',
+      { habilitation_id: note.habilitation_id },
+      { responseType: 'blob' }
+    );
+    downloadBlob(response);
+    await fetchDocuments();
+  } catch (e) {
+    console.error(e);
+    alert('Erreur lors de la génération du document.');
+  } finally {
+    generating.value = false;
   }
 };
 
@@ -772,176 +656,54 @@ const previewDocument = async (doc) => {
     alert('Erreur lors de l\'aperçu du document.');
   }
 };
-const openGroups = ref({});
-const toggleGroup = (matricule) => {
-  openGroups.value[matricule] = !openGroups.value[matricule];
-};
-const groupedDocuments = computed(() => {
-  const groups = {};
 
-  documents.value.forEach(doc => {
-    if (!doc.employee_matricule) return;
-
-    const key = doc.employee_matricule;
-
-    if (!groups[key]) {
-      groups[key] = {
-        employee_matricule: doc.employee_matricule,
-        employee_nom: doc.employee_nom,
-        employee_prenom: doc.employee_prenom,
-        documents: [],
-      };
-    }
-
-    groups[key].documents.push(doc);
-  });
-
-  return Object.values(groups);
-});
-
-const filteredGroupedDocs = computed(() => {
-  let list = groupedDocuments.value;
-
-  if (searchQuery.value) {
-    const s = searchQuery.value.toLowerCase();
-
-    list = list.filter(group =>
-      `${group.employee_nom} ${group.employee_prenom}`.toLowerCase().includes(s) ||
-      group.employee_matricule?.toString().includes(s)
-    );
+const fetchAll = async () => {
+  loadingRefs.value = true;
+  try {
+    const [depRes, svcRes, empRes, habRes, volRes] = await Promise.all([
+      api.get('/departements'),
+      api.get('/services'),
+      api.get('/employees'),
+      api.get('/habilitations'),
+      api.get('/volets'),
+    ]);
+    departements.value = depRes.data;
+    services.value = svcRes.data;
+    employees.value = empRes.data;
+    habilitations.value = habRes.data;
+    volets.value = volRes.data;
+    await fetchDocuments();
+  } catch (e) {
+    console.error(e);
+  } finally {
+    loadingRefs.value = false;
+    loading.value = false;
   }
-
-  return list;
-});
-const isOpen = ref(false);
-const setType = (type) => {
-  activeType.value = type;
-  isOpen.value = false;
 };
-
-const goBack = () => {
-  activeType.value = null;
-};
-
-// Split by type
-const individualDocs = computed(() => 
-  filteredDocs.value.filter(d => d.type === 'individuelle')
-);
-const noteDocs = computed(() => 
-  filteredDocs.value.filter(d => d.type === 'note')
-);
-
-// Group individuelle by employee
-const individualGroups = computed(() => {
-  const groups = {};
-  individualDocs.value.forEach(doc => {
-    const key = doc.employee_matricule ?? 'unknown';
-    if (!groups[key]) {
-      groups[key] = {
-        employee_matricule: doc.employee_matricule,
-        employee_nom: doc.employee_nom,
-        employee_prenom: doc.employee_prenom,
-        documents: [],
-      };
-    }
-    groups[key].documents.push(doc);
-  });
-  return Object.values(groups);
-});
-
-// Group notes by habilitation name
-const noteGroups = computed(() => {
-  const groups = {};
-  noteDocs.value.forEach(doc => {
-    const key = doc.habilitation_nom ?? 'unknown';
-    if (!groups[key]) {
-      groups[key] = {
-        habilitation_nom: doc.habilitation_nom,
-        documents: [],
-      };
-    }
-    groups[key].documents.push(doc);
-  });
-  return Object.values(groups);
-});
-
-// Pagination for each section
-const indPage  = ref(1);
-const notePage = ref(1);
-const perPage  = 5;
-
-const paginatedIndividualGroups = computed(() =>
-  individualGroups.value.slice((indPage.value - 1) * perPage, indPage.value * perPage)
-);
-const paginatedNoteGroups = computed(() =>
-  noteGroups.value.slice((notePage.value - 1) * perPage, notePage.value * perPage)
-);
-
-const indTotalPages  = computed(() => Math.ceil(individualGroups.value.length / perPage));
-const noteTotalPages = computed(() => Math.ceil(noteGroups.value.length / perPage));
-
 
 onMounted(() => {
+  loading.value = true;
   fetchAll();
   if (route.params.id) {
-    loading.value = true;
     generateIndividuelle(Number(route.params.id));
   }
 });
 </script>
 
 <style scoped>
-.doc-section { margin-bottom: 24px; }
-.doc-section-header {
-  display: flex; align-items: center; gap: 10px;
-  padding: 12px 16px; margin-bottom: 8px;
-  background: white; border-radius: 10px;
-  border: 1px solid #e8ecf0;
-}
-.doc-section-title { font-weight: 700; color: #1a2e44; font-size: 0.9rem; flex: 1; }
-.doc-section-count {
-  background: #f0f4f8; color: #6b7280;
-  font-size: 0.72rem; font-weight: 600;
-  padding: 2px 10px; border-radius: 20px;
-}
-.doc-section-icon { display: flex; align-items: center; }
-.doc-section-icon.indiv { color: #1a6b8a; }
-.doc-section-icon.note  { color: #7c3aed; }
-.doc-row-inner {
-  display: flex; align-items: center; gap: 16px;
-  padding: 10px 16px; border-bottom: 1px solid #f8fafc;
-}
-.doc-row-inner:last-child { border-bottom: none; }
-.doc-row-inner .doc-cell { flex: 1; }
-.doc-group-header td {
-  background: #f8fafc;
-  padding: 12px;
-  border-top: 1px solid #e6ecf2;
+.document-generation {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 24px;
 }
 
-.doc-group-info {
+.page-header {
   display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.doc-avatar {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: #e6f0ff;
-  color: #2f6fed;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 600;
-  font-size: 12px;
-}
-
-.doc-count {
-  margin-left: auto;
-  font-size: 12px;
-  color: #6b7a90;
+ justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 28px;
+  flex-wrap: wrap;
+  gap: 16px;
 }
 
 .page-title-block {
@@ -951,13 +713,11 @@ onMounted(() => {
 }
 
 .btn-back-doc {
-  padding-bottom: 5px;
   display: flex;
   align-items: center;
   justify-content: center;
   width: 34px;
   height: 34px;
-  min-width: 34px;
   background: white;
   border: 1px solid #e8ecf0;
   border-radius: 8px;
@@ -970,6 +730,19 @@ onMounted(() => {
   background: #f0f7ff;
   color: #1a6b8a;
   border-color: #1a6b8a;
+}
+
+.page-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1a2e44;
+  margin: 0 0 4px 0;
+}
+
+.page-subtitle {
+  font-size: 0.85rem;
+  color: #6b7a90;
+  margin: 0;
 }
 
 .gen-dropdown {
@@ -1050,7 +823,6 @@ onMounted(() => {
 .gen-item-icon {
   width: 36px;
   height: 36px;
-  min-width: 36px;
   border-radius: 8px;
   display: flex;
   align-items: center;
@@ -1079,322 +851,423 @@ onMounted(() => {
   margin-top: 2px;
 }
 
-.search-section-card {
+.loading-state {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 48px;
+}
+
+.loader {
+  width: 40px;
+  height: 40px;
+  border: 3px solid #e2e8f0;
+  border-top-color: #1a4a6b;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.form-card {
   background: white;
   border-radius: 20px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+  padding: 24px;
   margin-bottom: 24px;
-  padding: 20px 24px;
-  transition: all 0.2s;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  border: 1px solid #eef2f6;
 }
 
-.search-row {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-end;
-  gap: 16px;
+.form-section-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1a2e44;
   margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid #eef2f6;
 }
 
-.search-input-group {
-  flex: 2;
-  min-width: 240px;
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+  margin-bottom: 24px;
 }
 
-.search-input-group label {
-  display: block;
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  color: #5b6e8c;
-  margin-bottom: 6px;
-}
-
-.search-input-wrapper {
+.field {
   display: flex;
-  align-items: center;
-  background: #f8fafd;
-  border: 1px solid #e2e8f0;
-  border-radius: 14px;
-  padding: 0 12px;
-  transition: all 0.2s;
+  flex-direction: column;
+  gap: 6px;
 }
 
-.search-input-wrapper:focus-within {
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
-  background: white;
-}
-
-.search-icon {
-  color: #94a3b8;
-  margin-right: 8px;
-  display: flex;
-  align-items: center;
-}
-
-.search-input-wrapper input {
-  width: 100%;
-  padding: 12px 0;
-  border: none;
-  background: transparent;
-  font-size: 0.95rem;
-  font-weight: 500;
-  outline: none;
-  font-family: 'Inter', sans-serif;
-}
-
-.search-input-wrapper input::placeholder {
-  color: #b9c3d4;
-  font-weight: 400;
-}
-
-.filter-group {
-  flex: 1;
-  min-width: 160px;
-}
-
-.filter-group label {
-  display: block;
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  color: #5b6e8c;
-  margin-bottom: 6px;
-}
-
-.custom-select {
-  width: 100%;
-  padding: 12px 12px;
-  background: #f8fafd;
-  border: 1px solid #e2e8f0;
-  border-radius: 14px;
-  font-size: 0.9rem;
-  font-weight: 500;
-  color: #1e293b;
-  font-family: 'Inter', sans-serif;
-  cursor: pointer;
-  outline: none;
-  transition: all 0.2s;
-}
-
-.custom-select:focus {
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
-}
-
-.results-badge {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  border-top: 1px solid #edf2f7;
-  padding-top: 18px;
-  margin-top: 8px;
-}
-
-.doc-count {
-  background: #eef2ff;
-  color: #1e40af;
-  font-size: 0.85rem;
-  font-weight: 600;
-  padding: 5px 12px;
-  border-radius: 40px;
-}
-
-.filter-summary {
-  font-size: 0.85rem;
-  color: #475569;
-}
-
-/* Document table styles (already present in your CSS, but ensure they match) */
-.doc-table-card {
-  background: white;
-  border-radius: 24px;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.03);
-  overflow-x: auto;
-  padding: 4px 0;
-}
-
-.doc-data-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 0.85rem;
-  min-width: 800px;
-}
-
-
-.custom-dropdown {
-  padding: 5px;
-  border-radius: 12px;
-  min-width: 280px;
-}
-
-/* Card style */
-.dropdown-card {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  padding: 2px;
-  border-radius: 12px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-
-/* Hover effect */
-.dropdown-card:hover {
-  background-color: #e9eef5;
-}
-
-/* Icon box */
-.icon-box {
-  width: 20px;
-  height: 20px;
-  background-color: #dbe6f4;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/* Text */
-.text-content .title {
-  font-weight: 400;
-  font-size: 12px;
-  color: #2c3e50;
-}
-
-.text-content .subtitle {
-  font-size: 13px;
-  color: #7f8c8d;
-}
-
-.doc-data-table th {
-  text-align: left;
-  padding: 1rem 1rem 0.75rem 1.5rem;
+.field label {
+  font-size: 0.8rem;
   font-weight: 600;
   color: #4a5b7a;
-  border-bottom: 1px solid #eef2ff;
-  font-size: 0.75rem;
-  letter-spacing: 0.3px;
 }
 
-.doc-data-table td {
-  padding: 1rem 1rem 1rem 1.5rem;
-  border-bottom: 1px solid #f1f4f9;
-  vertical-align: middle;
+.required {
+  color: #ef4444;
 }
 
-.doc-row:hover {
-  background-color: #fafcff;
+.field select,
+.field input {
+  padding: 10px 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  font-family: inherit;
+  background: white;
+  transition: all 0.2s;
 }
 
-.doc-cell {
-  display: flex;
-  align-items: center;
+.field select:focus,
+.field input:focus {
+  outline: none;
+  border-color: #1a6b8a;
+  box-shadow: 0 0 0 3px rgba(26, 107, 138, 0.1);
+}
+
+.field select:disabled {
+  background: #f8fafc;
+  color: #94a3b8;
+  cursor: not-allowed;
+}
+
+.preview-card {
+  background: #f8fafc;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 24px;
+}
+
+.preview-title {
+  font-weight: 600;
+  color: #1a2e44;
+  margin-bottom: 12px;
+  font-size: 0.85rem;
+}
+
+.preview-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 12px;
 }
 
-.doc-icon {
-  width: 40px;
-  height: 40px;
-  border-radius: 14px;
+.preview-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.preview-label {
+  font-size: 0.7rem;
+  color: #6b7a90;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.preview-value {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #1a2e44;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 16px;
+  border-top: 1px solid #eef2f6;
+}
+
+.btn-generate {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background: #1a4a6b;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-generate:hover:not(:disabled) {
+  background: #1a6b8a;
+}
+
+.btn-generate:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+.employees-preview {
+  margin-top: 24px;
+}
+
+.count-badge {
+  background: #e2e8f0;
+  color: #475569;
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-size: 0.7rem;
+  margin-left: 8px;
+}
+
+.preview-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+}
+
+.preview-table th {
+  text-align: left;
+  padding: 12px 8px;
+  background: #f8fafc;
+  font-weight: 600;
+  color: #4a5b7a;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.preview-table td {
+  padding: 10px 8px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.matricule-badge {
+  font-family: monospace;
+  background: #f1f5f9;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+}
+
+.statut-badge {
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+.statut-badge.valide {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 48px;
+  color: #94a3b8;
+}
+
+/* Two Column Layout */
+.two-column-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-top: 24px;
+}
+
+.doc-column {
+  background: white;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  border: 1px solid #eef2f6;
+}
+
+.column-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 18px 20px;
+  border-bottom: 1px solid #eef2f6;
+  background: #fafcfd;
+}
+
+.column-icon {
+  width: 32px;
+  height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
+  border-radius: 10px;
 }
 
-.icon-indiv {
+.column-icon.indiv-icon {
   background: #eef2ff;
-  color: #2563eb;
+  color: #4f46e5;
 }
 
-.icon-note {
-  background: #f1f5f9;
-  color: #475569;
+.column-icon.note-icon {
+  background: #fef3c7;
+  color: #d97706;
 }
 
-.doc-name {
-  font-weight: 700;
+.column-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0;
+}
+
+.column-empty {
+  padding: 48px 20px;
+  text-align: center;
+  color: #94a3b8;
+}
+
+.doc-group {
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.doc-group:last-child {
+  border-bottom: none;
+}
+
+.group-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 20px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.group-header:hover {
+  background: #fafcfd;
+}
+
+.group-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #eef2ff;
+  color: #4f46e5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.group-icon-note {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: #fef3c7;
+  color: #d97706;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.group-info {
+  flex: 1;
+}
+
+.group-name {
+  font-weight: 600;
   color: #0f172a;
-  margin-bottom: 4px;
   font-size: 0.9rem;
 }
 
-.doc-type-badge {
+.group-meta {
   font-size: 0.7rem;
+  color: #64748b;
+  margin-top: 2px;
+}
+
+.group-count {
+  font-size: 0.75rem;
+  color: #64748b;
   background: #f1f5f9;
-  padding: 2px 10px;
-  border-radius: 50px;
-  color: #334155;
-  font-weight: 500;
-}
-
-.doc-emp-name {
-  font-weight: 600;
-  color: #0f172a;
-}
-
-.doc-emp-mat {
-  font-size: 0.7rem;
-  color: #62748c;
-  margin-top: 4px;
-}
-
-.doc-general {
-  background: #fef9e3;
-  color: #b45309;
-  font-size: 0.7rem;
-  font-weight: 600;
   padding: 4px 10px;
-  border-radius: 30px;
+  border-radius: 20px;
+}
+
+.group-arrow {
+  color: #94a3b8;
+  font-size: 10px;
+  transition: transform 0.2s;
+}
+
+.group-arrow.open {
+  transform: rotate(180deg);
+}
+
+.group-documents {
+  padding: 0 20px 12px 72px;
+}
+
+.doc-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid #f8fafc;
+}
+
+.doc-item:last-child {
+  border-bottom: none;
+}
+
+.doc-info {
+  flex: 1;
+}
+
+.doc-title {
+  font-weight: 500;
+  color: #1e293b;
+  font-size: 0.85rem;
+  margin-bottom: 6px;
 }
 
 .doc-date {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 6px;
-  color: #2c3e66;
-  font-weight: 500;
-}
-
-.doc-recent {
-  margin-top: 6px;
-  display: flex;
-  align-items: center;
-  gap: 4px;
+  gap: 5px;
   font-size: 0.7rem;
-  color: #10b981;
-  background: #eefaf5;
-  width: fit-content;
-  padding: 2px 10px;
-  border-radius: 30px;
-  font-weight: 500;
+  color: #94a3b8;
+  margin-right: 12px;
 }
 
-.doc-statut {
-  font-size: 0.75rem;
-  font-weight: 600;
-  padding: 5px 12px;
-  border-radius: 40px;
+.doc-author {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.7rem;
+  color: #94a3b8;
+}
+
+.doc-badge {
   display: inline-block;
-}
-
-.telecharge {
-  background: #e0f2fe;
-  color: #0284c7;
-}
-
-.genere {
+  font-size: 0.65rem;
   background: #f1f5f9;
   color: #475569;
+  padding: 2px 8px;
+  border-radius: 12px;
+  margin-left: 8px;
 }
 
 .doc-actions {
   display: flex;
-  gap: 12px;
+  gap: 8px;
 }
 
 .doc-btn {
@@ -1402,48 +1275,59 @@ onMounted(() => {
   border: none;
   cursor: pointer;
   padding: 6px;
-  border-radius: 10px;
+  border-radius: 8px;
   transition: all 0.2s;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  color: #5f7f9e;
+  color: #94a3b8;
 }
 
 .doc-btn:hover {
   background: #f1f5f9;
-  color: #1e40af;
+  color: #3b82f6;
 }
 
-.doc-pagination {
+.column-pagination {
   display: flex;
-  justify-content: flex-end;
-  gap: 8px;
-  padding: 1rem 1.5rem 1.2rem;
-  border-top: 1px solid #edf2f7;
-  margin-top: 6px;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+  border-top: 1px solid #f1f5f9;
 }
 
 .page-btn {
   background: white;
   border: 1px solid #e2e8f0;
-  border-radius: 10px;
+  border-radius: 8px;
   padding: 6px 12px;
   font-size: 0.8rem;
-  font-weight: 500;
   cursor: pointer;
   transition: all 0.2s;
-  color: #334155;
+  color: #475569;
 }
 
-.page-btn.active {
-  background: #2563eb;
-  border-color: #2563eb;
-  color: white;
+.page-btn:hover:not(:disabled) {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
 }
 
 .page-btn:disabled {
   opacity: 0.4;
   cursor: not-allowed;
+}
+
+.page-current {
+  font-size: 0.8rem;
+  color: #475569;
+}
+
+@media (max-width: 900px) {
+  .two-column-layout {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  
+  .document-generation {
+    padding: 16px;
+  }
 }
 </style>

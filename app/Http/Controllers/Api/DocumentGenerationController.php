@@ -148,6 +148,7 @@ class DocumentGenerationController extends Controller
         $docDB = Document::create([
             'nom' => $filename,
             'type' => 'note',
+            'employee_habilitation_id' => $habilitation->id,
             'chemin' => $relativePath,
         ]);
 
