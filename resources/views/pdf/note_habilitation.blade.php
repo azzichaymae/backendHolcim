@@ -161,7 +161,7 @@
              <table class="header-table">
         <tr>
             <td class="logo-cell">
-                <img src="{{ public_path('images/holcim_logoB&W.png') }}" alt="Holcim" />
+                <img src="{{ public_path('images/holcim_logo.png') }}" alt="Holcim" />
             </td>
         </tr>
     </table>
@@ -234,7 +234,7 @@
             <table class="header-table">
                 <tr>
                     <td class="logo-cell">
-                        <img src="{{ public_path('images/holcim_logoB&W.png') }}" alt="Holcim" />
+                        <img src="{{ public_path('images/holcim_logo.png') }}" alt="Holcim" />
                     </td>
                 </tr>
             </table>

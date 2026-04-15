@@ -70,13 +70,15 @@ class Alert extends Model
     }
 
     public function scopeUrgentes($query)
-    {
-        return $query->where('jours_avant_expiration', 0)
-                     ->where('statut', 'active');
-    }
+{
+    return $query->where('jours_avant_expiration', 0)
+                 ->where('statut', 'active')
+                 ->whereDate('alert_date', '<=', Carbon::today());
+}
 public function scopeActives($query)
 {
-    return $query->where('alerts.statut', 'active'); // add table prefix
+    return $query->where('statut', 'active')
+                 ->whereDate('alert_date', '<=', Carbon::today());
 }
 
 public function scopePourAujourdhui($query)
@@ -115,19 +117,24 @@ public static function genererPourHabilitation(EmployeeHabilitation $eh): void
         return;
     }
 
-    foreach ([30, 7, 0] as $jours) {
-        $alertDate = $dateExpiration->copy()->subDays($jours);
+   foreach ([30, 7, 0] as $jours) {
+    $alertDate = $dateExpiration->copy()->subDays($jours);
 
-        if ($alertDate->gte($today)) {
-            self::create([
+    if ($alertDate->gte($today)) {
+        self::updateOrCreate(
+            [
                 'employee_habilitation_id' => $eh->id,
-                'alert_type'               => 'expiration_proche',
-                'alert_date'               => $alertDate,
                 'jours_avant_expiration'   => $jours,
-                'statut'                   => 'active',
-            ]);
-        }
+            ],
+            [
+                'alert_type'  => 'expiration_proche',
+                'alert_date'  => $alertDate,
+                'statut'      => 'active', // activation controlled by scope date filter
+                'email_sent_at' => null,
+            ]
+        );
     }
+}
 }
 
    

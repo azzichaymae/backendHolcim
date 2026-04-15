@@ -93,9 +93,9 @@
                   <div class="hr-tags">
                     <span class="hr-tag">{{ hab.duree_de_validite }} an(s)</span>
                     <span class="hr-tag">Init. {{ hab.duree_formation_initiale }} {{ hab.duree_formation_initiale_unite
-                      }}</span>
+                    }}</span>
                     <span class="hr-tag">Rec. {{ hab.duree_formation_recyclage }} {{ hab.duree_formation_recyclage_unite
-                      }}</span>
+                    }}</span>
                   </div>
                   <div class="hr-detail" v-if="hab.detail_formation">{{ hab.detail_formation }}</div>
                 </div>
@@ -143,9 +143,8 @@
       <!-- Matricule search -->
       <div class="matricule-search">
         <div :class="['mat-wrap', { 'is-error': matriculeError, 'is-success': matriculeFound }]">
-          <label class="mat-label">Rechercher par matricule</label>
           <div class="mat-row">
-            <input v-model="matriculeInput" type="text" placeholder="Ex: EMP001" class="mat-input"
+            <input v-model="matriculeInput" type="text" class="mat-input"
               @keydown.enter.prevent="searchByMatricule" @input="matriculeError = ''; matriculeFound = null"
               :disabled="searchingMatricule" />
             <button class="btn-mat-search" @click="searchByMatricule"
@@ -227,7 +226,7 @@
       </div>
 
       <div class="emp-empty" v-else>
-        Aucun employé ajouté. Recherchez par matricule ci-dessus.
+        Aucun employé ajouté. Recherchez par matricule/nom prenom/email ci-dessus.
       </div>
 
       <div class="af-step-actions">
@@ -398,21 +397,45 @@ const selectVolet = (volet) => {
 const selectHabilitation = (hab) => { form.habilitation_id = hab.id; };
 
 const searchByMatricule = async () => {
-  const mat = parseInt(matriculeInput.value);
-  if (!mat) return;
+  const query = matriculeInput.value.trim();
+  if (!query) return;
+
   matriculeError.value = '';
   matriculeFound.value = null;
   searchingMatricule.value = true;
+
   try {
-    const { data } = await api.get('/employees', { params: { search: mat } });
-    const emp = data.find(e => e.matricule === mat);
-    if (!emp) { matriculeError.value = `Aucun employé trouvé avec le matricule "${mat}"`; return; }
-    if (form.employees.some(e => e.id === emp.id)) { matriculeError.value = 'Déjà dans la liste.'; return; }
-    matriculeFound.value = { ...emp, _date_obtention: '', _date_aptitude_medicale: '', _type: 'initiale' };
+    // Send the raw query string, not just a number
+    const { data } = await api.get('/employees', { params: { search: query } });
+
+    // Try to find exact match by matricule OR fallback to first match
+    let emp = data.find(e => e.matricule == query);
+    if (!emp) emp = data[0]; // take first match if searching by name/email
+
+    if (!emp) {
+      matriculeError.value = `Aucun employé trouvé pour "${query}"`;
+      return;
+    }
+
+    if (form.employees.some(e => e.id === emp.id)) {
+      matriculeError.value = 'Déjà dans la liste.';
+      return;
+    }
+
+    matriculeFound.value = {
+      ...emp,
+      _date_obtention: '',
+      _date_aptitude_medicale: '',
+      _type: 'initiale'
+    };
     matriculeInput.value = '';
-  } catch { matriculeError.value = 'Erreur lors de la recherche.'; }
-  finally { searchingMatricule.value = false; }
+  } catch {
+    matriculeError.value = 'Erreur lors de la recherche.';
+  } finally {
+    searchingMatricule.value = false;
+  }
 };
+
 
 const addEmployee = () => { if (!matriculeFound.value?._date_obtention) return; form.employees.push({ ...matriculeFound.value }); matriculeFound.value = null; };
 const removeEmployee = (idx) => form.employees.splice(idx, 1);
@@ -451,9 +474,11 @@ const fetchVolets = async () => {
 };
 const fetchHabilitations = async (id) => {
   loadingHabilitations.value = true;
-  try { const { data } = await api.get(`/habilitations/volet/${id}`); habilitations.value = data; console.log(
-    data
-  )}
+  try {
+    const { data } = await api.get(`/habilitations/volet/${id}`); habilitations.value = data; console.log(
+      data
+    )
+  }
   finally { loadingHabilitations.value = false; }
 };
 

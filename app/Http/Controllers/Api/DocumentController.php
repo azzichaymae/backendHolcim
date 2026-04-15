@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Document;
 use App\Models\EmployeeHabilitation;
+use App\Models\Habilitation;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Storage;
@@ -35,16 +36,30 @@ class DocumentController extends Controller
                });
     }else {
     $documents = Document::with('employeeHabilitation.employee', 'employeeHabilitation.habilitation')
-        ->orderBy('created_at', 'desc')
-        ->get()
-        ->map(function ($doc) {
-            $doc->url = Storage::url($doc->chemin);
+    ->orderBy('created_at', 'desc')
+    ->get()
+    ->map(function ($doc) {
+        $doc->url = Storage::url($doc->chemin);
+
+        if ($doc->type === 'individuelle') {
+            // For individuelle docs, use employeeHabilitation
             $doc->employee_nom = $doc->employeeHabilitation->employee->nom ?? null;
             $doc->employee_prenom = $doc->employeeHabilitation->employee->prenom ?? null;
-            $doc->habilitation_nom = $doc->employeeHabilitation->habilitation->nom ?? null;
             $doc->employee_matricule = $doc->employeeHabilitation->employee->matricule ?? null;
-            return $doc;
-        });
+            $doc->habilitation_nom = $doc->employeeHabilitation->habilitation->nom ?? null;
+        } elseif ($doc->type === 'note') {
+            // For note docs, the foreign key points directly to habilitation
+            $habilitation = Habilitation::find($doc->employee_habilitation_id); 
+            $doc->habilitation_nom = $habilitation?->nom;
+            // No employee info for notes
+            $doc->employee_nom = null;
+            $doc->employee_prenom = null;
+            $doc->employee_matricule = null;
+        }
+
+        return $doc;
+    });
+
     }
     return response()->json($documents, 200);
 }

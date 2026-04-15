@@ -75,7 +75,8 @@
         </thead>
         <tbody>
           <tr v-for="emp in employees" :key="emp.id" class="table-row"
-           :class="{ 'row-clickable': !authStore.isManager && !showArchived}" @click="showArchived ? showArchiveHab(emp.id) : goToDetail(emp.id)">
+            :class="{ 'row-clickable': !authStore.isManager && !showArchived }"
+            @click="showArchived ? showArchiveHab(emp.id) : goToDetail(emp.id)">
             <td data-label="Matricule">
               <span class="matricule-badge">{{ emp.matricule || 'ST' }}</span>
             </td>
@@ -98,12 +99,12 @@
 
             <td data-label="Actions" @click.stop>
               <div class="actions">
-                 
-                    <span v-if="showArchived" class="archived-icon" v-html="icons.archive"></span>
-          
-                  
-                <router-link v-else   :to="`/employees/${emp.id}/edit`" class="action-btn edit" v-if="canWrite"
- title="Modifier">
+
+                <span v-if="showArchived" class="archived-icon" v-html="icons.archive"></span>
+
+
+                <router-link v-else :to="`/employees/${emp.id}/edit`" class="action-btn edit" v-if="canWrite"
+                  title="Modifier">
                   <span v-html="icons.edit"></span>
                 </router-link>
                 <button class="action-btn delete" v-if="canDelete" @click="confirmDelete(emp)" title="Supprimer">
@@ -196,42 +197,50 @@
     </Teleport>
 
     <Teleport to="body">
-  <div v-if="showArchivedModal" class="archived-habs-backdrop" @click.self="closeArchivedModal">
-    <div class="archived-habs-dialog">
-      <h3>Historique des habilitations</h3>
-      <table class="data-table">
-        <thead>
-          <tr>
-            <th>HABILITATION</th>
-            <th>TYPE</th>
-            <th>DATE D'ATTRIBUTION</th>
-            <th>DATE DE RÉVOCATION</th>
-            <th>STATUT</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="hab in archivedHabs" :key="hab.id">
-            <td>{{ hab.habilitation.nom }}</td>
-            <td>{{ hab.type === 'initiale' ? 'Initiale' : 'Recyclage' }}</td>
-            <td>{{ new Date(hab.date_obtention).toLocaleDateString('fr-FR') }}</td>
-            <td>{{ hab.date_expiration ? new Date(hab.date_expiration).toLocaleDateString('fr-FR') : '—' }}</td>
-            <td>
-              <span :class="{
-                'status-valid': hab.statut === 'valide',
-                'status-expiring': hab.statut === 'expire_bientot',
-                'status-expired': hab.statut === 'expire',
-                
-              }">
-                {{ hab.statut}}
-              </span>
-            </td>
-          </tr>
-        </tbody>    
-      </table>
-      <button class="btn-close-archived" @click="closeArchivedModal()">Fermer</button>
-    </div>
-  </div>
-</Teleport>
+      <div v-if="showArchivedModal" class="archived-habs-backdrop" @click.self="closeArchivedModal">
+        <div class="archived-habs-dialog">
+          <div style="display: flex; align-items: flex-start; justify-content: space-between;
+          ">
+            <h3>Historique des habilitations</h3>
+            <button class="import-close" @click="closeArchivedModal()"><span v-html="icons.x"></span></button>
+          </div>
+
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>HABILITATION</th>
+                <th>TYPE</th>
+                <th>DATE D'ATTRIBUTION</th>
+                <th>DATE DE RÉVOCATION</th>
+
+              </tr>
+            </thead>
+            <tbody>
+              <!-- État de chargement -->
+              <tr v-if="loading">
+                <td colspan="4" class="loading-state">
+                  <div class="loader"></div>
+                </td>
+              </tr>
+
+              <!-- État vide -->
+              <tr v-else-if="archivedHabs.length === 0">
+                <td colspan="4" class="empty-state">Aucune association trouvée</td>
+              </tr>
+
+              <!-- Liste des habilitations -->
+              <tr v-else v-for="hab in archivedHabs" :key="hab.id">
+                <td>{{ hab.habilitation.nom }}</td>
+                <td>{{ hab.type === 'initiale' ? 'Initiale' : 'Recyclage' }}</td>
+                <td>{{ new Date(hab.date_obtention).toLocaleDateString('fr-FR') }}</td>
+                <td>{{ hab.date_expiration ? new Date(hab.date_expiration).toLocaleDateString('fr-FR') : '—' }}</td>
+              </tr>
+            </tbody>
+
+          </table>
+        </div>
+      </div>
+    </Teleport>
   </div>
 </template>
 
@@ -439,9 +448,12 @@ const downloadTemplate = () => {
 const showArchivedModal = ref(false);
 const archivedHabs = ref([]);
 const showArchiveHab = async (id) => {
+
   showArchivedModal.value = true;
-  const {data} = await api.get(`/employee-habilitations/${id}/history`);
+  loading.value = true
+  const { data } = await api.get(`/employee-habilitations/${id}/history`);
   archivedHabs.value = data;
+  loading.value = false
 };
 const closeArchivedModal = () => {
   console.log(showArchivedModal.value);
@@ -545,5 +557,4 @@ onMounted(async () => {
   justify-content: center;
   z-index: 1000;
 }
-
 </style>

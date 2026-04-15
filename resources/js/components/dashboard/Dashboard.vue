@@ -192,7 +192,7 @@ const tierCounts = ref({ 30: 0, 7: 0, 0: 0 });
 const expirationTabs = computed(() => [
   { jours: 30, label: '30 jours', cls: 'tab-warning', count: tierCounts.value[30] },
   { jours: 7, label: '7 jours', cls: 'tab-urgent', count: tierCounts.value[7] },
-  { jours: 0, label: 'Expirés', cls: 'tab-expired', count: tierCounts.value[0] },
+  // { jours: 0, label: 'Expirés', cls: 'tab-expired', count: tierCounts.value[0] },
 ]);
 
 const isManager = computed(() => auth.user?.role === 'Manager');
@@ -261,10 +261,11 @@ const fetchAll = async () => {
   try {
     const [dashRes] = await Promise.all([
       api.get('/dashboard'),
-      fetchTierCounts(),   // sets expirations + tierCounts
+      fetchTierCounts(),    
     ]);
     stats.value = dashRes.data.stats;
     charts.value = dashRes.data.charts;
+ 
   } catch (e) {
     console.error(e);
   } finally {
@@ -361,6 +362,7 @@ const donutOptions = {
 // ── Alertes bar chart ─────────────────────────────────
 const alertesBarData = computed(() => {
   const data = charts.value?.alertes_par_seuil ?? [];
+  console.log("alertes charts",charts.value)
   return {
     labels: data.map(i => i.label),
     datasets: [{
@@ -376,6 +378,7 @@ const alertesBarData = computed(() => {
 // ── Volet bar chart ───────────────────────────────────
 const voletBarData = computed(() => {
   const data = charts.value?.par_volet ?? [];
+  console.log(data)
   return {
     labels: data.map(i => i.volet),
     datasets: [
@@ -390,12 +393,7 @@ const voletBarData = computed(() => {
         data: data.map(v => v.expirant_bientot),
         backgroundColor: '#f59e0b',
       },
-      {
-        label: 'Expirées',
-        data: data.map(i => i.expirees),
-        backgroundColor: '#ef4444',
-        borderRadius: 4,
-      },
+       
     ],
   };
 });
@@ -403,7 +401,7 @@ const voletBarData = computed(() => {
 // ── Service bar chart ─────────────────────────────────
 const serviceBarData = computed(() => {
   const data = charts.value?.employes_par_service ?? [];
-  return {
+   return {
     labels: data.map(i => i.service),
     datasets: [{
       label: 'Salariés',

@@ -224,6 +224,51 @@
       </template>
     </div>
 
+    <!-- ── SEARCH SECTION ── -->
+    <div class="search-section-card" v-if="!activeType && !loading">
+      <div class="search-row">
+        <!-- Nom, matricule ou département... -->
+        <div class="search-input-group">
+          <label>🔍 RECHERCHE</label>
+          <div class="search-input-wrapper">
+            <span class="search-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <circle cx="10" cy="10" r="7"></circle>
+                <line x1="21" y1="21" x2="15" y2="15"></line>
+              </svg>
+            </span>
+            <input type="text" v-model="searchQuery" placeholder="Nom, matricule ou département...">
+          </div>
+        </div>
+
+        <!-- Type de document filter -->
+        <div class="filter-group">
+          <label>📄 TYPE DE DOCUMENT</label>
+          <select class="custom-select" v-model="selectedTypeFilter">
+            <option value="all">Tous les types</option>
+            <option value="individuelle">Habilitation individuelle</option>
+            <option value="note">Note d'Habilitation</option>
+          </select>
+        </div>
+
+        <!-- Période filter -->
+        <div class="filter-group">
+          <label>📅 PÉRIODE</label>
+          <select class="custom-select" v-model="selectedDateFilter">
+            <option value="all">Toutes les dates</option>
+            <option value="recent">30 derniers jours</option>
+            <option value="older">Plus ancien</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="results-badge">
+        <span class="doc-count">{{ filteredDocs.length }} document{{ filteredDocs.length > 1 ? 's' : '' }} trouvé{{
+          filteredDocs.length > 1 ? 's' : '' }}</span>
+        <span class="filter-summary" v-if="activeFiltersCount">Filtres actifs</span>
+      </div>
+    </div>
+
     <!-- ── TWO COLUMN LAYOUT like the image ── -->
     <div class="two-column-layout" v-if="!activeType && !loading">
       
@@ -234,7 +279,7 @@
           <h2 class="column-title">Habilitations Individuelles</h2>
         </div>
         
-        <div v-if="individualDocs.length === 0" class="column-empty">
+        <div v-if="filteredIndividualDocs.length === 0" class="column-empty">
           <p>Aucun document individuel</p>
         </div>
         
@@ -294,7 +339,7 @@
           <h2 class="column-title">Notes d'Habilitations</h2>
         </div>
         
-        <div v-if="noteDocs.length === 0" class="column-empty">
+        <div v-if="filteredNoteDocs.length === 0" class="column-empty">
           <p>Aucune note d'habilitation</p>
         </div>
         
@@ -348,10 +393,13 @@
     </div>
 
   </div>
+  <v-overlay :model-value="logoutAlert" class="align-center justify-center">
+          <v-progress-circular color="primary" size="24" indeterminate></v-progress-circular>
+        </v-overlay>
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue';
+import { ref, reactive, computed, onMounted, watch } from 'vue';
 import api from '@/services/api';
 import { useRoute } from 'vue-router';
 
@@ -372,6 +420,12 @@ const noteEmployees = ref([]);
 const documents = ref([]);
 const isOpen = ref(false);
 const openGroups = ref({});
+const logoutAlert = ref(false);
+
+// ── Search & Filter State ──────────────────────────────
+const searchQuery = ref('');
+const selectedTypeFilter = ref('all');
+const selectedDateFilter = ref('all');
 
 // ── Individuelle form ─────────────────────────────────
 const ind = reactive({
@@ -418,6 +472,69 @@ const formatDate = (dateStr) => {
   return d.toLocaleDateString('fr-FR') + ' ' + d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
 };
 
+const isRecent = (dateStr) => {
+  if (!dateStr) return false;
+  const diff = (Date.now() - new Date(dateStr)) / (1000 * 60 * 60 * 24);
+  return diff <= 30;
+};
+
+// ── FILTERED DOCUMENTS ──
+const filteredDocs = computed(() => {
+  let result = [...documents.value];
+  
+  // 1. Text search (nom, matricule, habilitation nom)
+  if (searchQuery.value.trim()) {
+    console.log(result)
+    const query = searchQuery.value.trim().toLowerCase();
+    result = result.filter(doc => {
+      const fullName = (doc.employee_nom && doc.employee_prenom) ? `${doc.employee_nom} ${doc.employee_prenom}`.toLowerCase() : '';
+      const matricule = (doc.employee_matricule || '').toString().toLowerCase();
+      const habName = (doc.habilitation_nom || '').toLowerCase();
+      return fullName.includes(query) || matricule.includes(query) || habName.includes(query);
+    });
+  }
+
+  // 2. Type filter
+  if (selectedTypeFilter.value !== 'all') {
+    result = result.filter(doc => doc.type === selectedTypeFilter.value);
+  }
+
+  // 3. Date filter
+  if (selectedDateFilter.value !== 'all') {
+    result = result.filter(doc => {
+      const docDate = new Date(doc.created_at);
+      if (selectedDateFilter.value === 'recent') return isRecent(doc.created_at);
+      if (selectedDateFilter.value === 'older') return !isRecent(doc.created_at);
+      return true;
+    });
+  }
+  
+  return result;
+});
+
+const filteredIndividualDocs = computed(() => 
+  filteredDocs.value.filter(d => d.type === 'individuelle'  )
+  
+);
+
+const filteredNoteDocs = computed(() => 
+  filteredDocs.value.filter(d => d.type === 'note')
+);
+
+const activeFiltersCount = computed(() => {
+  let count = 0;
+  if (searchQuery.value) count++;
+  if (selectedTypeFilter.value !== 'all') count++;
+  if (selectedDateFilter.value !== 'all') count++;
+  return count;
+});
+
+// Reset pagination when filters change
+watch([searchQuery, selectedTypeFilter, selectedDateFilter], () => {
+  indPage.value = 1;
+  notePage.value = 1;
+});
+
 // Computed for individual form
 const indFilteredServices = computed(() =>
   ind.departement_id
@@ -449,18 +566,10 @@ const selectedEH = computed(() => {
   ) ?? null;
 });
 
-// Document grouping
-const individualDocs = computed(() => 
-  documents.value.filter(d => d.type === 'individuelle')
-);
-
-const noteDocs = computed(() => 
-  documents.value.filter(d => d.type === 'note')
-);
-
+// Document grouping with filters applied
 const individualGroups = computed(() => {
   const groups = {};
-  individualDocs.value.forEach(doc => {
+  filteredIndividualDocs.value.forEach(doc => {
     const key = doc.employee_matricule ?? 'unknown';
     if (!groups[key]) {
       groups[key] = {
@@ -477,7 +586,7 @@ const individualGroups = computed(() => {
 
 const noteGroups = computed(() => {
   const groups = {};
-  noteDocs.value.forEach(doc => {
+  filteredNoteDocs.value.forEach(doc => {
     const key = doc.habilitation_nom ?? 'unknown';
     if (!groups[key]) {
       groups[key] = {
@@ -626,11 +735,22 @@ const generateNote = async () => {
 const fetchDocuments = async () => {
   try {
     const { data } = await api.get('/documents/all');
-    documents.value = data;
+
+    documents.value = data.filter(doc => {
+      if (doc.type === 'individuelle') {
+        return (
+          doc.employee_nom &&
+          doc.employee_prenom
+        );
+      }
+      return true;
+    });
+
   } catch (e) {
     console.error(e);
   }
 };
+
 
 const downloadDocument = async (doc) => {
   try {
@@ -645,11 +765,13 @@ const downloadDocument = async (doc) => {
 
 const previewDocument = async (doc) => {
   try {
+     logoutAlert.value = true;
     const response = await api.get(`/documents/download/${doc.id}`, {
       responseType: 'blob'
     });
     const blob = new Blob([response.data], { type: 'application/pdf' });
     const url = URL.createObjectURL(blob);
+     logoutAlert.value = false;
     window.open(url, '_blank');
   } catch (e) {
     console.error(e);
@@ -699,7 +821,7 @@ onMounted(() => {
 
 .page-header {
   display: flex;
- justify-content: space-between;
+  justify-content: space-between;
   align-items: flex-start;
   margin-bottom: 28px;
   flex-wrap: wrap;
@@ -1074,6 +1196,136 @@ onMounted(() => {
   color: #94a3b8;
 }
 
+/* Search Section */
+.search-section-card {
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+  margin-bottom: 24px;
+  padding: 20px 24px;
+  border: 1px solid #eef2f6;
+}
+
+.search-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.search-input-group {
+  flex: 2;
+  min-width: 240px;
+}
+
+.search-input-group label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #5b6e8c;
+  margin-bottom: 6px;
+}
+
+.search-input-wrapper {
+  display: flex;
+  align-items: center;
+  background: #f8fafd;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 0 12px;
+  transition: all 0.2s;
+}
+
+.search-input-wrapper:focus-within {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+  background: white;
+}
+
+.search-icon {
+  color: #94a3b8;
+  margin-right: 8px;
+  display: flex;
+  align-items: center;
+}
+
+.search-input-wrapper input {
+  width: 100%;
+  padding: 12px 0;
+  border: none;
+  background: transparent;
+  font-size: 0.95rem;
+  font-weight: 500;
+  outline: none;
+  font-family: 'Inter', sans-serif;
+}
+
+.search-input-wrapper input::placeholder {
+  color: #b9c3d4;
+  font-weight: 400;
+}
+
+.filter-group {
+  flex: 1;
+  min-width: 160px;
+}
+
+.filter-group label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #5b6e8c;
+  margin-bottom: 6px;
+}
+
+.custom-select {
+  width: 100%;
+  padding: 12px 12px;
+  background: #f8fafd;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #1e293b;
+  font-family: 'Inter', sans-serif;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.2s;
+}
+
+.custom-select:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+
+.results-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-top: 1px solid #edf2f7;
+  padding-top: 18px;
+  margin-top: 8px;
+}
+
+.doc-count {
+  background: #eef2ff;
+  color: #1e40af;
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 5px 12px;
+  border-radius: 40px;
+}
+
+.filter-summary {
+  font-size: 0.85rem;
+  color: #475569;
+}
+
 /* Two Column Layout */
 .two-column-layout {
   display: grid;
@@ -1328,6 +1580,15 @@ onMounted(() => {
   
   .document-generation {
     padding: 16px;
+  }
+  
+  .search-row {
+    flex-direction: column;
+  }
+  
+  .search-input-group,
+  .filter-group {
+    width: 100%;
   }
 }
 </style>

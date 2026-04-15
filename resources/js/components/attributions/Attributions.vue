@@ -288,7 +288,7 @@
     <th>Type</th>
     <th>Statut</th>
     <th>Validation</th>
-    <th></th>
+    <th>Action</th>
   </tr>
 </thead>
                 <tbody>
@@ -315,14 +315,8 @@
   <span :class="['badge', 'validation', item.validation_statut]">
     {{ item.validation_statut }}
   </span>
-</td>                    <td>
-                      <span v-if="item.validation_statut === 'non_soumis'" class="valid-badge non-soumis">Non
-                        soumis</span>
-                      <span v-else-if="item.validation_statut === 'en_cours'" class="valid-badge en-cours">⏳ En
-                        cours</span>
-                      <span v-else-if="item.validation_statut === 'valide'" class="valid-badge valide">✓ Validé</span>
-                      <span v-else-if="item.validation_statut === 'refuse'" class="valid-badge refuse">✗ Refusé</span>
-                    </td>
+</td>                    
+
                     <td>
                       <div class="actions">
                         <button class="action-btn pdf" @click="docGen(item.id)" title="Générer PDF">
@@ -444,6 +438,10 @@
     </template>
 
   </div>
+   <v-overlay :model-value="logoutAlert" class="align-center justify-center">
+          <v-progress-circular color="primary" size="24" indeterminate></v-progress-circular>
+        </v-overlay>
+
 </template>
 
 <script setup>
@@ -646,15 +644,18 @@ const errorSnackbar = ref(false)
 const errorMessage = ref('')
 
 // ── Validation ─────────────────────────────────────────────────────────────
+const logoutAlert = ref(false);
+
 const soumettreValidation = async (id) => {
-  loadingSnackbar.value = true
   try {
+      logoutAlert.value = true;
+
     await api.post(`/validations/initier/${id}`);
     await fetchData();
-    loadingSnackbar.value = false
-    successSnackbar.value = true
+     logoutAlert.value = false;
+     alert("demmande soumis avec success")
   } catch (e) {
-    loadingSnackbar.value = false
+     
     errorMessage.value = e.response?.data?.message ?? "Erreur lors de l'initiation."
     errorSnackbar.value = true
   }
