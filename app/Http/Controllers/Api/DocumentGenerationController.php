@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\AttributionValidation;
 use App\Models\EmployeeHabilitation;
 use App\Models\Habilitation;
 use App\Models\Setting;
@@ -55,12 +56,16 @@ class DocumentGenerationController extends Controller
         $request->validate([
             'employee_habilitation_id' => 'required|exists:employee_habilitations,id',
         ]);
+        $controller = new ValidationController();
+
 
 
         $eh = EmployeeHabilitation::with([
             'employee.service.departement',
             'habilitation',
         ])->findOrFail($request->employee_habilitation_id);
+        $response = (new ValidationController())->statut($eh);
+        $validation = $response->getData();
         $settings = Setting::getInstance();
 
         Carbon::setLocale('fr');
@@ -74,6 +79,7 @@ class DocumentGenerationController extends Controller
         $pdf = Pdf::loadView('pdf.habilitation_individuelle', [
             'eh' => $eh,
             'settings' => $settings,
+            'validation' => $validation
         ])->setPaper('a4', 'portrait');
 
         $relativePath = 'documents/' . $filename;
@@ -125,6 +131,7 @@ class DocumentGenerationController extends Controller
             . str_replace(' ', '_', $habilitation->nom) . '_'
             . now()->format('Ymd')
             . '.pdf';
+
 
         $pdf = Pdf::loadView('pdf.note_habilitation', [
             'habilitation' => $habilitation,

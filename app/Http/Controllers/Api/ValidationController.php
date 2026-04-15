@@ -149,6 +149,7 @@ class ValidationController extends Controller
             ->orderBy('ordre')
             ->get();
 
+            
         return response()->json([
             'validation_statut' => $employeeHabilitation->validation_statut,
             'etapes'            => $validations,

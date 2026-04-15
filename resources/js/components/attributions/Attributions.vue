@@ -616,7 +616,7 @@ const switchMgrTab = (tab) => {
 
 // ── Data fetching ──────────────────────────────────────────────────────────
 const fetchData = async () => {
-  loading.value = true;
+loading.value = !logoutAlert.value;
   try {
     const [attribRes, voletRes] = await Promise.all([
       api.get('/employee-habilitations'),

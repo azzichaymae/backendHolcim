@@ -30,4 +30,5 @@ class AttributionValidation extends Model
     {
         return bin2hex(random_bytes(32));
     }
+  
 }
