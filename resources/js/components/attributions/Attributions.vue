@@ -250,47 +250,47 @@
         <div v-for="emp in groupedEmployees" :key="emp.employee.id" class="employee-card">
 
           <div class="card-header" @click="toggle(emp.employee.id)">
-  <div class="emp-info">
+            <div class="emp-info">
 
-    <!-- Avatar -->
-    <div class="emp-avatar">
-      {{ emp.employee.prenom[0] }}{{ emp.employee.nom[0] }}
-    </div>
+              <!-- Avatar -->
+              <div class="emp-avatar">
+                {{ emp.employee.prenom[0] }}{{ emp.employee.nom[0] }}
+              </div>
 
-    <!-- Info -->
-    <div>
-      <div class="emp-name">
-        {{ emp.employee.prenom }} {{ emp.employee.nom }}
-      </div>
-      <div class="emp-meta">
-        Matricule: {{ emp.employee.matricule }} · {{ emp.employee.service.nom }}
-      </div>
-    </div>
-  </div>
+              <!-- Info -->
+              <div>
+                <div class="emp-name">
+                  {{ emp.employee.prenom }} {{ emp.employee.nom }}
+                </div>
+                <div class="emp-meta">
+                  Matricule: {{ emp.employee.matricule }} · {{ emp.employee.service.nom }}
+                </div>
+              </div>
+            </div>
 
-  <div class="card-actions">
-    <span class="hab-count">
-      {{ emp.habilitations.length }} habilitation(s)
-    </span>
-    <span :class="['arrow', openEmployees[emp.employee.id] ? 'open' : '']" v-html="icons.arrowUp"></span>
-  </div>
-</div>
+            <div class="card-actions">
+              <span class="hab-count">
+                {{ emp.habilitations.length }} habilitation(s)
+              </span>
+              <span :class="['arrow', openEmployees[emp.employee.id] ? 'open' : '']" v-html="icons.arrowUp"></span>
+            </div>
+          </div>
 
           <transition name="collapse">
             <div v-if="openEmployees[emp.employee.id]" class="card-body">
               <table class="attr-data-table">
                 <thead>
-  <tr>
-    <th>Habilitation</th>
-    <th>Organisme</th>
-    <th>Obtention</th>
-    <th>Expiration</th>
-    <th>Type</th>
-    <th>Statut</th>
-    <th>Validation</th>
-    <th>Action</th>
-  </tr>
-</thead>
+                  <tr>
+                    <th>Habilitation</th>
+                    <th>Organisme</th>
+                    <th>Obtention</th>
+                    <th>Expiration</th>
+                    <th>Type</th>
+                    <th>Statut</th>
+                    <th>Validation</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
                 <tbody>
                   <tr v-for="item in emp.habilitations" :key="item.id" class="data-row">
                     <td class="hab-name">{{ item.habilitation?.nom }}</td>
@@ -299,23 +299,23 @@
                     <td class="date-cell">
                       <span :class="['exp-date', expirationClass(item)]">{{ formatDate(item.date_expiration) }}</span>
                     </td>
-<td>
-  <span :class="['badge', 'type', item.type]">
-    {{ item.type }}
-  </span>
-</td>
+                    <td>
+                      <span :class="['badge', 'type', item.type]">
+                        {{ item.type }}
+                      </span>
+                    </td>
 
-<td>
-  <span :class="['badge', statutClass(item)]">
-    {{ statutLabel(item) }}
-  </span>
-</td>
+                    <td>
+                      <span :class="['badge', statutClass(item)]">
+                        {{ statutLabel(item) }}
+                      </span>
+                    </td>
 
-<td>
-  <span :class="['badge', 'validation', item.validation_statut]">
-    {{ item.validation_statut }}
-  </span>
-</td>                    
+                    <td>
+                      <span :class="['badge', 'validation', item.validation_statut]">
+                        {{ item.validation_statut }}
+                      </span>
+                    </td>
 
                     <td>
                       <div class="actions">
@@ -342,7 +342,7 @@
                 </tbody>
               </table>
               <ValidationDialog v-model="dialog" :etapes="etapes" />
-             
+
             </div>
           </transition>
 
@@ -365,7 +365,7 @@
                   <button class="adm-close" @click="closeModal"><span v-html="icons.x"></span></button>
                 </div>
                 <div style="padding:20px 22px;display:flex;flex-direction:column;gap:14px;">
-                
+
                   <div class="modal-field">
                     <label>Organisme de formation</label>
                     <input v-model="form.organisme_formation" placeholder="Ex: AFPA, CNAM..." />
@@ -373,13 +373,15 @@
                   </div>
                   <div class="modal-field">
                     <label>Date d'obtention <span style="color:#ef4444">*</span></label>
-                    <input v-model="form.date_obtention" type="date" :class="{ 'input-error': errors.date_obtention }" />
+                    <input v-model="form.date_obtention" type="date"
+                      :class="{ 'input-error': errors.date_obtention }" />
                     <span class="error-msg" v-if="errors.date_obtention">{{ errors.date_obtention }}</span>
                   </div>
-                    <div class="modal-field">
-                      <label>Date d'aptitude médicale <span style="color:#ef4444">*</span></label>
-                      <input v-model="form.date_appt_medicale" type="date" :class="{ 'input-error': errors.date_appt_medicale }" />
-                      <span class="error-msg" v-if="errors.date_appt_medicale">{{ errors.date_appt_medicale }}</span>
+                  <div class="modal-field">
+                    <label>Date d'aptitude médicale <span style="color:#ef4444">*</span></label>
+                    <input v-model="form.date_appt_medicale" type="date"
+                      :class="{ 'input-error': errors.date_appt_medicale }" />
+                    <span class="error-msg" v-if="errors.date_appt_medicale">{{ errors.date_appt_medicale }}</span>
                   </div>
                   <div class="modal-field">
                     <label>Type <span style="color:#ef4444">*</span></label>
@@ -390,7 +392,7 @@
                     </select>
                     <span class="error-msg" v-if="errors.type">{{ errors.type }}</span>
                   </div>
-                  
+
                   <span class="error-msg" v-if="errors.global">{{ errors.global }}</span>
                 </div>
                 <div
@@ -405,42 +407,42 @@
           </div>
         </Transition>
       </Teleport>
-       <v-layout min-height="100">
-                <v-snackbar v-model="loadingSnackbar" :timeout="-1" location="top center" rounded="lg" contained>
-                  <div class="d-flex align-center ga-3" style="padding: 4px 8px;">
-                    <v-progress-circular indeterminate size="16" width="2" color="white" />
-                    <span>Envoi en cours...</span>
-                  </div>
-                </v-snackbar>
+      <v-layout min-height="100">
+        <v-snackbar v-model="loadingSnackbar" :timeout="-1" location="top center" rounded="lg" contained>
+          <div class="d-flex align-center ga-3" style="padding: 4px 8px;">
+            <v-progress-circular indeterminate size="16" width="2" color="white" />
+            <span>Envoi en cours...</span>
+          </div>
+        </v-snackbar>
 
-                <v-snackbar v-model="successSnackbar" :timeout="3000" color="#1D9E75" location="top center" rounded="lg"
-                  contained>
-                  <div class="d-flex align-center ga-3" style="padding: 4px 8px;">
-                    <v-icon size="18">mdi-check-circle-outline</v-icon>
-                    <div>
-                      <div style="font-size: 13px; font-weight: 600;">Succès</div>
-                      <div style="font-size: 12px; opacity: 0.85;">Document envoyé avec succès !</div>
-                    </div>
-                  </div>
-                </v-snackbar>
-              </v-layout>
+        <v-snackbar v-model="successSnackbar" :timeout="3000" color="#1D9E75" location="top center" rounded="lg"
+          contained>
+          <div class="d-flex align-center ga-3" style="padding: 4px 8px;">
+            <v-icon size="18">mdi-check-circle-outline</v-icon>
+            <div>
+              <div style="font-size: 13px; font-weight: 600;">Succès</div>
+              <div style="font-size: 12px; opacity: 0.85;">Document envoyé avec succès !</div>
+            </div>
+          </div>
+        </v-snackbar>
+      </v-layout>
 
-              <v-snackbar v-model="errorSnackbar" :timeout="3500" color="#E24B4A" location="top center" rounded="lg">
-                <div class="d-flex align-center ga-3" style="padding: 4px 8px;">
-                  <v-icon size="18">mdi-alert-circle-outline</v-icon>
-                  <div>
-                    <div style="font-size: 13px; font-weight: 600;">Erreur</div>
-                    <div style="font-size: 12px; opacity: 0.85;">{{ errorMessage }}</div>
-                  </div>
-                </div>
+      <v-snackbar v-model="errorSnackbar" :timeout="3500" color="#E24B4A" location="top center" rounded="lg">
+        <div class="d-flex align-center ga-3" style="padding: 4px 8px;">
+          <v-icon size="18">mdi-alert-circle-outline</v-icon>
+          <div>
+            <div style="font-size: 13px; font-weight: 600;">Erreur</div>
+            <div style="font-size: 12px; opacity: 0.85;">{{ errorMessage }}</div>
+          </div>
+        </div>
 
-              </v-snackbar>
+      </v-snackbar>
     </template>
 
   </div>
-   <v-overlay :model-value="logoutAlert" class="align-center justify-center">
-          <v-progress-circular color="primary" size="24" indeterminate></v-progress-circular>
-        </v-overlay>
+  <v-overlay :model-value="logoutAlert" class="align-center justify-center">
+    <v-progress-circular color="primary" size="24" indeterminate></v-progress-circular>
+  </v-overlay>
 
 </template>
 
@@ -456,7 +458,7 @@ const router = useRouter();
 const route = useRoute();
 const authStore = useAuthStore();
 const isManager = computed(() => authStore.user?.role === 'Manager');
- const loadingSnackbar = ref(false)
+const loadingSnackbar = ref(false)
 const successSnackbar = ref(false)
 // ── RRH/RH state ──────────────────────────────────────────────────────────
 const attributions = ref([]);
@@ -485,7 +487,7 @@ const mgrVolets = ref([]);
 
 // ── Icons ──────────────────────────────────────────────────────────────────
 const icons = {
-    x: `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>`,
+  x: `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>`,
   arrowUp: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"/></svg>`,
   pen: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>`,
   eye: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>`,
@@ -527,22 +529,14 @@ const expirationClass = (item) => {
 };
 
 const docGen = async (id) => {
-
   try {
-    const response = await api.get(`/documents/download/${id}`, {
-  responseType: 'blob'
-});
-
-    // Log the actual content to see what came back
-    const text = await response.data.text();
-    console.log('First 100 chars:', text.substring(0, 100));
-    console.log('Content-Type:', response.headers['content-type']);
-    console.log('Blob size:', response.data.size);
-
+    const response = await api.get(`/documents/download-by-attribution/${id}`, {
+      responseType: 'blob'
+    });
     const blob = new Blob([response.data], { type: 'application/pdf' });
-    const url  = window.URL.createObjectURL(blob);
+    const url = window.URL.createObjectURL(blob);
     const link = document.createElement('a');
-    link.href  = url;
+    link.href = url;
     link.setAttribute('download', `habilitation_${id}.pdf`);
     document.body.appendChild(link);
     link.click();
@@ -557,7 +551,7 @@ const docGen = async (id) => {
 const filtered = computed(() => {
   let list = attributions.value;
 
-   list = list.filter(a => a.employee && a.employee.id);
+  list = list.filter(a => a.employee && a.employee.id);
 
   if (search.value) {
     const s = search.value.toLowerCase();
@@ -586,7 +580,7 @@ const groupedEmployees = computed(() =>
     const empId = item.employee_id;
     if (!acc[empId]) acc[empId] = { employee: item.employee, habilitations: [] };
     acc[empId].habilitations.push(item);
-     return acc;
+    return acc;
   }, {}))
 
 );
@@ -616,7 +610,7 @@ const switchMgrTab = (tab) => {
 
 // ── Data fetching ──────────────────────────────────────────────────────────
 const fetchData = async () => {
-loading.value = !logoutAlert.value;
+  loading.value = !logoutAlert.value;
   try {
     const [attribRes, voletRes] = await Promise.all([
       api.get('/employee-habilitations'),
@@ -648,14 +642,14 @@ const logoutAlert = ref(false);
 
 const soumettreValidation = async (id) => {
   try {
-      logoutAlert.value = true;
+    logoutAlert.value = true;
 
     await api.post(`/validations/initier/${id}`);
     await fetchData();
-     logoutAlert.value = false;
-     alert("demmande soumis avec success")
+    logoutAlert.value = false;
+    alert("demmande soumis avec success")
   } catch (e) {
-     
+
     errorMessage.value = e.response?.data?.message ?? "Erreur lors de l'initiation."
     errorSnackbar.value = true
   }
@@ -685,9 +679,10 @@ const onCascadeVoletChange = async () => {
     const { data } = await api.get('/habilitations/volet/' + cascadeVolet.value);
     cascadeHabilitations.value = data;
 
-} catch (e) { console.error(e); 
-  
-}
+  } catch (e) {
+    console.error(e);
+
+  }
 };
 
 const onCascadeHabChange = async () => {
@@ -710,19 +705,20 @@ const fetchMgrVolets = async () => {
 };
 
 // ── Edit association modal ─────────────────────────────────────────────────
-const defaultForm = () => ({ id: null,
-date_appt_medicale: '', date_obtention: '', type: 'initiale', organisme_formation: '', habilitation:'', empNom:'', empMatricule:''
+const defaultForm = () => ({
+  id: null,
+  date_appt_medicale: '', date_obtention: '', type: 'initiale', organisme_formation: '', habilitation: '', empNom: '', empMatricule: ''
 });
 const form = reactive(defaultForm());
-const errors = reactive({date_appt_medicale:'', date_obtention: '', type: '', organisme_formation: '', global: '' });
+const errors = reactive({ date_appt_medicale: '', date_obtention: '', type: '', organisme_formation: '', global: '' });
 
 const showModal = ref(false);
 const fetchAndOpenEditModal = async (id) => {
   try {
     // Fetch the association data by ID
-    const association = await api.get(`/employee-habilitations/${id}`); 
+    const association = await api.get(`/employee-habilitations/${id}`);
     editAssociation(association);
-    
+
     // Clear the query parameter after opening modal
     router.replace({ query: {} });
   } catch (error) {
@@ -740,7 +736,7 @@ const editAssociation = (association) => {
   form.type = assocData.type;
   form.organisme_formation = assocData.organisme_formation;
   form.date_appt_medicale = assocData.date_aptitude_medicale.split('T')[0];
- 
+
   showModal.value = true;
 };
 const closeModal = () => { showModal.value = false; };
@@ -767,7 +763,7 @@ const updateAssociation = async () => {
   }
 };
 onMounted(async () => {
-   if (route.query.editId) {
+  if (route.query.editId) {
     fetchAndOpenEditModal(route.query.editId);
   }
   if (isManager.value) {
@@ -793,7 +789,7 @@ onMounted(async () => {
 }
 
 .employee-card:hover {
-  box-shadow: 0 4px 14px rgba(0,0,0,0.05);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
 }
 
 /* HEADER */
@@ -883,6 +879,7 @@ onMounted(async () => {
   background: #e6f0ff;
   color: #2f6fed;
 }
+
 .badge.type.recyclage {
   background: #eee9ff;
   color: #6b4eff;
@@ -893,10 +890,12 @@ onMounted(async () => {
   background: #e6f7ee;
   color: #1d9e75;
 }
+
 .badge.bientot {
   background: #fff4e5;
   color: #f59e0b;
 }
+
 .badge.expire {
   background: #fdeaea;
   color: #e24b4a;
@@ -907,14 +906,17 @@ onMounted(async () => {
   background: #e6f7ee;
   color: #1d9e75;
 }
+
 .badge.validation.en_cours {
   background: #fff4e5;
   color: #f59e0b;
 }
+
 .badge.validation.non_soumis {
   background: #edf2f7;
   color: #6b7280;
 }
+
 .badge.validation.refuse {
   background: #fdeaea;
   color: #e24b4a;
@@ -936,6 +938,7 @@ onMounted(async () => {
 .action-btn:hover {
   opacity: 1;
 }
+
 .snackbar {
   display: flex;
   align-items: center;

@@ -134,19 +134,29 @@ class DocumentController extends Controller
           ], 200);
      }
 
-     // GET /api/documents/{id}/download
+     // GET /api/documents/download/{id}
     public function download(Document $document)
 {
-    $fullPath = storage_path('app' . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . $document->chemin);
-    
-    // Normalize slashes for Windows
-    $fullPath = str_replace('/', DIRECTORY_SEPARATOR, $fullPath);
+    $fullPath = str_replace('/', DIRECTORY_SEPARATOR, 
+        storage_path('app' . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . $document->chemin)
+    );
 
+    // File missing — regenerate it
     if (!file_exists($fullPath)) {
-        return response()->json([
-            'message' => 'Fichier introuvable sur le serveur.',
-            'path' => $fullPath,
-        ], 404);
+        $eh = $document->employeeHabilitation->load([
+            'employee.service.departement',
+            'habilitation',
+        ]);
+        $settings = \App\Models\Setting::getInstance();
+        \Carbon\Carbon::setLocale('fr');
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pdf.habilitation_individuelle', [
+            'eh'       => $eh,
+            'settings' => $settings,
+        ])->setPaper('a4', 'portrait');
+
+        // Save with the exact same path stored in DB
+        \Storage::disk('public')->put($document->chemin, $pdf->output());
     }
 
     return response()->download($fullPath, $document->nom);

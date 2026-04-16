@@ -106,6 +106,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::middleware('role:RRH,RH')->group(function () {
         Route::post('/employee-habilitations', [EmployeeHabilitationController::class, 'store']);
+        Route::post('/employee-habilitations/with-document', [EmployeeHabilitationController::class, 'storeWithDocument']);
         Route::put('/employee-habilitations/{employeeHabilitation}', [EmployeeHabilitationController::class, 'update']);
         Route::delete('/employee-habilitations/{employeeHabilitation}', [EmployeeHabilitationController::class, 'destroy']);
     });

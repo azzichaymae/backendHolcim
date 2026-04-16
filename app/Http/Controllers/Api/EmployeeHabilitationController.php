@@ -8,6 +8,10 @@ use App\Models\Alert;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Carbon\Carbon;
+use App\Models\Habilitation;
+use App\Models\Setting;
+use App\Models\Document;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class EmployeeHabilitationController extends Controller
 {
@@ -113,6 +117,56 @@ class EmployeeHabilitationController extends Controller
           ]);
 
           return response()->json($employeeHabilitation, 201);
+     }
+
+     // POST /api/employee-habilitations/with-document
+     public function storeWithDocument(Request $request): JsonResponse
+     {
+          // Validation identique à ton store()
+          $validated = $request->validate([
+               'employee_id' => 'required|exists:employees,id',
+               'habilitation_id' => 'required|exists:habilitations,id',
+               'date_obtention' => 'required|date',
+               'type' => 'required|in:initiale,recyclage',
+               'organisme_formation' => 'required|string|max:150',
+               'date_aptitude_medicale' => 'required|date',
+          ]);
+
+          $habilitation = Habilitation::findOrFail($validated['habilitation_id']);
+          $dateExpiration = Carbon::parse($validated['date_obtention'])
+               ->addYears($habilitation->duree_de_validite);
+
+          $validated['date_expiration'] = $dateExpiration->toDateString();
+          $validated['statut'] = $dateExpiration->isPast() ? 'expirée' : 'valide';
+
+          $employeeHabilitation = EmployeeHabilitation::create($validated);
+
+          Alert::genererPourHabilitation($employeeHabilitation);
+
+          // Génération PDF mais stockage direct
+          $pdf = Pdf::loadView('pdf.habilitation_individuelle', [
+               'eh' => $employeeHabilitation,
+               'settings' => Setting::getInstance(),
+               'validation' => (new ValidationController())->statut($employeeHabilitation)->getData(),
+          ])->setPaper('a4', 'portrait');
+
+          $filename = 'Habilitation_' . $employeeHabilitation->id . '_' . now()->format('Ymd') . '.pdf';
+          $relativePath = 'documents/' . $filename;
+          $pdf->save(storage_path('app/public/' . $relativePath));
+
+          $document = Document::create([
+               'nom' => $filename,
+               'employee_habilitation_id' => $employeeHabilitation->id,
+               'type' => 'individuelle',
+               'chemin' => $relativePath,
+          ]);
+
+          $employeeHabilitation->load(['employee.departement', 'habilitation.volet', 'documents', 'alerts']);
+
+          return response()->json([
+               'employee_habilitation' => $employeeHabilitation,
+               'document' => $document,
+          ], 201);
      }
 
      // PUT /api/employee-habilitations/{id}
@@ -229,5 +283,5 @@ class EmployeeHabilitationController extends Controller
           return response()->json($history, 200);
      }
 
-       
+
 }

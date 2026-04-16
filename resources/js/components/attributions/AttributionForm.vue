@@ -144,9 +144,8 @@
       <div class="matricule-search">
         <div :class="['mat-wrap', { 'is-error': matriculeError, 'is-success': matriculeFound }]">
           <div class="mat-row">
-            <input v-model="matriculeInput" type="text" class="mat-input"
-              @keydown.enter.prevent="searchByMatricule" @input="matriculeError = ''; matriculeFound = null"
-              :disabled="searchingMatricule" />
+            <input v-model="matriculeInput" type="text" class="mat-input" @keydown.enter.prevent="searchByMatricule"
+              @input="matriculeError = ''; matriculeFound = null" :disabled="searchingMatricule" />
             <button class="btn-mat-search" @click="searchByMatricule"
               :disabled="!matriculeInput.trim() || searchingMatricule">
               <span v-if="searchingMatricule" class="af-spinner-sm"></span>
@@ -445,7 +444,7 @@ const submitAll = async () => {
   const results = { ok: 0, errors: [] };
   for (const emp of form.employees) {
     try {
-      await api.post('/employee-habilitations', {
+      await api.post('/employee-habilitations/with-document', {
         employee_id: emp.id,
         habilitation_id: form.habilitation_id,
         date_obtention: emp._date_obtention,
@@ -453,6 +452,7 @@ const submitAll = async () => {
         organisme_formation: form.organisme_formation,
         type: emp._type,
       });
+
       results.ok++;
     } catch (e) { results.errors.push(`${emp.prenom} ${emp.nom} : ${e.response?.data?.message ?? 'Erreur'}`); }
   }
