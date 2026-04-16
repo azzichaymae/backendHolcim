@@ -784,7 +784,7 @@ onMounted(async () => {
   border: 1px solid #e6ecf2;
   border-radius: 14px;
   overflow: hidden;
-  margin-bottom: 16px;
+  margin-bottom: 5px;
   transition: all 0.2s ease;
 }
 
@@ -1059,13 +1059,12 @@ onMounted(async () => {
 .cards-container {
   display: flex;
   flex-direction: column;
-  gap: 16px;
 }
 
 .employee-card {
   background: #fff;
   border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
   overflow: hidden;
 }
 

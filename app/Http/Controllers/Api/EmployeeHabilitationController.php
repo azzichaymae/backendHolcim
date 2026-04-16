@@ -196,6 +196,7 @@ class EmployeeHabilitationController extends Controller
 
           return response()->json($employeeHabilitation->fresh()->load(['employee', 'habilitation']));
      }
+     
 
      // DELETE /api/employee-habilitations/{id}
      public function destroy(EmployeeHabilitation $employeeHabilitation): JsonResponse

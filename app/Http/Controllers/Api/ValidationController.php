@@ -23,42 +23,42 @@ class ValidationController extends Controller
         // Delete any previous validation records
         $employeeHabilitation->validations()->delete();
 
-        $settings  = Setting::getInstance();
-        $employee  = $employeeHabilitation->employee()->with('service.departement')->first();
-        $service   = $employee->service;
+        $settings = Setting::getInstance();
+        $employee = $employeeHabilitation->employee()->with('service.departement')->first();
+        $service = $employee->service;
         $departement = $service->departement;
 
         // Build the 4 signatories in order
         $signatories = [
-          [
-                'ordre'           => 1,
-                'role'            => 'employe',
-                'signataire_nom'  => $employee->nom . ' ' . $employee->prenom,
-                'signataire_email'=> $employee->email_pro,
+            [
+                'ordre' => 1,
+                'role' => 'employe',
+                'signataire_nom' => $employee->nom . ' ' . $employee->prenom,
+                'signataire_email' => $employee->email_pro,
             ],
             [
-                'ordre'           => 2,
-                'role'            => 'manager_service',
-                'signataire_nom'  => $service->responsable ?? 'Responsable de service',
-                'signataire_email'=> $service->responsable_email,
+                'ordre' => 2,
+                'role' => 'manager_service',
+                'signataire_nom' => $service->responsable ?? 'Responsable de service',
+                'signataire_email' => $service->responsable_email,
             ],
             [
-                'ordre'           => 3,
-                'role'            => 'manager_departement',
-                'signataire_nom'  => $departement->responsable ?? 'Responsable de département',
-                'signataire_email'=> $departement->responsable_email,
+                'ordre' => 3,
+                'role' => 'manager_departement',
+                'signataire_nom' => $departement->responsable ?? 'Responsable de département',
+                'signataire_email' => $departement->responsable_email,
             ],
             [
-                'ordre'           => 4,
-                'role'            => 'resp_sst',
-                'signataire_nom'  => $settings->resp_sante_securite,
-                'signataire_email'=> $settings->email_resp_sante_securite,
+                'ordre' => 4,
+                'role' => 'resp_sst',
+                'signataire_nom' => $settings->resp_sante_securite,
+                'signataire_email' => $settings->email_resp_sante_securite,
             ],
             [
-                'ordre'           => 5,
-                'role'            => 'directeur',
-                'signataire_nom'  => $settings->directeur_usine,
-                'signataire_email'=> $settings->email_directeur,
+                'ordre' => 5,
+                'role' => 'directeur',
+                'signataire_nom' => $settings->directeur_usine,
+                'signataire_email' => $settings->email_directeur,
             ],
         ];
 
@@ -76,8 +76,8 @@ class ValidationController extends Controller
             AttributionValidation::create([
                 ...$s,
                 'employee_habilitation_id' => $employeeHabilitation->id,
-                'token'                    => AttributionValidation::generateToken(),
-                'statut'                   => 'en_attente',
+                'token' => AttributionValidation::generateToken(),
+                'statut' => 'en_attente',
             ]);
         }
 
@@ -92,56 +92,89 @@ class ValidationController extends Controller
 
     // GET /api/validations/confirmer/{token}
     public function confirmer(string $token)
-{
-    $validation = AttributionValidation::where('token', $token)
-        ->where('statut', 'en_attente')
-        ->firstOrFail();
-
-    $validation->update([
-        'statut'       => 'confirme',
-        'confirmed_at' => now(),
-    ]);
-
-    $eh = $validation->employeeHabilitation;
-
-    // Check if all confirmed
-    $allConfirmed = $eh->validations()
-        ->where('statut', '!=', 'confirme')
-        ->doesntExist();
-
-    if ($allConfirmed) {
-        $eh->update(['validation_statut' => 'valide']);
-        // TODO: regenerate PDF with signatures
-    } else {
-        // Send next email in sequence
-        $this->sendNextValidationEmail($eh);
-    }
-
-    return redirect(config('app.frontend_url') . '/validation-confirmer');
-
-}
-
-    // GET /api/validations/refuser/{token}
-    public function refuser(Request $request, string $token): \Illuminate\Http\RedirectResponse
     {
         $validation = AttributionValidation::where('token', $token)
             ->where('statut', 'en_attente')
             ->firstOrFail();
 
         $validation->update([
-            'statut'      => 'refuse',
-            'commentaire' => $request->query('raison'),
-            'confirmed_at'=> now(),
+            'statut' => 'confirme',
+            'confirmed_at' => now(),
         ]);
 
-        $validation->employeeHabilitation->update(['validation_statut' => 'refuse']);
+        $eh = $validation->employeeHabilitation;
 
-        // Notify RRH/RH of refusal
-        $this->notifyRefus($validation);
+        // Check if all confirmed
+        $allConfirmed = $eh->validations()
+            ->where('statut', '!=', 'confirme')
+            ->doesntExist();
 
-        return redirect(config('app.frontend_url') . '/validation-refused');
+        if ($allConfirmed) {
+            $eh->update(['validation_statut' => 'valide']);
+        } else {
+            $this->sendNextValidationEmail($eh);
+        }
+
+        // Store data in session to display on the confirmation page
+        session()->flash('confirmation_data', [
+            'employee' => $eh->employee->prenom . ' ' . $eh->employee->nom,
+            'matricule' => $eh->employee->matricule ?? 'Sous-traitant',
+            'habilitation' => $eh->habilitation->nom,
+            'obtention' => $eh->date_obtention,
+            'expiration' => $eh->date_expiration,
+        ]);
+
+        return redirect()->route('validation.confirmation');
     }
 
+
+    
+
+    // GET /api/validations/refuser/{token}
+    public function refuser(string $token)
+    {
+        $validation = AttributionValidation::where('token', $token)
+            ->where('statut', 'en_attente')
+            ->firstOrFail();
+
+        $validation->update([
+            'statut' => 'refuse',
+            'confirmed_at' => now(),
+        ]);
+
+        $eh = $validation->employeeHabilitation;
+        // Update overall status to refused
+        $eh->update(['validation_statut' => 'refuse']);
+
+        // Store data in session
+        session()->flash('refus_data', [
+            'employee' => $eh->employee->prenom . ' ' . $eh->employee->nom,
+            'matricule' => $eh->employee->matricule ?? 'Sous-traitant',
+            'habilitation' => $eh->habilitation->nom,
+        ]);
+
+        return redirect()->route('validation.refus');
+    }
+    public function refusPage()
+    {
+        $data = session('refus_data');
+
+        if (!$data) {
+            return redirect(config('app.frontend_url'));
+        }
+
+        return view('validation-refuser', $data);
+    }
+    public function confirmationPage()
+    {
+        $data = session('confirmation_data');
+
+        if (!$data) {
+            return redirect(config('app.frontend_url'));
+        }
+
+        return view('validation-confirmer', $data);
+    }
     // GET /api/validations/{employeeHabilitation}
     public function statut(EmployeeHabilitation $employeeHabilitation): JsonResponse
     {
@@ -149,10 +182,10 @@ class ValidationController extends Controller
             ->orderBy('ordre')
             ->get();
 
-            
+
         return response()->json([
             'validation_statut' => $employeeHabilitation->validation_statut,
-            'etapes'            => $validations,
+            'etapes' => $validations,
         ]);
     }
 
@@ -164,7 +197,8 @@ class ValidationController extends Controller
             ->orderBy('ordre')
             ->first();
 
-        if (!$next) return;
+        if (!$next)
+            return;
 
         Mail::to($next->signataire_email)
             ->send(new ValidationRequestMail($next, $eh));
@@ -184,12 +218,12 @@ class ValidationController extends Controller
 
 
     public function info(string $token): JsonResponse
-{
-    $validation = AttributionValidation::where('token', $token)->firstOrFail();
-    $eh = $validation->employeeHabilitation->load('employee', 'habilitation');
-    return response()->json([
-        'validation' => $validation,
-        'eh'         => $eh,
-    ]);
-}
+    {
+        $validation = AttributionValidation::where('token', $token)->firstOrFail();
+        $eh = $validation->employeeHabilitation->load('employee', 'habilitation');
+        return response()->json([
+            'validation' => $validation,
+            'eh' => $eh,
+        ]);
+    }
 }

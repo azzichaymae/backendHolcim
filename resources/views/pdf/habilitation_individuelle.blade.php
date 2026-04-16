@@ -236,43 +236,43 @@
                     <div class="sig-name">{{ $settings->directeur_usine }}</div>
                 </td>
             </tr>
-            @if($validation && isset($validation->etapes))
-                    <tr>
-                        <td id="emp">
-                            {{ isset($validation->etapes[0]) && $validation->etapes[0]->confirmed_at
-                ? 'Validé le ' . \Carbon\Carbon::parse($validation->etapes[0]->confirmed_at)->format('d/m/Y')
+   @if($validation && isset($validation->etapes))
+    <tr>
+        <td id="emp">
+            {{ isset($validation->etapes[0]) && $validation->etapes[0]->confirmed_at 
+                ? 'Validé le '. \Carbon\Carbon::parse($validation->etapes[0]->confirmed_at)->format('d/m/Y') 
                 : '' }}
-                        </td>
-                        <td id="respService">
-                            {{ isset($validation->etapes[1]) && $validation->etapes[1]->confirmed_at
-                ? 'Validé le ' . \Carbon\Carbon::parse($validation->etapes[1]->confirmed_at)->format('d/m/Y')
+        </td>
+        <td id="respService">
+            {{ isset($validation->etapes[1]) && $validation->etapes[1]->confirmed_at 
+                ? 'Validé le '. \Carbon\Carbon::parse($validation->etapes[1]->confirmed_at)->format('d/m/Y') 
                 : '' }}
-                        </td>
-                        <td id="respDepartement">
-                            {{ isset($validation->etapes[2]) && $validation->etapes[2]->confirmed_at
-                ? 'Validé le ' . \Carbon\Carbon::parse($validation->etapes[2]->confirmed_at)->format('d/m/Y')
+        </td>
+        <td id="respDepartement">
+            {{ isset($validation->etapes[2]) && $validation->etapes[2]->confirmed_at 
+                ? 'Validé le '. \Carbon\Carbon::parse($validation->etapes[2]->confirmed_at)->format('d/m/Y') 
                 : '' }}
-                        </td>
-                        <td id="respSanteSecurite">
-                            {{ isset($validation->etapes[3]) && $validation->etapes[3]->confirmed_at
-                ? 'Validé le ' . \Carbon\Carbon::parse($validation->etapes[3]->confirmed_at)->format('d/m/Y')
+        </td>
+        <td id="respSanteSecurite">
+            {{ isset($validation->etapes[3]) && $validation->etapes[3]->confirmed_at 
+                ? 'Validé le '. \Carbon\Carbon::parse($validation->etapes[3]->confirmed_at)->format('d/m/Y') 
                 : '' }}
-                        </td>
-                        <td id="directeurUsine">
-                            {{ isset($validation->etapes[4]) && $validation->etapes[4]->confirmed_at
-                ? 'Validé le ' . \Carbon\Carbon::parse($validation->etapes[4]->confirmed_at)->format('d/m/Y')
+        </td>
+        <td id="directeurUsine">
+            {{ isset($validation->etapes[4]) && $validation->etapes[4]->confirmed_at 
+                ? 'Validé le '. \Carbon\Carbon::parse($validation->etapes[4]->confirmed_at)->format('d/m/Y') 
                 : '' }}
-                        </td>
-                    </tr>
-            @else
-                <tr>
-                    <td id="emp"></td>
-                    <td id="respService"></td>
-                    <td id="respDepartement"></td>
-                    <td id="respSanteSecurite"></td>
-                    <td id="directeurUsine"></td>
-                </tr>
-            @endif
+        </td>
+    </tr>
+@else
+    <tr>
+        <td id="emp"></td>
+        <td id="respService"></td>
+        <td id="respDepartement"></td>
+        <td id="respSanteSecurite"></td>
+        <td id="directeurUsine"></td>
+    </tr>
+@endif
 
         </table>
 

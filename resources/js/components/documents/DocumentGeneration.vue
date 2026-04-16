@@ -262,18 +262,14 @@
         </div>
       </div>
 
-      <div class="results-badge">
-        <span class="doc-count">{{ filteredDocs.length }} document{{ filteredDocs.length > 1 ? 's' : '' }} trouvé{{
-          filteredDocs.length > 1 ? 's' : '' }}</span>
-        <span class="filter-summary" v-if="activeFiltersCount">Filtres actifs</span>
-      </div>
+      
     </div>
 
     <!-- ── TWO COLUMN LAYOUT like the image ── -->
     <div class="two-column-layout" v-if="!activeType && !loading">
       
       <!-- LEFT COLUMN: Habilitations Individuelles -->
-      <div class="doc-column">
+      <div class="doc-columnL">
         <div class="column-header">
           <div class="column-icon indiv-icon" v-html="icons.user"></div>
           <h2 class="column-title">Habilitations Individuelles</h2>
@@ -333,7 +329,7 @@
       </div>
       
       <!-- RIGHT COLUMN: Notes d'Habilitations -->
-      <div class="doc-column">
+      <div class="doc-columnR">
         <div class="column-header">
           <div class="column-icon note-icon" v-html="icons.list"></div>
           <h2 class="column-title">Notes d'Habilitations</h2>
@@ -1201,8 +1197,8 @@ onMounted(() => {
   background: white;
   border-radius: 20px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
-  margin-bottom: 24px;
-  padding: 20px 24px;
+  margin-bottom: 10px;
+  padding: 12px 23px;
   border: 1px solid #eef2f6;
 }
 
@@ -1334,7 +1330,14 @@ onMounted(() => {
   margin-top: 24px;
 }
 
-.doc-column {
+.doc-columnR {
+  background: white;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  border: 1px solid #eef2f6;
+}
+.doc-columnL {
   background: white;
   border-radius: 16px;
   overflow: hidden;

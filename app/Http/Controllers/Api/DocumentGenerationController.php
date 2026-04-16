@@ -56,8 +56,6 @@ class DocumentGenerationController extends Controller
         $request->validate([
             'employee_habilitation_id' => 'required|exists:employee_habilitations,id',
         ]);
-        $controller = new ValidationController();
-
 
 
         $eh = EmployeeHabilitation::with([
@@ -162,5 +160,26 @@ class DocumentGenerationController extends Controller
         return $pdf->download($filename);
     }
 
+//     public function buildIndividuellePdf(EmployeeHabilitation $eh): \Barryvdh\DomPDF\PDF
+// {
+//     $settings = Setting::getInstance();
+//     Carbon::setLocale('fr');
 
+//     return Pdf::loadView('pdf.habilitation_individuelle', [
+//         'eh'           => $eh->load(['employee.service.departement', 'habilitation', 'validations']),
+//         'settings'     => $settings,
+//     ])->setPaper('a4', 'portrait');
+// }
+
+// public function saveDocument(EmployeeHabilitation $eh, string $filename): Document
+// {
+//     $pdf = $this->buildIndividuellePdf($eh);
+//     $path = 'documents/' . $filename;
+//     \Storage::disk('public')->put($path, $pdf->output());
+
+//     return Document::updateOrCreate(
+//         ['employee_habilitation_id' => $eh->id, 'type' => 'individuelle'],
+//         ['nom' => $filename, 'chemin' => $path]
+//     );
+// }
 }

@@ -29,7 +29,7 @@ Route::get(
 Route::get('/validations/info/{token}', [ValidationController::class, 'info']);
 
 // routes/api.php
-Route::post('/auth/request-password-reset', [AuthController::class, 'requestReset']); 
+Route::post('/auth/request-password-reset', [AuthController::class, 'requestReset']);
 Route::post('/auth/rrh/reset-password/{userId}', [AuthController::class, 'rrhResetPassword'])
     ->middleware('auth:sanctum', 'role:RRH');
 // ── Protected routes ───────────────────────────────────
@@ -96,7 +96,7 @@ Route::middleware('auth:sanctum')->group(function () {
         // Static routes first
         Route::get('/employee-habilitations/expiring', [EmployeeHabilitationController::class, 'expiring']);
         Route::get('/employee-habilitations/alertes', [EmployeeHabilitationController::class, 'alertes']);
- 
+
         // Collection + item routes after
         Route::get('/employee-habilitations', [EmployeeHabilitationController::class, 'index']);
         Route::get('/employee-habilitations/{employeeHabilitation}', [EmployeeHabilitationController::class, 'show']);
@@ -123,24 +123,24 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     // ── Documents ──────────────────────────────────────
- Route::middleware('role:RRH,RH,Manager')->group(function () {
-    Route::get('/documents', [DocumentController::class, 'index']);
-    Route::get('/documents/all', [DocumentController::class, 'getAllDocuments']);
-    Route::get('/documents/download/{document}', [DocumentController::class, 'download']); 
-Route::get('/documents/download-by-attribution/{employeeHabilitationId}', [DocumentController::class, 'downloadByAttribution']);
-    Route::get('/documents/{document}', [DocumentController::class, 'show']);
+    Route::middleware('role:RRH,RH,Manager')->group(function () {
+        Route::get('/documents', [DocumentController::class, 'index']);
+        Route::get('/documents/all', [DocumentController::class, 'getAllDocuments']);
+        Route::get('/documents/download/{document}', [DocumentController::class, 'download']);
+        Route::get('/documents/download-by-attribution/{employeeHabilitationId}', [DocumentController::class, 'downloadByAttribution']);
+        Route::get('/documents/{document}', [DocumentController::class, 'show']);
 
 
-});
+    });
 
-Route::middleware('role:RRH,RH')->group(function () {
-    Route::get('/documents/employees-par-habilitation/{habilitation}', [DocumentGenerationController::class, 'employeesParHabilitation']);
-    Route::post('/documents/generate/individuelle', [DocumentGenerationController::class, 'generateIndividuelle']);
-    Route::post('/documents/generate/note', [DocumentGenerationController::class, 'generateNote']);
-    Route::post('/documents', [DocumentController::class, 'store']);
-    Route::delete('/documents/{document}', [DocumentController::class, 'destroy']);
-   
-});
+    Route::middleware('role:RRH,RH')->group(function () {
+        Route::get('/documents/employees-par-habilitation/{habilitation}', [DocumentGenerationController::class, 'employeesParHabilitation']);
+        Route::post('/documents/generate/individuelle', [DocumentGenerationController::class, 'generateIndividuelle']);
+        Route::post('/documents/generate/note', [DocumentGenerationController::class, 'generateNote']);
+        Route::post('/documents', [DocumentController::class, 'store']);
+        Route::delete('/documents/{document}', [DocumentController::class, 'destroy']);
+
+    });
 
     // ── Alerts ─────────────────────────────────────────
     Route::middleware('role:RRH,RH,Manager')->group(function () {
