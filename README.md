@@ -1,1 +1,1 @@
-Platfomre holcim maroc
+Platforme holcim maroc
