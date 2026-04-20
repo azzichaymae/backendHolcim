@@ -60,7 +60,7 @@ class EnvoyerAlertesMail extends Command
                     Alert::where('employee_habilitation_id', $eh->id)
                         ->where('jours_avant_expiration', '>', $jours)
                         ->where('statut', 'active')
-                        ->update(['statut' => 'resolue']);
+                        ->update(['statut' => 'vu']);
                 }
             }
         }

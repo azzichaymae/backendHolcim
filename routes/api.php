@@ -100,7 +100,6 @@ Route::middleware('auth:sanctum')->group(function () {
         // Collection + item routes after
         Route::get('/employee-habilitations', [EmployeeHabilitationController::class, 'index']);
         Route::get('/employee-habilitations/{employeeHabilitation}', [EmployeeHabilitationController::class, 'show']);
-        Route::patch('/employee-habilitations/{employeeHabilitation}/acknowledge', [EmployeeHabilitationController::class, 'acknowledge']);
         Route::get('/employee-habilitations/{empId}/history', [EmployeeHabilitationController::class, 'history']);
     });
 

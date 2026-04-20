@@ -152,7 +152,7 @@ const confirmer = async () => {
     validation.value = null;
     eh.value = null;
   } catch (e) {
-    error.value = e.response?.data?.message ?? 'Erreur lors de la confirmation.';
+    error.value = e;
   } finally {
     submitting.value = false;
   }

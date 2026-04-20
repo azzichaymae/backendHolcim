@@ -84,11 +84,12 @@ class EmployeeHabilitation extends Model
 
     // ── Helpers ────────────────────────────────────────────
 
-    public function updateStatut(): void
-    {
-        $this->statut = $this->date_expiration->isPast() ? 'expirée' : 'valide';
-        $this->save();
-    }
+   public function updateStatut(): void
+{
+     if (!$this->date_expiration) return; 
+    $this->statut = $this->date_expiration->isPast() ? 'expirée' : 'valide';
+    $this->save();
+}
 
     // ── Scopes ─────────────────────────────────────────────
 

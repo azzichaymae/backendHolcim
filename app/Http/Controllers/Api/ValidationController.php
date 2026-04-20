@@ -91,41 +91,39 @@ class ValidationController extends Controller
     }
 
     // GET /api/validations/confirmer/{token}
-    public function confirmer(string $token)
-    {
-        $validation = AttributionValidation::where('token', $token)
-            ->where('statut', 'en_attente')
-            ->firstOrFail();
+   public function confirmer(string $token): \Illuminate\Http\RedirectResponse
+{
+    $validation = AttributionValidation::where('token', $token)
+        ->where('statut', 'en_attente')
+        ->firstOrFail();
 
-        $validation->update([
-            'statut' => 'confirme',
-            'confirmed_at' => now(),
-        ]);
+    $validation->update([
+        'statut'       => 'confirme',
+        'confirmed_at' => now(),
+    ]);
 
-        $eh = $validation->employeeHabilitation;
+    $eh = $validation->employeeHabilitation->load([
+        'employee.service.departement',
+        'habilitation',
+    ]);
 
-        // Check if all confirmed
-        $allConfirmed = $eh->validations()
-            ->where('statut', '!=', 'confirme')
-            ->doesntExist();
+    // ── Regenerate and OVERWRITE the existing PDF ──────────
+    $this->regenererDocument($eh);
 
-        if ($allConfirmed) {
-            $eh->update(['validation_statut' => 'valide']);
-        } else {
-            $this->sendNextValidationEmail($eh);
-        }
+    // Check if all confirmed
+    $allConfirmed = $eh->validations()
+        ->where('statut', '!=', 'confirme')
+        ->doesntExist();
 
-        // Store data in session to display on the confirmation page
-        session()->flash('confirmation_data', [
-            'employee' => $eh->employee->prenom . ' ' . $eh->employee->nom,
-            'matricule' => $eh->employee->matricule ?? 'Sous-traitant',
-            'habilitation' => $eh->habilitation->nom,
-            'obtention' => $eh->date_obtention,
-            'expiration' => $eh->date_expiration,
-        ]);
+    if ($allConfirmed) {
+        $eh->update(['validation_statut' => 'valide']);
+        $eh->validations()->delete(); 
+    } else {
+        $this->sendNextValidationEmail($eh);
+    }
 
         return redirect()->route('validation.confirmation');
-    }
+}
 
 
     
@@ -204,17 +202,17 @@ class ValidationController extends Controller
             ->send(new ValidationRequestMail($next, $eh));
     }
 
-    private function notifyRefus(AttributionValidation $validation): void
-    {
-        $recipients = \App\Models\User::whereIn('role', ['RRH', 'RH'])
-            ->pluck('email')->toArray();
+    // private function notifyRefus(AttributionValidation $validation): void
+    // {
+    //     $recipients = \App\Models\User::whereIn('role', ['RRH', 'RH'])
+    //         ->pluck('email')->toArray();
 
-        foreach ($recipients as $email) {
-            Mail::to($email)->send(
-                new \App\Mail\ValidationRefusMail($validation)
-            );
-        }
-    }
+    //     foreach ($recipients as $email) {
+    //         Mail::to($email)->send(
+    //             new \App\Mail\ValidationRefusMail($validation)
+    //         );
+    //     }
+    // }
 
 
     public function info(string $token): JsonResponse
@@ -226,4 +224,32 @@ class ValidationController extends Controller
             'eh' => $eh,
         ]);
     }
+    private function regenererDocument(EmployeeHabilitation $eh): void
+{
+    // Get the existing document record for this attribution
+    $document = \App\Models\Document::where('employee_habilitation_id', $eh->id)
+        ->where('type', 'individuelle')
+        ->latest()
+        ->first();
+
+    if (!$document) return;
+
+    $settings   = \App\Models\Setting::getInstance();
+    $validation = $this->statut($eh)->getData();
+
+    \Carbon\Carbon::setLocale('fr');
+
+    $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pdf.habilitation_individuelle', [
+        'eh'         => $eh,
+        'settings'   => $settings,
+        'validation' => $validation,
+    ])->setPaper('a4', 'portrait');
+
+    // Overwrite the SAME file — same path, same DB record
+    $fullPath = storage_path('app/public/' . $document->chemin);
+    $pdf->save($fullPath);
+
+    // Update the document timestamp so we know when it was last regenerated
+    $document->touch();
+}
 }

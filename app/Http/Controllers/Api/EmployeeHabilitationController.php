@@ -179,24 +179,42 @@ class EmployeeHabilitationController extends Controller
                'date_aptitude_medicale' => 'required|date',
           ]);
 
-          // Recalculate date_expiration from existing habilitation
-          $habilitation = $employeeHabilitation->habilitation;
-
-          $dateExpiration = Carbon::parse($validated['date_obtention'])
-               ->addYears($habilitation->duree_de_validite);
-
-          $validated['date_expiration'] = $dateExpiration->toDateString();
-          $validated['statut'] = $dateExpiration->isPast() ? 'expirée' : 'valide';
-
           $employeeHabilitation->update($validated);
+          $employeeHabilitation->updateStatut();
 
-          // Regenerate alerts
-          Alert::where('employee_habilitation_id', $employeeHabilitation->id)->delete();
-          Alert::genererPourHabilitation($employeeHabilitation->fresh());
+          // Reset validation workflow
+          $employeeHabilitation->validations()->delete();
+          $employeeHabilitation->update(['validation_statut' => 'non_soumis']);
 
-          return response()->json($employeeHabilitation->fresh()->load(['employee', 'habilitation']));
+          // Reset alerts
+          $employeeHabilitation->alerts()->update(['statut' => 'active', 'email_sent_at' => null]);
+
+          // Generate NEW document (old one stays for archive)
+          $settings = Setting::getInstance();
+          Carbon::setLocale('fr');
+
+          $employeeHabilitation->load(['employee','habilitation', 'habilitation.volet']);
+
+          $pdf = Pdf::loadView('pdf.habilitation_individuelle', [
+               'eh' => $employeeHabilitation,
+               'settings' => $settings,
+               'validation' => null,  
+          ])->setPaper('a4', 'portrait');
+
+          $filename = 'Habilitation_'.$employeeHabilitation->type.'_' . $employeeHabilitation->id . '_' . now()->format('YmdHis') . '.pdf';
+          $relativePath = 'documents/' . $filename;
+          $pdf->save(storage_path('app/public/' . $relativePath));
+
+          Document::create([
+               'nom' => $filename,
+               'employee_habilitation_id' => $employeeHabilitation->id,
+               'type' => 'individuelle',
+               'chemin' => $relativePath,
+          ]);
+
+          return response()->json($employeeHabilitation->load(['employee', 'habilitation.volet']), 200);
      }
-     
+
 
      // DELETE /api/employee-habilitations/{id}
      public function destroy(EmployeeHabilitation $employeeHabilitation): JsonResponse
@@ -267,11 +285,11 @@ class EmployeeHabilitationController extends Controller
      }
 
      // PATCH /api/employee-habilitations/{id}/acknowledge
-     public function acknowledge(EmployeeHabilitation $employeeHabilitation): JsonResponse
-     {
-          $employeeHabilitation->acknowledge();
-          return response()->json(['acknowledged' => true]);
-     }
+     // public function acknowledge(EmployeeHabilitation $employeeHabilitation): JsonResponse
+     // {
+     //      $employeeHabilitation->acknowledge();
+     //      return response()->json(['acknowledged' => true]);
+     // }
 
      // GET /api/employee-habilitations/{empId}/history
      public function history($empId): JsonResponse

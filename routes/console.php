@@ -6,6 +6,6 @@ use App\Console\Commands\GenererAlertes;
 
 Schedule::command(UpdateStatutsExpires::class)->dailyAt('00:00');
 Schedule::command(GenererAlertes::class)->dailyAt('00:05');
-Schedule::command('alertes:envoyer-mail')->dailyAt('08:10');
+Schedule::command('alertes:envoyer-mail')->dailyAt('07:50');
 
 

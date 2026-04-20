@@ -298,8 +298,19 @@
             <div v-if="openGroups['ind_' + group.employee_matricule]" class="group-documents">
               <div v-for="doc in group.documents" :key="doc.id" class="doc-item">
                 <div class="doc-info">
-                  <div class="doc-title">{{ doc.habilitation_nom }}</div>
-                  <div class="doc-date">
+<div class="doc-title">
+  {{ doc.habilitation_nom }}
+  <span 
+    v-if="doc.nom && doc.nom.toLowerCase().includes('recyclage')" 
+    class="doc-type doc-recyclage">
+    Recyclage
+  </span>
+  <span 
+    v-else 
+    class="doc-type doc-initiale">
+    Initiale
+  </span>
+</div>                  <div class="doc-date">
                     <span v-html="icons.calendar"></span>
                     {{ formatDate(doc.created_at) }}
                   </div>
@@ -809,6 +820,26 @@ onMounted(() => {
 </script>
 
 <style scoped>
+.doc-type {
+  margin-left: 6px;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.doc-initiale {
+  background-color: #e6f4ea; /* vert très clair */
+  color: #2e7d32;            /* vert foncé */
+  border: 1px solid #c8e6c9;
+}
+
+.doc-recyclage {
+  background-color: #fff3e0; /* orange très clair */
+  color: #ef6c00;            /* orange foncé */
+  border: 1px solid #ffe0b2;
+}
+
 .document-generation {
   max-width: 1400px;
   margin: 0 auto;

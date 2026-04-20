@@ -520,9 +520,8 @@ const submitUser = async () => {
   if (!editUser.value || resetPassword.value) { payload.password = userForm.password; payload.password_confirmation = userForm.password_confirmation; }
   try {
     if (editUser.value) {
-      if(resetPassword){
-        console.log('Resetting password for user ID:', editUser.value.id);
-        console.log('New password:', userForm.password);
+      if(resetPassword.value){
+        
         const response = await api.post(`/auth/rrh/reset-password/${editUser.value.id}`, {
       new_password: userForm.password,
     });

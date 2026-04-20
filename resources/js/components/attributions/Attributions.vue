@@ -327,11 +327,35 @@
                           @click="soumettreValidation(item.id)" title="Soumettre pour validation">
                           <span v-html="icons.send"></span>
                         </button>
-                        <button class="action-btn view-validation"
-                          v-if="item.validation_statut === 'en_cours' || item.validation_statut === 'valide'"
-                          @click="voirValidation(item.id)" title="Voir la progression">
-                          <span v-html="icons.eye"></span>
-                        </button>
+                        <!-- En cours : bouton cliquable -->
+<button 
+  v-if="item.validation_statut === 'en_cours'" 
+  class="action-btn view-validation"
+  @click="voirValidation(item.id)" 
+  title="Voir la progression"
+>
+  <span v-html="icons.eye"></span>
+</button>
+
+<!-- Valide : juste icône verte -->
+<span 
+  v-else-if="item.validation_statut === 'valide'" 
+  class="status-icon valide" 
+  title="Validation réussie"
+>
+  <span v-html="icons.checkCircle"></span>
+</span>
+
+<!-- Refusé : juste icône rouge -->
+<span 
+  v-else-if="item.validation_statut === 'refuse'" 
+  class="status-icon refuse" 
+  title="Validation refusée"
+>
+  <span v-html="icons.xCircle"></span>
+</span>
+
+
                         <button class="action-btn edit-association" title="Mise à jour de l'association"
                           @click="editAssociation(item)">
                           <span v-html="icons.pen"></span>
@@ -407,42 +431,31 @@
           </div>
         </Transition>
       </Teleport>
-      <v-layout min-height="100">
-        <v-snackbar v-model="loadingSnackbar" :timeout="-1" location="top center" rounded="lg" contained>
-          <div class="d-flex align-center ga-3" style="padding: 4px 8px;">
-            <v-progress-circular indeterminate size="16" width="2" color="white" />
-            <span>Envoi en cours...</span>
-          </div>
-        </v-snackbar>
-
-        <v-snackbar v-model="successSnackbar" :timeout="3000" color="#1D9E75" location="top center" rounded="lg"
-          contained>
-          <div class="d-flex align-center ga-3" style="padding: 4px 8px;">
-            <v-icon size="18">mdi-check-circle-outline</v-icon>
-            <div>
-              <div style="font-size: 13px; font-weight: 600;">Succès</div>
-              <div style="font-size: 12px; opacity: 0.85;">Document envoyé avec succès !</div>
-            </div>
-          </div>
-        </v-snackbar>
-      </v-layout>
-
-      <v-snackbar v-model="errorSnackbar" :timeout="3500" color="#E24B4A" location="top center" rounded="lg">
-        <div class="d-flex align-center ga-3" style="padding: 4px 8px;">
-          <v-icon size="18">mdi-alert-circle-outline</v-icon>
-          <div>
-            <div style="font-size: 13px; font-weight: 600;">Erreur</div>
-            <div style="font-size: 12px; opacity: 0.85;">{{ errorMessage }}</div>
-          </div>
-        </div>
-
-      </v-snackbar>
+     
     </template>
 
   </div>
   <v-overlay :model-value="logoutAlert" class="align-center justify-center">
-    <v-progress-circular color="primary" size="24" indeterminate></v-progress-circular>
-  </v-overlay>
+  <!-- Loader si en cours -->
+  <v-progress-circular
+    v-if="loadingVal"
+    color="primary"
+    size="32"
+    indeterminate
+  ></v-progress-circular>
+
+  <!-- Icône de validation si terminé -->
+  <v-icon
+    v-else
+    color="green"
+    size="64"
+  >
+    mdi-check-circle
+  </v-icon>
+</v-overlay>
+
+
+
 
 </template>
 
@@ -458,7 +471,6 @@ const router = useRouter();
 const route = useRoute();
 const authStore = useAuthStore();
 const isManager = computed(() => authStore.user?.role === 'Manager');
-const loadingSnackbar = ref(false)
 const successSnackbar = ref(false)
 // ── RRH/RH state ──────────────────────────────────────────────────────────
 const attributions = ref([]);
@@ -487,6 +499,8 @@ const mgrVolets = ref([]);
 
 // ── Icons ──────────────────────────────────────────────────────────────────
 const icons = {
+  checkCircle: `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`,
+  xCircle: `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>`,
   x: `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>`,
   arrowUp: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"/></svg>`,
   pen: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>`,
@@ -639,21 +653,30 @@ const errorMessage = ref('')
 
 // ── Validation ─────────────────────────────────────────────────────────────
 const logoutAlert = ref(false);
+const loadingVal = ref(false);
 
 const soumettreValidation = async (id) => {
   try {
     logoutAlert.value = true;
+    loadingVal.value = true; // affiche le loader
 
     await api.post(`/validations/initier/${id}`);
     await fetchData();
-    logoutAlert.value = false;
-    alert("demmande soumis avec success")
-  } catch (e) {
 
-    errorMessage.value = e.response?.data?.message ?? "Erreur lors de l'initiation."
-    errorSnackbar.value = true
+    // une fois terminé → remplacer par l’icône
+    loadingVal.value = false;
+
+    // fermer automatiquement après 2s
+    setTimeout(() => {
+      logoutAlert.value = false;
+    }, 2000);
+  } catch (e) {
+    logoutAlert.value = false;
+    errorMessage.value = e.response?.data?.message ?? "Erreur lors de l'initiation.";
+    errorSnackbar.value = true;
   }
 };
+
 
 const dialog = ref(false)
 const etapes = ref([])
@@ -750,7 +773,7 @@ const updateAssociation = async () => {
       organisme_formation: form.organisme_formation,
       date_aptitude_medicale: form.date_appt_medicale,
     });
-    await fetchData();
+     await fetchData();
     closeModal();
   } catch (e) {
     if (e.response?.status === 422) {
@@ -778,7 +801,18 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-/* CARD */
+.status-icon {
+  margin-left: 6px;
+  font-size: 1rem;
+}
+
+.status-icon.valide {
+  color: #2e7d32; /* vert foncé */
+}
+
+.status-icon.refuse {
+  color: #c62828; /* rouge foncé */
+}
 .employee-card {
   background: #fff;
   border: 1px solid #e6ecf2;

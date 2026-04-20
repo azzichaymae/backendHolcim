@@ -112,8 +112,7 @@ public static function genererPourHabilitation(EmployeeHabilitation $eh): void
     $dateExpiration = Carbon::parse($eh->date_expiration);
     $today          = Carbon::today();
 
-    // If already expired, no point generating future alerts
-    if ($dateExpiration->lt($today)) {
+     if ($dateExpiration->lt($today)) {
         return;
     }
 
