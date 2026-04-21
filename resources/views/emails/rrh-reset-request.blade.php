@@ -39,10 +39,10 @@
   </div>
   <div class="body">
     <p>Bonjour,</p>
-    <p>L'employé {{ $user->nom }} {{ $user->prenom }} a demandé à réinitialiser son mot de passe. Cliquez sur le bouton ci-dessous pour choisir un nouveau mot de passe :</p>
+    <p>L'employé {{ $user->nom }} {{ $user->prenom }} a demandé à réinitialiser son mot de passe. Cliquez sur le bouton ci-dessous pour vous connecter à la plateforme. </p>
 
     <div class="btn-group">
-      <a href="#" class="btn-confirm">Réinitialiser le mot de passe</a>
+      <a href="/holcim.local" class="btn-confirm">Réinitialiser le mot de passe</a>
     </div>
   </div>
   <div class="footer">

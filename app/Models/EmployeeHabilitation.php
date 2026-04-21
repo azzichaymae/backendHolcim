@@ -21,7 +21,6 @@ class EmployeeHabilitation extends Model
         'statut',
         'organisme_formation',       // ← add
         'date_aptitude_medicale',
-            'acknowledged_at',
             'validation_statut',
 
     ];
@@ -30,14 +29,10 @@ class EmployeeHabilitation extends Model
         'date_obtention'         => 'date',
         'date_expiration'        => 'date',
         'date_aptitude_medicale' => 'date',  // ← add
-        'acknowledged_at'        => 'datetime',  // ← add
         'validation_statut'       => 'string',  // ← add
 
     ];
-    public function acknowledge(): void
-{
-    $this->update(['acknowledged_at' => now()]);
-}
+     
 
     // ── Relations ──────────────────────────────────────────
 

@@ -17,7 +17,7 @@
           </p>
         </div>
       </div>
-      <div class="gen-dropdown" v-if="!activeType" v-click-outside="() => isOpen = false">
+      <div class="gen-dropdown" v-if="!activeType && !isManager " v-click-outside="() => isOpen = false">
         <div class="gen-btn-group">
           <button class="gen-btn-main" @click="isOpen = !isOpen">
             <span v-html="icons.plus"></span>
@@ -241,13 +241,12 @@
           </div>
         </div>
 
-        <!-- Type de document filter -->
         <div class="filter-group">
           <label>📄 TYPE DE DOCUMENT</label>
           <select class="custom-select" v-model="selectedTypeFilter">
             <option value="all">Tous les types</option>
-            <option value="individuelle">Habilitation individuelle</option>
-            <option value="note">Note d'Habilitation</option>
+            <option value="initiale">Habilitation initiale</option>
+            <option value="recyclage">Habilitation de recyclage</option>
           </select>
         </div>
 
@@ -409,6 +408,10 @@
 import { ref, reactive, computed, onMounted, watch } from 'vue';
 import api from '@/services/api';
 import { useRoute } from 'vue-router';
+import { useAuthStore } from '@/stores/auth';
+
+const authStore  = useAuthStore();
+const isManager  = computed(() => authStore.user?.role === 'Manager');
 
 const loading = ref(false);
 const loadingRefs = ref(true);
@@ -491,8 +494,7 @@ const filteredDocs = computed(() => {
   
   // 1. Text search (nom, matricule, habilitation nom)
   if (searchQuery.value.trim()) {
-    console.log(result)
-    const query = searchQuery.value.trim().toLowerCase();
+     const query = searchQuery.value.trim().toLowerCase();
     result = result.filter(doc => {
       const fullName = (doc.employee_nom && doc.employee_prenom) ? `${doc.employee_nom} ${doc.employee_prenom}`.toLowerCase() : '';
       const matricule = (doc.employee_matricule || '').toString().toLowerCase();
@@ -503,7 +505,11 @@ const filteredDocs = computed(() => {
 
   // 2. Type filter
   if (selectedTypeFilter.value !== 'all') {
-    result = result.filter(doc => doc.type === selectedTypeFilter.value);
+    if (selectedTypeFilter.value === 'initiale') {
+      result = result.filter(doc => !doc.nom || !doc.nom.toLowerCase().includes('recyclage'));
+    } else if (selectedTypeFilter.value === 'recyclage') {  
+     result = result.filter(doc => doc.nom.toLowerCase().includes('recyclage'));
+    }
   }
 
   // 3. Date filter

@@ -187,7 +187,9 @@ class EmployeeHabilitationController extends Controller
           $employeeHabilitation->update(['validation_statut' => 'non_soumis']);
 
           // Reset alerts
-          $employeeHabilitation->alerts()->update(['statut' => 'active', 'email_sent_at' => null]);
+  Alert::where('employee_habilitation_id', $employeeHabilitation->id)->delete();
+          Alert::genererPourHabilitation($employeeHabilitation->fresh());
+
 
           // Generate NEW document (old one stays for archive)
           $settings = Setting::getInstance();

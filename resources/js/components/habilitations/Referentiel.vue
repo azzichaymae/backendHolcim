@@ -7,16 +7,16 @@
         <h1 class="page-title">Référentiel des Habilitations</h1>
         <p class="page-subtitle">{{ habilitations.length }} habilitation(s) · {{ volets.length }} catégorie(s)</p>
       </div>
-      <div class="header-actions">
-        <button class="btn-secondary" @click="openVoletModal()">
-          <span v-html="icons.folder"></span>
-          Nouvelle catégorie
-        </button>
-        <button class="btn-add" @click="openModal()">
-          <span v-html="icons.plus"></span>
-          Nouvelle habilitation
-        </button>
-      </div>
+      <div class="header-actions" v-if="!isManager">
+  <button class="btn-secondary" @click="openVoletModal()">
+    <span v-html="icons.folder"></span>
+    Nouvelle catégorie
+  </button>
+  <button class="btn-add" @click="openModal()">
+    <span v-html="icons.plus"></span>
+    Nouvelle habilitation
+  </button>
+</div>
     </div>
 
     <!-- ── Search bar ───────────────────────────────────────────────────── -->
@@ -51,14 +51,14 @@
           <span class="volet-item-name">{{ v.nom }}</span>
           <div class="volet-item-right">
             <span class="volet-item-count">{{ habCountForVolet(v.id) }}</span>
-            <div class="volet-actions" v-show="hoveredVolet === v.id">
-              <button class="volet-btn edit" @click.stop="openVoletModal(v)" title="Modifier">
-                <span v-html="icons.edit"></span>
-              </button>
-              <button class="volet-btn delete" @click.stop="confirmDeleteVolet(v)" title="Supprimer">
-                <span v-html="icons.trash"></span>
-              </button>
-            </div>
+            <div class="volet-actions" v-show="hoveredVolet === v.id && !isManager">
+  <button class="volet-btn edit" @click.stop="openVoletModal(v)">
+    <span v-html="icons.edit"></span>
+  </button>
+  <button class="volet-btn delete" @click.stop="confirmDeleteVolet(v)">
+    <span v-html="icons.trash"></span>
+  </button>
+</div>
           </div>
         </div>
       </div>
@@ -83,9 +83,9 @@
               <div class="hab-group-header sticky-header">
                 <span class="hab-group-title">{{ voletNom }}</span>
                 <span class="hab-group-count">{{ habs.length }} habilitation(s)</span>
-                <button class="hab-group-add" @click="openModalForVolet(voletNom)" title="Ajouter dans ce volet">
-                  <span v-html="icons.plus"></span>
-                </button>
+                <button class="hab-group-add" v-if="!isManager" @click="openModalForVolet(voletNom)">
+  <span v-html="icons.plus"></span>
+</button>
               </div>
 
               <!-- Scrollable Table Container -->
@@ -123,18 +123,18 @@
                         </span>
                       </td>
                       <td @click.stop>
-                        <div class="actions">
-                          <button class="action-btn preview" @click="openPreview(hab)" title="Aperçu">
-                            <span v-html="icons.eye"></span>
-                          </button>
-                          <button class="action-btn edit" @click="openModal(hab)" title="Modifier">
-                            <span v-html="icons.edit"></span>
-                          </button>
-                          <button class="action-btn delete" @click="confirmDelete(hab)" title="Supprimer">
-                            <span v-html="icons.trash"></span>
-                          </button>
-                        </div>
-                      </td>
+  <div class="actions">
+    <button class="action-btn preview" @click="openPreview(hab)" title="Aperçu">
+      <span v-html="icons.eye"></span>
+    </button>
+    <button class="action-btn edit" v-if="!isManager" @click="openModal(hab)" title="Modifier">
+      <span v-html="icons.edit"></span>
+    </button>
+    <button class="action-btn delete" v-if="!isManager" @click="confirmDelete(hab)" title="Supprimer">
+      <span v-html="icons.trash"></span>
+    </button>
+  </div>
+</td>
                     </tr>
                   </tbody>
                 </table>
@@ -450,9 +450,11 @@
 import { ref, reactive, computed, onMounted, watch } from 'vue';
 import api from '@/services/api';
 import ConfirmModal from '@/components/shared/ConfirmModal.vue';
-// import '@/../css/components/habilitations/referentiel.css';
 import '@/../css/components/habilitations/habilitation-list.css';
+import { useAuthStore } from '@/stores/auth';
 
+const authStore  = useAuthStore();
+const isManager  = computed(() => authStore.user?.role === 'Manager');
 // ── State ──────────────────────────────────────────────────────────────────
 const habilitations = ref([]);
 const volets = ref([]);
