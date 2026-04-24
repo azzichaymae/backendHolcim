@@ -22,7 +22,7 @@
   body {
     font-family: 'Segoe UI', sans-serif;
     color: var(--color-text);
-    background: var(--color-bg);
+    background: var(--color-bg);min-height: 100vh;
   }
   html, body {
   overflow-x: hidden;

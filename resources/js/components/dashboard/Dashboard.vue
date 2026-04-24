@@ -263,6 +263,7 @@ const fetchAll = async () => {
       api.get('/dashboard'),
       fetchTierCounts(),    
     ]);
+    console.log("dashboard response", dashRes)
     stats.value = dashRes.data.stats;
     charts.value = dashRes.data.charts;
  
@@ -362,8 +363,7 @@ const donutOptions = {
 // ── Alertes bar chart ─────────────────────────────────
 const alertesBarData = computed(() => {
   const data = charts.value?.alertes_par_seuil ?? [];
-  console.log("alertes charts",charts.value)
-  return {
+   return {
     labels: data.map(i => i.label),
     datasets: [{
       label: 'Alertes',
@@ -378,8 +378,7 @@ const alertesBarData = computed(() => {
 // ── Volet bar chart ───────────────────────────────────
 const voletBarData = computed(() => {
   const data = charts.value?.par_volet ?? [];
-  console.log(data)
-  return {
+   return {
     labels: data.map(i => i.volet),
     datasets: [
       {

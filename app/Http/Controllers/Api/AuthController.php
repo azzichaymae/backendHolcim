@@ -11,37 +11,33 @@ use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\Mail;
 class AuthController extends Controller
 {
-    public function login(Request $request): JsonResponse
-    {
-        $request->validate([
-            'email' => 'required|email',
-            'password' => 'required|string',
-        ]);
+   // In AuthController login method
+public function login(Request $request): JsonResponse
+{
+    $credentials = $request->validate([
+        'email'    => 'required|email',
+        'password' => 'required',
+    ]);
 
-        $user = User::where('email', $request->email)->first();
-
-        if (!$user || !Hash::check($request->password, $user->password)) {
-            throw ValidationException::withMessages([
-                'email' => ['Les identifiants sont incorrects.'],
-            ]);
-        }
-
-        // Revoke previous tokens (single session)
-        $user->tokens()->delete();
-
-        $token = $user->createToken('auth_token')->plainTextToken;
-
-        return response()->json([
-            'token' => $token,
-            'user' => [
-                'id' => $user->id,
-                'nom' => $user->nom,
-                'prenom' => $user->prenom,
-                'email' => $user->email,
-                'role' => $user->role,
-            ],
-        ], 200);
+    if (!auth()->attempt($credentials)) {
+        return response()->json(['message' => 'Identifiants incorrects.'], 401);
     }
+
+    $user  = auth()->user(); // ← user is authenticated here
+    $token = $user->createToken('auth_token')->plainTextToken;
+
+    // ← Log AFTER authentication succeeds
+    \Log::info('auth.login', [
+        'user_id' => $user->id,
+        'role'    => $user->role,
+        'ip'      => $request->ip(),
+    ]);
+
+    return response()->json([
+        'token' => $token,
+        'user'  => $user,
+    ]);
+}
 
     public function logout(Request $request): JsonResponse
     {

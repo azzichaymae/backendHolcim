@@ -40,7 +40,7 @@
           {{ svc.nom }}
         </option>
       </select>
-      <button class="btn-archived" :class="{ active: showArchived }" @click="showArchived = !showArchived">
+      <button class="btn-archived" :class="{ active: showArchived }" @click="showArchived = !showArchived" v-if="!isManager">
         <span v-html="icons.archive"></span>
         {{ showArchived ? 'Voir actifs' : 'Voir archivés' }}
       </button>
@@ -70,7 +70,8 @@
             <th>Poste</th>
             <th>Statut</th>
             <th>Service</th>
-            <th>Actions</th>
+            <th v-if="showArchived">Date de départ</th>
+            <th v-if="!isManager">Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -96,18 +97,20 @@
               <div class="societe-name" v-if="emp.societe">{{ emp.societe }}</div>
             </td>
             <td data-label="Service" class="td-muted">{{ emp.service?.nom || '—' }}</td>
+            <td data-label="Date de départ" v-if="showArchived">
+  {{ emp.deleted_at ? new Date(emp.deleted_at).toISOString().slice(0,10) : '—' }}
+</td>
 
-            <td data-label="Actions" @click.stop>
+            <td data-label="Actions" @click.stop v-if="!isManager">
               <div class="actions">
-
-                <span v-if="showArchived" class="archived-icon" v-html="icons.archive"></span>
-
-
-                <router-link v-else :to="`/employees/${emp.id}/edit`" class="action-btn edit" v-if="canWrite"
+                 <router-link v-if="!showArchived && canWrite" :to="`/employees/${emp.id}/edit`" class="action-btn edit" 
                   title="Modifier">
                   <span v-html="icons.edit"></span>
                 </router-link>
-                <button class="action-btn delete" v-if="canDelete" @click="confirmDelete(emp)" title="Supprimer">
+                <button v-if="showArchived" class="action-btn restore" @click="restoreEmp(emp.id)" title="Restaurer">
+                  <span v-html="icons.restore"></span>
+                </button>
+                <button class="action-btn delete"  @click="!showArchived ? confirmDelete(emp) : forceDelete(emp)" title="Supprimer">
                   <span v-html="icons.trash"></span>
                 </button>
               </div>
@@ -266,7 +269,6 @@ const total = ref(0);
 
 const isManager = computed(() => auth.user?.role === 'Manager');
 const canWrite = computed(() => ['RRH', 'RH'].includes(auth.user?.role));
-const canDelete = computed(() => auth.user?.role === 'RRH');
 const showArchived = ref(false);
 
 const filters = reactive({
@@ -294,6 +296,12 @@ const isDragging = ref(false);
 
 // ── Icons ─────────────────────────────────────────────
 const icons = {
+  restore: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" 
+     viewBox="0 0 24 24" fill="none" stroke="currentColor" 
+     stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M21 12a9 9 0 1 1-3-6.7M21 3v6h-6"/>
+</svg>
+`,
   archive: `<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/></svg>`,
   plus: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>`,
   upload: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>`,
@@ -319,7 +327,7 @@ const fetchEmployees = async () => {
     if (filters.departement_id) params.departement_id = filters.departement_id;
 
     const { data } = await api.get(endpoint, { params });
-    employees.value = data;
+     employees.value = data;
     total.value = data.length;
   } catch (e) {
     console.error(e);
@@ -392,6 +400,20 @@ const deleteEmployee = async () => {
   }
 };
 
+const forceDelete = async (emp) => {
+  if (!confirm("Êtes-vous sûr de vouloir supprimer définitivement cet employé ? Cette action est irréversible.")) return;
+  deleting.value = true;
+  try {
+    await api.delete(`/employees/${emp.id}/force`);
+    employees.value = employees.value.filter(e => e.id !== emp.id);
+    total.value--;
+  } catch (err) {
+    alert("Erreur lors de la suppression.");
+  } finally {
+    deleting.value = false;
+  }
+};
+
 // ── Import ────────────────────────────────────────────
 const closeImportModal = () => {
   showImportModal.value = false;
@@ -445,6 +467,8 @@ const downloadTemplate = () => {
   a.href = url; a.download = 'modele_import_salaries.csv';
   a.click(); URL.revokeObjectURL(url);
 };
+
+//Archived habs
 const showArchivedModal = ref(false);
 const archivedHabs = ref([]);
 const showArchiveHab = async (id) => {
@@ -455,11 +479,22 @@ const showArchiveHab = async (id) => {
   archivedHabs.value = data;
   loading.value = false
 };
+
 const closeArchivedModal = () => {
-  console.log(showArchivedModal.value);
-  showArchivedModal.value = false;
+   showArchivedModal.value = false;
   archivedHabs.value = [];
 
+};
+
+const restoreEmp = async (id) => {
+  if (!confirm("Êtes-vous sûr de vouloir restaurer cet employé ?")) return;
+  try {
+    await api.patch(`/employees/${id}/restore`);
+    await fetchEmployees();
+    alert("Employé restauré avec succès.");
+  } catch (e) {
+    alert("Erreur lors de la restauration.");
+  }
 };
 
 onMounted(async () => {

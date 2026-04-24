@@ -41,7 +41,7 @@ class EmployeeController extends Controller
             });
         }
 
-        $employees = $query->orderBy('nom')->get();
+        $employees = $query->get();
 
         return response()->json($employees, 200);
     }
@@ -108,13 +108,36 @@ class EmployeeController extends Controller
             'message' => 'Salarié supprimé avec succès.'
         ], 200);
     }
-    
+
     // GET /api/employees/archived
-    public function archived(): JsonResponse
+    public function archived(Request $request): JsonResponse
     {
-        $employees = Employee::onlyTrashed()
-            ->with('service.departement')
-            ->get();
+
+        $query = Employee::onlyTrashed()
+            ->with('service.departement');
+        if ($request->has('service_id')) {
+            $query->where('service_id', $request->service_id);
+        }
+
+        if ($request->has('departement_id')) {
+            $query->whereHas('service', function ($q) use ($request) {
+                $q->where('departement_id', $request->departement_id);
+            });
+        }
+
+
+        if ($request->has('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('nom', 'like', "%{$search}%")
+                    ->orWhere('prenom', 'like', "%{$search}%")
+                    ->orWhere('matricule', 'like', "%{$search}%")
+                    ->orWhere('email_pro', 'like', "%{$search}%");
+            });
+        }
+
+        $employees = $query->get();
+
         return response()->json($employees);
     }
 

@@ -33,7 +33,10 @@ class DashboardController extends Controller
         $totalEmployees = Employee::count();
 
         // ── Habilitations ──────────────────────────────────
-        $habQuery = EmployeeHabilitation::query();
+        $habQuery = EmployeeHabilitation::query()
+            ->whereHas('employee', function ($q) {
+                $q->whereNull('deleted_at');  
+            });
         $habilitationsValides = (clone $habQuery)->valides()->count();
         $habilitationsExpirees = (clone $habQuery)->expirees()->count();
         $habilitationsExpirant30j = (clone $habQuery)->expirantDans(30)->count();

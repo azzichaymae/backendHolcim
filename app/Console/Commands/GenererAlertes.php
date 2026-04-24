@@ -27,8 +27,7 @@ class GenererAlertes extends Command
                 ->get();
 
             foreach ($habilitations as $eh) {
-                // Check if alert already exists for this threshold
-                $existe = Alert::where('employee_habilitation_id', $eh->id)
+                 $existe = Alert::where('employee_habilitation_id', $eh->id)
                     ->where('jours_avant_expiration', $jours)
                     ->exists();
 

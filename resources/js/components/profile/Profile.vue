@@ -405,8 +405,7 @@ const icons = {
 
 const initials = computed(() => {
   if (!user.value) return '?';
-  console.log(user.value);
-  return ((user.value.prenom?.charAt(0) ?? '') + (user.value.nom?.charAt(0) ?? '')).toUpperCase();
+   return ((user.value.prenom?.charAt(0) ?? '') + (user.value.nom?.charAt(0) ?? '')).toUpperCase();
 });
 
 const fetchProfile = async () => {
@@ -526,8 +525,7 @@ const submitUser = async () => {
       new_password: userForm.password,
     });
     
-    console.log(response.data);
-    alert('✅ Mot de passe modifié ! Un email a été envoyé à l\'utilisateur.');
+     alert('✅ Mot de passe modifié ! Un email a été envoyé à l\'utilisateur.');
       }
       const { data } = await api.put(`/users/${editUser.value.id}`, payload);
       const idx = users.value.findIndex(u => u.id === editUser.value.id);

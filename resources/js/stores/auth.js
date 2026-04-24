@@ -51,9 +51,7 @@ initTabExpiryCheck() {
                 if (age > maxAge) {
                      this.logout();
                     window.location.href = '/login';
-                } else {
-                    console.log('[Auth] Token still valid');
-                }
+                }  
             }
         }
     };

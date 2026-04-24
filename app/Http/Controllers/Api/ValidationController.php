@@ -121,7 +121,12 @@ class ValidationController extends Controller
     } else {
         $this->sendNextValidationEmail($eh);
     }
-
+\Log::info('validation.confirmed', [
+    'employee_habilitation_id' => $eh->id,
+    'signataire'               => $validation->signataire_nom,
+    'role'                     => $validation->role,
+    'ordre'                    => $validation->ordre,
+]);
         return redirect()->route('validation.confirmation');
 }
 
@@ -150,7 +155,11 @@ class ValidationController extends Controller
             'matricule' => $eh->employee->matricule ?? 'Sous-traitant',
             'habilitation' => $eh->habilitation->nom,
         ]);
-
+\Log::warning('validation.refused', [
+    'employee_habilitation_id' => $eh->id,
+    'signataire'               => $validation->signataire_nom,
+    'motif'                    => $validation->commentaire,
+]);
         return redirect()->route('validation.refus');
     }
     public function refusPage()

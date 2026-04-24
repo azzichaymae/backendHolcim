@@ -105,7 +105,13 @@ class EmployeeHabilitationController extends Controller
           $validated['statut'] = $dateExpiration->isPast() ? 'expirée' : 'valide';
 
           $employeeHabilitation = EmployeeHabilitation::create($validated);
-
+          \Log::info('attribution.created', [
+    'employee_id'     => $employeeHabilitation->employee_id,
+    'habilitation_id' => $employeeHabilitation->habilitation_id,
+    'type'            => $employeeHabilitation->type,
+    'created_by'      => auth()->id(),
+    'role'            => auth()->user()->role,
+]);
           // Auto-generate alerts
           Alert::genererPourHabilitation($employeeHabilitation);
 

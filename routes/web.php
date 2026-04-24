@@ -7,7 +7,6 @@ use App\Http\Controllers\Api\ValidationController;
 Route::get('/{any}', function () {
     return view('app');
 })->where('any', '.*');
-// routes/web.php
 Route::get('/validation/confirmer/{token}', [ValidationController::class, 'confirmer'])->name('validation.confirm');
 Route::get('/validation/refuser/{token}', [ValidationController::class, 'refuser'])->name('validation.refuse');
 Route::get('/validation-confirmer', [ValidationController::class, 'confirmationPage'])->name('validation.confirmation');

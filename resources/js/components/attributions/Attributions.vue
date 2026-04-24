@@ -631,8 +631,7 @@ const fetchData = async () => {
       api.get('/volets'),
     ]);
     attributions.value = attribRes.data;
-    console.log(attributions.value)
-    volets.value = voletRes.data;
+     volets.value = voletRes.data;
   } finally {
     loading.value = false;
   }
@@ -686,8 +685,7 @@ async function voirValidation(id) {
     const { data } = await api.get(`/validations/${id}`)
     etapes.value = data.etapes
     dialog.value = true
-    console.log(dialog.value)
-  } catch (e) {
+   } catch (e) {
     console.error(e)
   }
 }
@@ -724,8 +722,7 @@ const onCascadeHabChange = async () => {
 const fetchMgrVolets = async () => {
   const { data } = await api.get('/volets');
   mgrVolets.value = data;
-  console.log('Volets pour manager :', data);
-};
+ };
 
 // ── Edit association modal ─────────────────────────────────────────────────
 const defaultForm = () => ({
@@ -793,8 +790,7 @@ onMounted(async () => {
     await Promise.all([fetchEquipe(), fetchMgrVolets()]);
   } else {
     await fetchData();
-    console.log(groupedEmployees.value)
-    if (route.query.statut) filterStatut.value = route.query.statut;
+     if (route.query.statut) filterStatut.value = route.query.statut;
   }
 });
 

@@ -475,9 +475,8 @@ const fetchVolets = async () => {
 const fetchHabilitations = async (id) => {
   loadingHabilitations.value = true;
   try {
-    const { data } = await api.get(`/habilitations/volet/${id}`); habilitations.value = data; console.log(
-      data
-    )
+    const { data } = await api.get(`/habilitations/volet/${id}`); habilitations.value = data; 
+ 
   }
   finally { loadingHabilitations.value = false; }
 };
