@@ -27,7 +27,7 @@ class DocumentGenerationController extends Controller
 
         $employees = EmployeeHabilitation::with('employee.service')
             ->where('habilitation_id', $habilitation->id)
-            ->where('statut', 'valide')
+            
             ->orderBy('date_expiration')
             ->get()
             ->map(function ($eh) {

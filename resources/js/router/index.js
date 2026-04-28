@@ -89,11 +89,7 @@ const routes = [
                 component: Referentiel,
                 name: "referentiel",
             },
-            {
-                path: "attributions/:id/edit",
-                component: AttributionForm,
-                name: "attributions.edit",
-            },
+            
         ],
     },
 

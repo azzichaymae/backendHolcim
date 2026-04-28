@@ -328,32 +328,22 @@
                           <span v-html="icons.send"></span>
                         </button>
                         <!-- En cours : bouton cliquable -->
-<button 
-  v-if="item.validation_statut === 'en_cours'" 
-  class="action-btn view-validation"
-  @click="voirValidation(item.id)" 
-  title="Voir la progression"
->
-  <span v-html="icons.eye"></span>
-</button>
+                        <button v-if="item.validation_statut === 'en_cours'" class="action-btn view-validation"
+                          @click="voirValidation(item.id)" title="Voir la progression">
+                          <span v-html="icons.eye"></span>
+                        </button>
 
-<!-- Valide : juste icône verte -->
-<span 
-  v-else-if="item.validation_statut === 'valide'" 
-  class="status-icon valide" 
-  title="Validation réussie"
->
-  <span v-html="icons.checkCircle"></span>
-</span>
+                        <!-- Valide : juste icône verte -->
+                        <span v-else-if="item.validation_statut === 'valide'" class="status-icon valide"
+                          title="Validation réussie">
+                          <span v-html="icons.checkCircle"></span>
+                        </span>
 
-<!-- Refusé : juste icône rouge -->
-<span 
-  v-else-if="item.validation_statut === 'refuse'" 
-  class="status-icon refuse" 
-  title="Validation refusée"
->
-  <span v-html="icons.xCircle"></span>
-</span>
+                        <!-- Refusé : juste icône rouge -->
+                        <span v-else-if="item.validation_statut === 'refuse'" class="status-icon refuse"
+                          title="Validation refusée">
+                          <span v-html="icons.xCircle"></span>
+                        </span>
 
 
                         <button class="action-btn edit-association" title="Mise à jour de l'association"
@@ -373,86 +363,127 @@
         </div>
       </div>
       <Teleport to="body">
-        <Transition name="adm-fade">
-          <div class="adm-backdrop" v-if="showModal" @click.self="closeModal">
-            <Transition name="adm-slide">
-              <div class="adm-dialog" v-if="showModal">
-                <div class="adm-header">
-                  <div>
-                    <h3 style="margin:0;font-size:1rem;font-weight:700;color:#1a2e44">
-                      <span style="white-space: pre;">Modifier l'association</span>
-                      <span style="font-weight:400;color:#4b5563;font-size:0.875rem;margin-left:8px">
-                        {{ form.habilitation }} — {{ form.empNom }} ({{ form.empMatricule }})
-                      </span>
-                    </h3>
-                  </div>
-                  <button class="adm-close" @click="closeModal"><span v-html="icons.x"></span></button>
-                </div>
-                <div style="padding:20px 22px;display:flex;flex-direction:column;gap:14px;">
+  <Transition name="adm-fade">
+    <div class="adm-backdrop" v-if="showModal" @click.self="closeModal">
+      <Transition name="adm-slide">
+        <div class="adm-dialog" v-if="showModal">
 
-                  <div class="modal-field">
-                    <label>Organisme de formation</label>
-                    <input v-model="form.organisme_formation" placeholder="Ex: AFPA, CNAM..." />
-                    <span class="error-msg" v-if="errors.organisme_formation">{{ errors.organisme_formation }}</span>
-                  </div>
-                  <div class="modal-field">
-                    <label>Date d'obtention <span style="color:#ef4444">*</span></label>
-                    <input v-model="form.date_obtention" type="date"
-                      :class="{ 'input-error': errors.date_obtention }" />
-                    <span class="error-msg" v-if="errors.date_obtention">{{ errors.date_obtention }}</span>
-                  </div>
-                  <div class="modal-field">
-                    <label>Date d'aptitude médicale <span style="color:#ef4444">*</span></label>
-                    <input v-model="form.date_appt_medicale" type="date"
-                      :class="{ 'input-error': errors.date_appt_medicale }" />
-                    <span class="error-msg" v-if="errors.date_appt_medicale">{{ errors.date_appt_medicale }}</span>
-                  </div>
-                  <div class="modal-field">
-                    <label>Type <span style="color:#ef4444">*</span></label>
-                    <select v-model="form.type" :class="{ 'input-error': errors.type }">
-                      <option value="">Sélectionner un type...</option>
-                      <option value="initiale">Initiale</option>
-                      <option value="recyclage">Recyclage</option>
-                    </select>
-                    <span class="error-msg" v-if="errors.type">{{ errors.type }}</span>
-                  </div>
+          <div class="adm-header">
+            <div>
+              <h3 style="margin:0;font-size:1rem;font-weight:700;color:#1a2e44">
+                Modifier l'association
+              </h3>
+              <span style="font-weight:400;color:#4b5563;font-size:0.875rem">
+                {{ form.habilitation }} — {{ form.empNom }} ({{ form.empMatricule }})
+              </span>
+            </div>
+            <button class="adm-close" @click="closeModal"><span v-html="icons.x"></span></button>
+          </div>
 
-                  <span class="error-msg" v-if="errors.global">{{ errors.global }}</span>
+          <!-- Mode selection -->
+          <div class="mode-selection" v-if="!editMode">
+            <p class="mode-question">Que souhaitez-vous faire ?</p>
+            <div class="mode-options">
+              <div class="mode-option" @click="editMode = 'correction'">
+                <div class="mode-option-icon correction">
+                  <span v-html="icons.edit"></span>
                 </div>
-                <div
-                  style="display:flex;justify-content:flex-end;gap:10px;padding:14px 22px;border-top:1px solid #f0f4f8">
-                  <button class="btn-cancel-import" @click="closeModal">Annuler</button>
-                  <button class="btn-do-import" @click="updateAssociation" :disabled="submitting">
-                    <span v-if="submitting" class="spinner-sm"></span>
-                    Enregistrer </button>
+                <div class="mode-option-text">
+                  <div class="mode-option-title">Corriger les informations</div>
+                  <div class="mode-option-sub">Rectifier une erreur de saisie. L'ancien document sera supprimé.</div>
+                </div>
+                <span class="mode-option-arrow" v-html="icons.chevronRight"></span>
+              </div>
+
+              <div class="mode-option" @click="editMode = 'renouvellement'">
+                <div class="mode-option-icon renewal">
+                  <span v-html="icons.refresh"></span>
+                </div>
+                <div class="mode-option-text">
+                  <div class="mode-option-title">Renouveler l'association</div>
+                  <div class="mode-option-sub">Nouvelle période de validité. L'ancien document sera archivé.</div>
+                </div>
+                <span class="mode-option-arrow" v-html="icons.chevronRight"></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Form — shown after mode is selected -->
+          <template v-if="editMode">
+            <!-- Mode banner -->
+            <div class="mode-banner" :class="editMode">
+              <span v-html="editMode === 'correction' ? icons.edit : icons.refresh"></span>
+              <div>
+                <div class="mode-title">
+                  {{ editMode === 'correction' ? 'Correction des informations' : 'Renouvellement de l\'association' }}
+                </div>
+                <div class="mode-sub">
+                  {{ editMode === 'correction'
+                    ? 'L\'ancien document sera supprimé et remplacé.'
+                    : 'L\'ancien document sera archivé. Un nouveau cycle commence.' }}
                 </div>
               </div>
-            </Transition>
-          </div>
-        </Transition>
-      </Teleport>
-     
+              <button class="mode-change-btn" @click="editMode = null" title="Changer">
+                <span v-html="icons.x"></span>
+              </button>
+            </div>
+
+            <div style="padding:20px 22px;display:flex;flex-direction:column;gap:14px;">
+              <div class="modal-field">
+                <label>Organisme de formation</label>
+                <input v-model="form.organisme_formation" placeholder="Ex: AFPA, CNAM..." />
+              </div>
+              <div class="modal-field">
+                <label>Date d'obtention <span style="color:#ef4444">*</span></label>
+                <input v-model="form.date_obtention" type="date"
+                  :class="{ 'input-error': errors.date_obtention }" />
+                <span class="error-msg" v-if="errors.date_obtention">{{ errors.date_obtention }}</span>
+              </div>
+              <div class="modal-field">
+                <label>Date d'aptitude médicale <span style="color:#ef4444">*</span></label>
+                <input v-model="form.date_appt_medicale" type="date"
+                  :class="{ 'input-error': errors.date_appt_medicale }" />
+                <span class="error-msg" v-if="errors.date_appt_medicale">{{ errors.date_appt_medicale }}</span>
+              </div>
+              <div class="modal-field">
+                <label>Type <span style="color:#ef4444">*</span></label>
+                <select v-model="form.type" :class="{ 'input-error': errors.type }">
+                  <option value="">Sélectionner un type...</option>
+                  <option value="initiale">Initiale</option>
+                  <option value="recyclage">Recyclage</option>
+                </select>
+                <span class="error-msg" v-if="errors.type">{{ errors.type }}</span>
+              </div>
+              <span class="error-msg" v-if="errors.global">{{ errors.global }}</span>
+            </div>
+
+            <div style="display:flex;justify-content:flex-end;gap:10px;padding:14px 22px;border-top:1px solid #f0f4f8">
+              <button class="btn-cancel-import" @click="closeModal">Annuler</button>
+              <button class="btn-do-import" @click="updateAssociation" :disabled="submitting">
+                <span v-if="submitting" class="spinner-sm"></span>
+                Enregistrer
+              </button>
+            </div>
+          </template>
+
+        </div>
+      </Transition>
+    </div>
+  </Transition>
+</Teleport>
+
     </template>
 
   </div>
   <v-overlay :model-value="logoutAlert" class="align-center justify-center">
-  <!-- Loader si en cours -->
-  <v-progress-circular
-    v-if="loadingVal"
-    color="primary"
-    size="32"
-    indeterminate
-  ></v-progress-circular>
+    <!-- Loader si en cours -->
+    <v-progress-circular v-if="loadingVal" color="primary" size="32" indeterminate></v-progress-circular>
 
-  <!-- Icône de validation si terminé -->
-  <v-icon
-    v-else
-    color="green"
-    size="64"
-  >
-    mdi-check-circle
-  </v-icon>
-</v-overlay>
+    <!-- Icône de validation si terminé -->
+    <v-icon v-else color="green" size="64">
+      mdi-check-circle
+    </v-icon>
+  </v-overlay>
 
 
 
@@ -499,6 +530,8 @@ const mgrVolets = ref([]);
 
 // ── Icons ──────────────────────────────────────────────────────────────────
 const icons = {
+  refresh: `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>`,
+  edit: `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>`,
   checkCircle: `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`,
   xCircle: `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>`,
   x: `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>`,
@@ -630,8 +663,9 @@ const fetchData = async () => {
       api.get('/employee-habilitations'),
       api.get('/volets'),
     ]);
+    console.log(attribRes.data);
     attributions.value = attribRes.data;
-     volets.value = voletRes.data;
+    volets.value = voletRes.data;
   } finally {
     loading.value = false;
   }
@@ -685,7 +719,7 @@ async function voirValidation(id) {
     const { data } = await api.get(`/validations/${id}`)
     etapes.value = data.etapes
     dialog.value = true
-   } catch (e) {
+  } catch (e) {
     console.error(e)
   }
 }
@@ -722,9 +756,11 @@ const onCascadeHabChange = async () => {
 const fetchMgrVolets = async () => {
   const { data } = await api.get('/volets');
   mgrVolets.value = data;
- };
+};
 
 // ── Edit association modal ─────────────────────────────────────────────────
+const editMode = ref(null);
+
 const defaultForm = () => ({
   id: null,
   date_appt_medicale: '', date_obtention: '', type: 'initiale', organisme_formation: '', habilitation: '', empNom: '', empMatricule: ''
@@ -735,7 +771,6 @@ const errors = reactive({ date_appt_medicale: '', date_obtention: '', type: '', 
 const showModal = ref(false);
 const fetchAndOpenEditModal = async (id) => {
   try {
-    // Fetch the association data by ID
     const association = await api.get(`/employee-habilitations/${id}`);
     editAssociation(association);
 
@@ -758,8 +793,9 @@ const editAssociation = (association) => {
   form.date_appt_medicale = assocData.date_aptitude_medicale.split('T')[0];
 
   showModal.value = true;
+  editMode.value = route.query.editId ? 'renouvellement' : null; // Si ouvert depuis query param, on présélectionne le mode renouvellement
 };
-const closeModal = () => { showModal.value = false; };
+const closeModal = () => { showModal.value = false; editMode.value  = null; };
 
 const updateAssociation = async () => {
   Object.keys(errors).forEach(k => errors[k] = '');
@@ -769,8 +805,9 @@ const updateAssociation = async () => {
       type: form.type,
       organisme_formation: form.organisme_formation,
       date_aptitude_medicale: form.date_appt_medicale,
+      mode: editMode.value, 
     });
-     await fetchData();
+    await fetchData();
     closeModal();
   } catch (e) {
     if (e.response?.status === 422) {
@@ -790,25 +827,64 @@ onMounted(async () => {
     await Promise.all([fetchEquipe(), fetchMgrVolets()]);
   } else {
     await fetchData();
-     if (route.query.statut) filterStatut.value = route.query.statut;
+    if (route.query.statut) filterStatut.value = route.query.statut;
   }
 });
 
 </script>
 
 <style scoped>
+.mode-selection { padding: 20px 22px; }
+.mode-question  { font-size: 0.875rem; font-weight: 600; color: #374151; margin: 0 0 14px; }
+
+.mode-options { display: flex; flex-direction: column; gap: 10px; }
+.mode-option {
+  display: flex; align-items: center; gap: 14px;
+  padding: 14px 16px; border: 1.5px solid #e8ecf0;
+  border-radius: 10px; cursor: pointer; transition: all 0.15s;
+}
+.mode-option:hover { border-color: #1a6b8a; background: #f8fafc; }
+
+.mode-option-icon {
+  width: 38px; height: 38px; min-width: 38px; border-radius: 9px;
+  display: flex; align-items: center; justify-content: center;
+}
+.mode-option-icon.correction { background: #eff6ff; color: #1a6b8a; }
+.mode-option-icon.renewal    { background: #f0fdf4; color: #16a34a; }
+
+.mode-option-text { flex: 1; }
+.mode-option-title { font-size: 0.875rem; font-weight: 600; color: #1a2e44; }
+.mode-option-sub   { font-size: 0.75rem; color: #9ca3af; margin-top: 3px; }
+.mode-option-arrow { color: #9ca3af; display: flex; }
+
+.mode-banner {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 22px; font-size: 0.82rem; position: relative;
+}
+.mode-banner.correction { background: #eff6ff; color: #1a6b8a; border-bottom: 1px solid #bfdbfe; }
+.mode-banner.renouvellement { background: #f0fdf4; color: #16a34a; border-bottom: 1px solid #bbf7d0; }
+.mode-title { font-weight: 700; font-size: 0.82rem; }
+.mode-sub   { font-size: 0.72rem; opacity: 0.8; margin-top: 2px; }
+.mode-change-btn {
+  margin-left: auto; background: none; border: none;
+  cursor: pointer; opacity: 0.5; display: flex;
+}
+.mode-change-btn:hover { opacity: 1; }
 .status-icon {
   margin-left: 6px;
   font-size: 1rem;
 }
 
 .status-icon.valide {
-  color: #2e7d32; /* vert foncé */
+  color: #2e7d32;
+  /* vert foncé */
 }
 
 .status-icon.refuse {
-  color: #c62828; /* rouge foncé */
+  color: #c62828;
+  /* rouge foncé */
 }
+
 .employee-card {
   background: #fff;
   border: 1px solid #e6ecf2;

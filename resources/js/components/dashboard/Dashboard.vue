@@ -263,8 +263,7 @@ const fetchAll = async () => {
       api.get('/dashboard'),
       fetchTierCounts(),    
     ]);
-    console.log("dashboard response", dashRes)
-    stats.value = dashRes.data.stats;
+     stats.value = dashRes.data.stats;
     charts.value = dashRes.data.charts;
  
   } catch (e) {

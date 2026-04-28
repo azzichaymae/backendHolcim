@@ -106,12 +106,12 @@ class EmployeeHabilitationController extends Controller
 
           $employeeHabilitation = EmployeeHabilitation::create($validated);
           \Log::info('attribution.created', [
-    'employee_id'     => $employeeHabilitation->employee_id,
-    'habilitation_id' => $employeeHabilitation->habilitation_id,
-    'type'            => $employeeHabilitation->type,
-    'created_by'      => auth()->id(),
-    'role'            => auth()->user()->role,
-]);
+               'employee_id' => $employeeHabilitation->employee_id,
+               'habilitation_id' => $employeeHabilitation->habilitation_id,
+               'type' => $employeeHabilitation->type,
+               'created_by' => auth()->id(),
+               'role' => auth()->user()->role,
+          ]);
           // Auto-generate alerts
           Alert::genererPourHabilitation($employeeHabilitation);
 
@@ -178,22 +178,49 @@ class EmployeeHabilitationController extends Controller
      // PUT /api/employee-habilitations/{id}
      public function update(Request $request, EmployeeHabilitation $employeeHabilitation): JsonResponse
      {
+
           $validated = $request->validate([
                'date_obtention' => 'required|date',
                'type' => 'required|in:initiale,recyclage',
                'organisme_formation' => 'required|string|max:150',
                'date_aptitude_medicale' => 'required|date',
+               'mode' => 'required|in:correction,renouvellement',
+
           ]);
 
-          $employeeHabilitation->update($validated);
-          $employeeHabilitation->updateStatut();
+          $mode = $validated['mode'];
+          unset($validated['mode']);
 
-          // Reset validation workflow
+          // ── Recalculate date_expiration automatically ──────────
+          $habilitation = $employeeHabilitation->habilitation;
+          $dateExpiration = Carbon::parse($validated['date_obtention'])
+               ->addYears($habilitation->duree_de_validite);
+
+          $validated['date_expiration'] = $dateExpiration->toDateString();
+          $validated['statut'] = $dateExpiration->isPast() ? 'expirée' : 'valide';
+
+
+          // update with mode
+          $oldDocument = Document::where('employee_habilitation_id', $employeeHabilitation->id)
+               ->where('type', 'individuelle')
+               ->latest()
+               ->first();
+          if ($mode === 'correction' && $oldDocument) {
+               $oldPath = storage_path('app/public/' . $oldDocument->chemin);
+               if (file_exists($oldPath)) {
+                    unlink($oldPath);
+               }
+               $oldDocument->delete();
+          } elseif ($mode === 'renouvellement' && $oldDocument) {
+               $oldDocument->update(['archived' => true]);
+          }
+
+          $employeeHabilitation->update($validated);
           $employeeHabilitation->validations()->delete();
           $employeeHabilitation->update(['validation_statut' => 'non_soumis']);
 
           // Reset alerts
-  Alert::where('employee_habilitation_id', $employeeHabilitation->id)->delete();
+          Alert::where('employee_habilitation_id', $employeeHabilitation->id)->delete();
           Alert::genererPourHabilitation($employeeHabilitation->fresh());
 
 
@@ -201,15 +228,15 @@ class EmployeeHabilitationController extends Controller
           $settings = Setting::getInstance();
           Carbon::setLocale('fr');
 
-          $employeeHabilitation->load(['employee','habilitation', 'habilitation.volet']);
+          $employeeHabilitation->load(['employee', 'habilitation', 'habilitation.volet']);
 
           $pdf = Pdf::loadView('pdf.habilitation_individuelle', [
                'eh' => $employeeHabilitation,
                'settings' => $settings,
-               'validation' => null,  
+               'validation' => null,
           ])->setPaper('a4', 'portrait');
 
-          $filename = 'Habilitation_'.$employeeHabilitation->type.'_' . $employeeHabilitation->id . '_' . now()->format('YmdHis') . '.pdf';
+          $filename = 'Habilitation_' . $employeeHabilitation->type . '_' . $employeeHabilitation->id . '_' . now()->format('YmdHis') . '.pdf';
           $relativePath = 'documents/' . $filename;
           $pdf->save(storage_path('app/public/' . $relativePath));
 
@@ -218,6 +245,12 @@ class EmployeeHabilitationController extends Controller
                'employee_habilitation_id' => $employeeHabilitation->id,
                'type' => 'individuelle',
                'chemin' => $relativePath,
+          ]);
+          // ── Log the operation ──────────────────────────────────
+          \Log::info('attribution.updated', [
+               'employee_habilitation_id' => $employeeHabilitation->id,
+               'mode' => $mode,
+               'updated_by' => auth()->id(),
           ]);
 
           return response()->json($employeeHabilitation->load(['employee', 'habilitation.volet']), 200);
@@ -268,15 +301,18 @@ class EmployeeHabilitationController extends Controller
           $query = EmployeeHabilitation::with([
                'employee.service.departement',
                'habilitation.volet',
-          ])->where('date_expiration', '<=', Carbon::today()->addDays(30))
-               ->orderBy('date_expiration');
+          ])
+               ->where('date_expiration', '<=', Carbon::today()->addDays(30))
+               ->orderBy('date_expiration')
+               ->whereHas('employee', function ($q) {
+                    $q->whereNull('deleted_at'); // exclude trashed employees
+               });
 
           if (auth()->user()->role === 'Manager') {
-               $query->whereHas(
-                    'employee',
-                    fn($q) =>
+               $query->whereHas('employee', function ($q) {
                     $q->where('service_id', auth()->user()->service_id)
-               );
+                         ->whereNull('deleted_at'); // still enforce not trashed
+               });
           }
 
           $results = $query->get()->map(fn($eh) => [
@@ -291,6 +327,7 @@ class EmployeeHabilitationController extends Controller
 
           return response()->json($results);
      }
+
 
      // PATCH /api/employee-habilitations/{id}/acknowledge
      // public function acknowledge(EmployeeHabilitation $employeeHabilitation): JsonResponse

@@ -220,8 +220,8 @@ const profilePage = async () => {
 // ── Alert count ───────────────────────────────────────
 const fetchAlertCount = async () => {
   try {
-    const { data } = await api.get('/alerts/count');
-    alertCount.value = data.urgentes;
+const { data } = await api.get('/employee-habilitations/alertes');
+    alertCount.value = data.length;
   } catch { }
 };
 

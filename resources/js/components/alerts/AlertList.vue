@@ -224,12 +224,16 @@ const filtered = computed(() => {
 const groupedByEmployee = computed(() => {
   const map = new Map();
   filtered.value.forEach(row => {
+    if (!row.employee) return; // skip if employee is null
     const key = row.employee.id;
-    if (!map.has(key)) map.set(key, { employee: row.employee, habilitations: [] });
+    if (!map.has(key)) {
+      map.set(key, { employee: row.employee, habilitations: [] });
+    }
     map.get(key).habilitations.push(row);
   });
   return [...map.values()];
 });
+
 
 // ── Expand/collapse ────────────────────────────────────────────────────────
 const toggleEmployee = (id) => {

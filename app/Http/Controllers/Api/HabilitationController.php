@@ -10,21 +10,25 @@ use Illuminate\Http\JsonResponse;
 class HabilitationController extends Controller
 {
     // GET /api/habilitations
-    public function index(Request $request): JsonResponse
-    {
-        $query = Habilitation::with('volet');
+   public function index(Request $request): JsonResponse
+{
+    $query = Habilitation::with('volet')
+        ->withCount(['employeeHabilitations as employee_count' => function ($q) {
+            $q->whereHas('employee', function ($employeeQuery) {
+                $employeeQuery->whereNull('deleted_at');
+            });
+        }]);
 
-        // Filter by volet
-        if ($request->has('volet_id')) {
-            $query->where('volet_id', $request->volet_id);
-        }
-        $habilitations = $query->orderBy('nom')->get();
-        $habilitations = Habilitation::with('volet')
-    ->withCount('employeeHabilitations as employee_count')
-    ->get();
-
-        return response()->json($habilitations, 200);
+    // Filter by volet
+    if ($request->has('volet_id')) {
+        $query->where('volet_id', $request->volet_id);
     }
+
+    $habilitations = $query->orderBy('nom')->get();
+
+    return response()->json($habilitations, 200);
+}
+
 
     // GET /api/habilitations/volet/{volet_id}
     public function getByVolet($volet_id): JsonResponse

@@ -564,7 +564,7 @@ const openPreview = async (hab) => {
   previewLoading.value = true;
   try {
     const { data } = await api.get(`/documents/employees-par-habilitation/${hab.id}`);
-    previewEmployees.value = data.employees ?? [];
+     previewEmployees.value = data.employees ?? [];
   } catch {
     previewEmployees.value = [];
   } finally {
