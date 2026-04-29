@@ -17,6 +17,8 @@ class Document extends Model
         'chemin',
         'type',
         'employee_habilitation_id',
+        'habilitation_id',
+        'archived',
     ];
 
     // ── Relations ──────────────────────────────────────────
@@ -43,5 +45,5 @@ class Document extends Model
     }
 
 
-   
+
 }

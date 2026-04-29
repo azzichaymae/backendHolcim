@@ -748,7 +748,6 @@ const generateNote = async () => {
 const fetchDocuments = async () => {
   try {
     const { data } = await api.get('/documents/all');
-
     documents.value = data.filter(doc => {
       if (doc.type === 'individuelle') {
         return (
@@ -818,7 +817,8 @@ const fetchAll = async () => {
 
 onMounted(() => {
   loading.value = true;
-  fetchAll();
+  !isManager.value ?  fetchAll() : fetchDocuments();
+  loading.value = false;
   if (route.params.id) {
     generateIndividuelle(Number(route.params.id));
   }

@@ -27,7 +27,7 @@ class DocumentGenerationController extends Controller
 
         $employees = EmployeeHabilitation::with('employee.service')
             ->where('habilitation_id', $habilitation->id)
-            
+
             ->orderBy('date_expiration')
             ->get()
             ->map(function ($eh) {
@@ -99,6 +99,7 @@ class DocumentGenerationController extends Controller
             'nom' => $filename,
             'employee_habilitation_id' => $eh->id,
             'type' => 'individuelle',
+            'habilitation_id' => null, 
             'chemin' => $relativePath,
         ]);
 
@@ -122,7 +123,6 @@ class DocumentGenerationController extends Controller
             ->where('statut', 'valide')
             ->orderBy('date_expiration')
             ->get();
-
         $settings = Setting::getInstance();
 
         $filename = 'note_habilitation_'
@@ -150,13 +150,13 @@ class DocumentGenerationController extends Controller
             $counter++;
         }
 
-        $docDB = Document::create([
-            'nom' => $filename,
-            'type' => 'note',
-            'employee_habilitation_id' => $habilitation->id,
-            'chemin' => $relativePath,
-        ]);
-
+$docDB = Document::create([
+    'nom'              => $filename,
+    'type'             => 'note',
+    'habilitation_id'  => $habilitation->id, // ← correct field
+    'employee_habilitation_id' => null,       // ← null for notes
+    'chemin'           => $relativePath,
+]);
         return $pdf->download($filename);
     }
 

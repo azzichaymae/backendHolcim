@@ -117,7 +117,7 @@
           <div class="mgr-cascade-step">
             <label class="mgr-step-label">
               <span class="mgr-step-num">1</span>
-              Catégorie (Volet)
+              Catégorie  
             </label>
             <select v-model="cascadeVolet" @change="onCascadeVoletChange" class="filter-select mgr-select">
               <option value="">Sélectionner une catégorie...</option>
@@ -663,7 +663,6 @@ const fetchData = async () => {
       api.get('/employee-habilitations'),
       api.get('/volets'),
     ]);
-    console.log(attribRes.data);
     attributions.value = attribRes.data;
     volets.value = voletRes.data;
   } finally {

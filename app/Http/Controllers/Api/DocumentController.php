@@ -48,8 +48,7 @@ class DocumentController extends Controller
             $doc->employee_matricule = $doc->employeeHabilitation->employee->matricule ?? null;
             $doc->habilitation_nom = $doc->employeeHabilitation->habilitation->nom ?? null;
         } elseif ($doc->type === 'note') {
-            // For note docs, the foreign key points directly to habilitation
-            $habilitation = Habilitation::find($doc->employee_habilitation_id); 
+            $habilitation = Habilitation::find($doc->habilitation_id); 
             $doc->habilitation_nom = $habilitation?->nom;
             // No employee info for notes
             $doc->employee_nom = null;

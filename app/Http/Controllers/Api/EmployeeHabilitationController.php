@@ -146,7 +146,12 @@ class EmployeeHabilitationController extends Controller
           $validated['statut'] = $dateExpiration->isPast() ? 'expirée' : 'valide';
 
           $employeeHabilitation = EmployeeHabilitation::create($validated);
-
+          \Log::info('attribution.created', [
+               'employee_habilitation_id' => $employeeHabilitation->id,
+               'employee_id' => $employeeHabilitation->employee_id,
+               'habilitation_id' => $employeeHabilitation->habilitation_id,
+               'created_by' => auth()->id(),
+          ]);
           Alert::genererPourHabilitation($employeeHabilitation);
 
           // Génération PDF mais stockage direct
@@ -218,7 +223,11 @@ class EmployeeHabilitationController extends Controller
           $employeeHabilitation->update($validated);
           $employeeHabilitation->validations()->delete();
           $employeeHabilitation->update(['validation_statut' => 'non_soumis']);
-
+\Log::info('attribution.updated', [
+    'employee_habilitation_id' => $employeeHabilitation->id,
+    'mode'                     => $mode,
+    'updated_by'               => auth()->id(),
+]);
           // Reset alerts
           Alert::where('employee_habilitation_id', $employeeHabilitation->id)->delete();
           Alert::genererPourHabilitation($employeeHabilitation->fresh());

@@ -11,33 +11,40 @@ use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\Mail;
 class AuthController extends Controller
 {
-   // In AuthController login method
-public function login(Request $request): JsonResponse
-{
-    $credentials = $request->validate([
-        'email'    => 'required|email',
-        'password' => 'required',
-    ]);
+    // In AuthController login method
+    public function login(Request $request): JsonResponse
+    {
+        $credentials = $request->validate([
+            'email' => 'required|email',
+            'password' => 'required',
+        ]);
 
-    if (!auth()->attempt($credentials)) {
-        return response()->json(['message' => 'Identifiants incorrects.'], 401);
+        if (!auth()->attempt($credentials)) {
+            \Log::error('auth.login', [
+                "event_type" => "login",
+                "status" => "failed",
+                'ip' => $request->ip(),
+            ]);
+            return response()->json(['message' => 'Identifiants incorrects.'], 401);
+        }
+
+        $user = auth()->user();  
+        $token = $user->createToken('auth_token')->plainTextToken;
+
+        // ← Log AFTER authentication succeeds
+        \Log::info('auth.login', [
+            'user_id' => $user->id,
+            'role' => $user->role,
+            "event_type" => "login",
+            "status" => "succeeded",
+            'ip' => $request->ip(),
+        ]);
+
+        return response()->json([
+            'token' => $token,
+            'user' => $user,
+        ]);
     }
-
-    $user  = auth()->user(); // ← user is authenticated here
-    $token = $user->createToken('auth_token')->plainTextToken;
-
-    // ← Log AFTER authentication succeeds
-    \Log::info('auth.login', [
-        'user_id' => $user->id,
-        'role'    => $user->role,
-        'ip'      => $request->ip(),
-    ]);
-
-    return response()->json([
-        'token' => $token,
-        'user'  => $user,
-    ]);
-}
 
     public function logout(Request $request): JsonResponse
     {
@@ -102,28 +109,28 @@ public function login(Request $request): JsonResponse
         return response()->json(['message' => 'Demande envoyée au RRH']);
     }
 
-public function rrhResetPassword(Request $request, $userId)
-{
-    $request->validate([
-        'new_password' => 'required|min:8' // RRH sends the new password from frontend
-    ]);
-    
-    $user = User::findOrFail($userId);
-    
-    // Update password with what RRH sent
-    $user->password = Hash::make($request->new_password);
-    $user->save();
-    
-    // Send email to user with the NEW password (what RRH just set)
-    Mail::send('emails.user-new-password', [
-        'user' => $user, 
-        'password' => $request->new_password // The password RRH entered
-    ], function($mail) use ($user) {
-        $mail->to($user->email)->subject('Votre mot de passe a été modifié');
-    });
-    
-    return response()->json([
-        'message' => 'Mot de passe modifié et notification envoyée'
-    ]);
-}
+    public function rrhResetPassword(Request $request, $userId)
+    {
+        $request->validate([
+            'new_password' => 'required|min:8' // RRH sends the new password from frontend
+        ]);
+
+        $user = User::findOrFail($userId);
+
+        // Update password with what RRH sent
+        $user->password = Hash::make($request->new_password);
+        $user->save();
+
+        // Send email to user with the NEW password (what RRH just set)
+        Mail::send('emails.user-new-password', [
+            'user' => $user,
+            'password' => $request->new_password // The password RRH entered
+        ], function ($mail) use ($user) {
+            $mail->to($user->email)->subject('Votre mot de passe a été modifié');
+        });
+
+        return response()->json([
+            'message' => 'Mot de passe modifié et notification envoyée'
+        ]);
+    }
 }
