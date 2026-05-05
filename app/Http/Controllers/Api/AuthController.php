@@ -24,19 +24,21 @@ class AuthController extends Controller
                 "event_type" => "login",
                 "status" => "failed",
                 'ip' => $request->ip(),
+                'email' => $request->email,
+                'reason' => 'Identifiants incorrects',
+
+
             ]);
             return response()->json(['message' => 'Identifiants incorrects.'], 401);
         }
 
-        $user = auth()->user();  
+        $user = auth()->user();
         $token = $user->createToken('auth_token')->plainTextToken;
 
-        // ← Log AFTER authentication succeeds
+        // AuthController — après connexion réussie
         \Log::info('auth.login', [
             'user_id' => $user->id,
             'role' => $user->role,
-            "event_type" => "login",
-            "status" => "succeeded",
             'ip' => $request->ip(),
         ]);
 

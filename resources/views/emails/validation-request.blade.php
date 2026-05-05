@@ -53,11 +53,11 @@
 </head>
 <body>
 <div class="container">
-  <div class="header">
-    <div class="header-logo">HOLCIM</div>
-    <h1>Portail Habilitations</h1>
-    <p>Demande de validation de signature</p>
-  </div>
+  <div class="header" style="background: linear-gradient(135deg, #0d7377 0%, #1a4a6b 100%); background-color: #0d7377;">
+  <div class="header-logo">HOLCIM</div>
+  <h1>Portail Habilitations</h1>
+  <p>Demande de validation de signature</p>
+</div>
 
   <div class="body">
     <p>Bonjour <strong>{{ $validation->signataire_nom ?? $signataire_nom }}</strong>,</p>
@@ -117,10 +117,12 @@
 
     <p>Veuillez confirmer ou refuser cette habilitation :</p>
 
-  <div class="btn-group">
-  <a href="{{ route('validation.confirm', ['token' => $validation->token]) }}" class="btn-confirm">✓ Confirmer</a>
-  <a href="{{ route('validation.refuse', ['token' => $validation->token]) }}" class="btn-refuse">✗ Refuser</a>
-</div>
+  <a href="{{ url('/api/validations/confirmer/' . $validation->token) }}" class="btn-confirm">
+  ✓ Confirmer
+</a>
+<a href="{{ url('/api/validations/refuser/' . $validation->token) }}" class="btn-refuse">
+  ✗ Refuser
+</a>
 
     <div class="notice">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">

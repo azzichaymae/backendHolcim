@@ -125,6 +125,7 @@ import { useAuthStore } from '@/stores/auth';
 import api from '@/services/api';
 import '@/../css/components/layouts/Applayout.css';
 import { useInactivityTimer } from '@/composables/useInactivityTimer';
+import { da } from 'vuetify/locale';
 
 const sidebarOpen = ref(false);
 
@@ -221,8 +222,10 @@ const profilePage = async () => {
 const fetchAlertCount = async () => {
   try {
 const { data } = await api.get('/employee-habilitations/alertes');
-    alertCount.value = data.length;
-  } catch { }
+     alertCount.value = data.length;
+  } catch (e) {
+    console.error('Error fetching alert count:', e);
+  }
 };
 
 // ── Close dropdown on outside click ──────────────────

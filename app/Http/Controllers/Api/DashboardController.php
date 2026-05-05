@@ -178,7 +178,7 @@ class DashboardController extends Controller
         $alertsUrgentes = (clone $alertQuery)->urgentes()->count();
         $alerts30j = (clone $alertQuery)->actives()->where('jours_avant_expiration', 30)->count();
         $alerts7j = (clone $alertQuery)->actives()->where('jours_avant_expiration', 7)->count();
-
+        
         // ── Chart 1 : Statut breakdown (pie chart) ─────────
         $statutChart = [
             ['label' => 'Valides', 'value' => $habilitationsValides, 'color' => '#22c55e'],

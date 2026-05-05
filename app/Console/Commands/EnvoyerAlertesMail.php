@@ -52,7 +52,12 @@ class EnvoyerAlertesMail extends Command
                             new HabilitationExpirationMail($eh, $jours)
                         );
                     }
-
+                    \Log::warning('alert.expiration', [
+                        'employee_habilitation_id' => $eh->id,
+                        'jours_avant_expiration' => $jours,
+                        'employee' => $eh->employee->nom_complet ?? '',
+                        'habilitation' => $eh->habilitation->nom ?? '',
+                    ]);
                     $alert->update(['email_sent_at' => now()]);
                     $sent++;
 

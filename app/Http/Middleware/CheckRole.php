@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 \DB::listen(function ($query) {
-    \Log::info('SQL: ' . $query->sql . ' | Time: ' . $query->time . 'ms');
+    \Log::info('SQL: ' . $query->sql . ' | Time: ' . $query->time . 'ms' );
 });
 class CheckRole
 {

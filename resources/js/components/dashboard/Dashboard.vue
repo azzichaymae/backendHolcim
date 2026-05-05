@@ -62,8 +62,7 @@
           </div>
         </div>
 
-        <!-- Bar — alertes par seuil -->
-        <div class="chart-card">
+         <div class="chart-card">
           <div class="chart-header">
             <h3>Alertes par Seuil</h3>
             <span class="chart-badge">Actives</span>
@@ -265,7 +264,7 @@ const fetchAll = async () => {
     ]);
      stats.value = dashRes.data.stats;
     charts.value = dashRes.data.charts;
- 
+   fetchAlerts();
   } catch (e) {
     console.error(e);
   } finally {
@@ -360,19 +359,47 @@ const donutOptions = {
 };
 
 // ── Alertes bar chart ─────────────────────────────────
+const alerts = ref([]);
+const fetchAlerts = async () => {
+  try {
+const { data } = await api.get('/employee-habilitations/alertes');
+    alerts.value = data;
+   } catch (e) {
+    console.error('Error fetching alert count:', e);
+  }
+};
 const alertesBarData = computed(() => {
-  const data = charts.value?.alertes_par_seuil ?? [];
-   return {
-    labels: data.map(i => i.label),
-    datasets: [{
-      label: 'Alertes',
-      data: data.map(i => i.value),
-      backgroundColor: data.map(i => i.color),
-      borderRadius: 6,
-      borderSkipped: false,
-    }],
-  };
+  try {
+    // Initialisation des compteurs
+    const counts = { "30j": 0, "7j": 0, "Aujourd'hui": 0 };
+    console.log('Calculating alert tiers from alerts:', alerts.value);
+    alerts.value.forEach(i => {
+      const jours = parseInt(i.jours_restants);
+      if (jours <= 30 && jours >= 8) {
+        counts["30j"]++;
+      } else if (jours <= 7 && jours >= 1) {
+        counts["7j"]++;
+      } else if (jours === 0) {
+        counts["Aujourd'hui"]++;
+      }
+    });
+
+    return {
+      labels: Object.keys(counts),
+      datasets: [{
+        label: 'Alertes',
+        data: Object.values(counts),
+        backgroundColor: ["#f59e0b", "#ef4444", "#6b7280"], // orange, rouge, gris
+        borderRadius: 6,
+        borderSkipped: false,
+      }],
+    };
+  } catch (e) {
+    console.error(e);
+    return { labels: [], datasets: [] };
+  }
 });
+
 
 // ── Volet bar chart ───────────────────────────────────
 const voletBarData = computed(() => {

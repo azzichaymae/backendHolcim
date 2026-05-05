@@ -664,6 +664,7 @@ const fetchData = async () => {
       api.get('/volets'),
     ]);
     attributions.value = attribRes.data;
+    console.log('Attributions fetched:', attribRes.data);
     volets.value = voletRes.data;
   } finally {
     loading.value = false;
@@ -690,7 +691,7 @@ const loadingVal = ref(false);
 const soumettreValidation = async (id) => {
   try {
     logoutAlert.value = true;
-    loadingVal.value = true; // affiche le loader
+    loadingVal.value = true; 
 
     await api.post(`/validations/initier/${id}`);
     await fetchData();

@@ -15,8 +15,7 @@ class ValidationController extends Controller
     // POST /api/validations/initier/{employeeHabilitation}
     public function initier(EmployeeHabilitation $employeeHabilitation): JsonResponse
     {
-        // Already in progress
-        if ($employeeHabilitation->validation_statut === 'en_cours') {
+         if ($employeeHabilitation->validation_statut === 'en_cours') {
             return response()->json(['message' => 'Validation déjà en cours.'], 409);
         }
 
@@ -91,11 +90,16 @@ class ValidationController extends Controller
     }
 
     // GET /api/validations/confirmer/{token}
-   public function confirmer(string $token): \Illuminate\Http\RedirectResponse
+   public function confirmer(string $token)
 {
     $validation = AttributionValidation::where('token', $token)
         ->where('statut', 'en_attente')
-        ->firstOrFail();
+        ->first();
+
+    if (!$validation) {
+        return response(view('validation.already_processed')->render(), 200)
+            ->header('Content-Type', 'text/html');
+    }
 
     $validation->update([
         'statut'       => 'confirme',
@@ -107,61 +111,53 @@ class ValidationController extends Controller
         'habilitation',
     ]);
 
-    // ── Regenerate and OVERWRITE the existing PDF ──────────
     $this->regenererDocument($eh);
 
-    // Check if all confirmed
     $allConfirmed = $eh->validations()
         ->where('statut', '!=', 'confirme')
         ->doesntExist();
 
     if ($allConfirmed) {
         $eh->update(['validation_statut' => 'valide']);
-        $eh->validations()->delete(); 
     } else {
         $this->sendNextValidationEmail($eh);
     }
-\Log::info('validation.confirmed', [
-    'employee_habilitation_id' => $eh->id,
-    'signataire'               => $validation->signataire_nom,
-    'role'                     => $validation->role,
-    'ordre'                    => $validation->ordre,
-]);
-        return redirect()->route('validation.confirmation');
+
+    // Return standalone HTML — no Vue needed
+    return response(view('validation.confirmed', [
+        'signataire' => $validation->signataire_nom,
+        'habilitation' => $eh->habilitation->nom,
+        'employe' => $eh->employee->prenom . ' ' . $eh->employee->nom,
+    ])->render(), 200)->header('Content-Type', 'text/html');
 }
 
 
-    
+
 
     // GET /api/validations/refuser/{token}
-    public function refuser(string $token)
-    {
-        $validation = AttributionValidation::where('token', $token)
-            ->where('statut', 'en_attente')
-            ->firstOrFail();
+  public function refuser(Request $request, string $token)
+{
+    $validation = AttributionValidation::where('token', $token)
+        ->where('statut', 'en_attente')
+        ->first();
 
-        $validation->update([
-            'statut' => 'refuse',
-            'confirmed_at' => now(),
-        ]);
-
-        $eh = $validation->employeeHabilitation;
-        // Update overall status to refused
-        $eh->update(['validation_statut' => 'refuse']);
-
-        // Store data in session
-        session()->flash('refus_data', [
-            'employee' => $eh->employee->prenom . ' ' . $eh->employee->nom,
-            'matricule' => $eh->employee->matricule ?? 'Sous-traitant',
-            'habilitation' => $eh->habilitation->nom,
-        ]);
-\Log::warning('validation.refused', [
-    'employee_habilitation_id' => $eh->id,
-    'signataire'               => $validation->signataire_nom,
-    'motif'                    => $validation->commentaire,
-]);
-        return redirect()->route('validation.refus');
+    if (!$validation) {
+        return response(view('validation.already_processed')->render(), 200)
+            ->header('Content-Type', 'text/html');
     }
+
+    $validation->update([
+        'statut'       => 'refuse',
+        'confirmed_at' => now(),
+    ]);
+
+    $validation->employeeHabilitation->update(['validation_statut' => 'refuse']);
+    $this->notifyRefus($validation);
+
+    return response(view('validation.refused', [
+        'signataire' => $validation->signataire_nom,
+    ])->render(), 200)->header('Content-Type', 'text/html');
+}
     public function refusPage()
     {
         $data = session('refus_data');
@@ -234,31 +230,32 @@ class ValidationController extends Controller
         ]);
     }
     private function regenererDocument(EmployeeHabilitation $eh): void
-{
-    // Get the existing document record for this attribution
-    $document = \App\Models\Document::where('employee_habilitation_id', $eh->id)
-        ->where('type', 'individuelle')
-        ->latest()
-        ->first();
+    {
+        // Get the existing document record for this attribution
+        $document = \App\Models\Document::where('employee_habilitation_id', $eh->id)
+            ->where('type', 'individuelle')
+            ->latest()
+            ->first();
 
-    if (!$document) return;
+        if (!$document)
+            return;
 
-    $settings   = \App\Models\Setting::getInstance();
-    $validation = $this->statut($eh)->getData();
+        $settings = \App\Models\Setting::getInstance();
+        $validation = $this->statut($eh)->getData();
 
-    \Carbon\Carbon::setLocale('fr');
+        \Carbon\Carbon::setLocale('fr');
 
-    $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pdf.habilitation_individuelle', [
-        'eh'         => $eh,
-        'settings'   => $settings,
-        'validation' => $validation,
-    ])->setPaper('a4', 'portrait');
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pdf.habilitation_individuelle', [
+            'eh' => $eh,
+            'settings' => $settings,
+            'validation' => $validation,
+        ])->setPaper('a4', 'portrait');
 
-    // Overwrite the SAME file — same path, same DB record
-    $fullPath = storage_path('app/public/' . $document->chemin);
-    $pdf->save($fullPath);
+        // Overwrite the SAME file — same path, same DB record
+        $fullPath = storage_path('app/public/' . $document->chemin);
+        $pdf->save($fullPath);
 
-    // Update the document timestamp so we know when it was last regenerated
-    $document->touch();
-}
+        // Update the document timestamp so we know when it was last regenerated
+        $document->touch();
+    }
 }

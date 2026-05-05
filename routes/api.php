@@ -18,16 +18,21 @@ use App\Http\Controllers\Api\ValidationController;
 
 // ── Public routes ──────────────────────────────────────
 Route::post('/auth/login', [AuthController::class, 'login']);
-Route::get(
-    '/validations/confirmer/{token}',
-    [ValidationController::class, 'confirmer']
-);
-Route::get(
-    '/validations/refuser/{token}',
-    [ValidationController::class, 'refuser']
-);
-Route::get('/validations/info/{token}', [ValidationController::class, 'info']);
+// Route::get(
+//     '/validations/confirmer/{token}',
+//     [ValidationController::class, 'confirmer']
+// );
+// Route::get(
+//     '/validations/refuser/{token}',
+//     [ValidationController::class, 'refuser']
+// );
+// Route::get('/validations/info/{token}', [ValidationController::class, 'info']);
 
+// Public validation routes — accessible from email links on any device
+Route::get('/validations/confirmer/{token}', [ValidationController::class, 'confirmer'])
+    ->name('validation.confirm');
+Route::get('/validations/refuser/{token}',   [ValidationController::class, 'refuser'])
+    ->name('validation.refuse');
 // routes/api.php
 Route::post('/auth/request-password-reset', [AuthController::class, 'requestReset']);
 Route::post('/auth/rrh/reset-password/{userId}', [AuthController::class, 'rrhResetPassword'])

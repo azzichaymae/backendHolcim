@@ -273,10 +273,11 @@
           <div class="column-icon indiv-icon" v-html="icons.user"></div>
           <h2 class="column-title">Habilitations Individuelles</h2>
         </div>
-        
-        <div v-if="filteredIndividualDocs.length === 0" class="column-empty">
-          <p>Aucun document individuel</p>
-        </div>
+         <div class="loading-state" v-if="loading">
+        <div class="spinner"></div>
+        <span>Chargement des documents...</span>
+      </div>
+      
         
         <div v-else>
           <div v-for="group in paginatedIndividualGroups" :key="group.employee_matricule" class="doc-group">
@@ -747,6 +748,7 @@ const generateNote = async () => {
 
 const fetchDocuments = async () => {
   try {
+    loading.value = true;
     const { data } = await api.get('/documents/all');
     documents.value = data.filter(doc => {
       if (doc.type === 'individuelle') {
@@ -818,8 +820,7 @@ const fetchAll = async () => {
 onMounted(() => {
   loading.value = true;
   !isManager.value ?  fetchAll() : fetchDocuments();
-  loading.value = false;
-  if (route.params.id) {
+   if (route.params.id) {
     generateIndividuelle(Number(route.params.id));
   }
 });
