@@ -6,8 +6,7 @@ use Illuminate\Foundation\Configuration\Middleware;
 use App\Http\Middleware\CheckRole;
 use Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful;
 
-
-return Application::configure(basePath: dirname(__DIR__))
+ return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
         web: __DIR__.'/../routes/web.php',
         api: __DIR__.'/../routes/api.php',
@@ -18,6 +17,9 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'role' => CheckRole::class,
         ]);
+    })
+     ->withMiddleware(function (Middleware $middleware) {
+        $middleware->trustProxies(at: '*');
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //

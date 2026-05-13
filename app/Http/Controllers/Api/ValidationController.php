@@ -15,7 +15,7 @@ class ValidationController extends Controller
     // POST /api/validations/initier/{employeeHabilitation}
     public function initier(EmployeeHabilitation $employeeHabilitation): JsonResponse
     {
-         if ($employeeHabilitation->validation_statut === 'en_cours') {
+        if ($employeeHabilitation->validation_statut === 'en_cours') {
             return response()->json(['message' => 'Validation déjà en cours.'], 409);
         }
 
@@ -90,74 +90,74 @@ class ValidationController extends Controller
     }
 
     // GET /api/validations/confirmer/{token}
-   public function confirmer(string $token)
-{
-    $validation = AttributionValidation::where('token', $token)
-        ->where('statut', 'en_attente')
-        ->first();
+    public function confirmer(string $token)
+    {
+        $validation = AttributionValidation::where('token', $token)
+            ->where('statut', 'en_attente')
+            ->first();
 
-    if (!$validation) {
-        return response(view('validation.already_processed')->render(), 200)
-            ->header('Content-Type', 'text/html');
+        if (!$validation) {
+            return response(view('validation.already_processed')->render(), 200)
+                ->header('Content-Type', 'text/html');
+        }
+
+        $validation->update([
+            'statut' => 'confirme',
+            'confirmed_at' => now(),
+        ]);
+
+        $eh = $validation->employeeHabilitation->load([
+            'employee.service.departement',
+            'habilitation',
+        ]);
+
+        $this->regenererDocument($eh);
+
+        $allConfirmed = $eh->validations()
+            ->where('statut', '!=', 'confirme')
+            ->doesntExist();
+
+        if ($allConfirmed) {
+            $eh->update(['validation_statut' => 'valide']);
+        } else {
+            $this->sendNextValidationEmail($eh);
+        }
+
+        // Return standalone HTML — no Vue needed
+        return response(view('validation.confirmed', [
+            'signataire' => $validation->signataire_nom,
+            'habilitation' => $eh->habilitation->nom,
+            'employe' => $eh->employee->prenom . ' ' . $eh->employee->nom,
+        ])->render(), 200)->header('Content-Type', 'text/html')->header('ngrok-skip-browser-warning', 'true');
     }
-
-    $validation->update([
-        'statut'       => 'confirme',
-        'confirmed_at' => now(),
-    ]);
-
-    $eh = $validation->employeeHabilitation->load([
-        'employee.service.departement',
-        'habilitation',
-    ]);
-
-    $this->regenererDocument($eh);
-
-    $allConfirmed = $eh->validations()
-        ->where('statut', '!=', 'confirme')
-        ->doesntExist();
-
-    if ($allConfirmed) {
-        $eh->update(['validation_statut' => 'valide']);
-    } else {
-        $this->sendNextValidationEmail($eh);
-    }
-
-    // Return standalone HTML — no Vue needed
-    return response(view('validation.confirmed', [
-        'signataire' => $validation->signataire_nom,
-        'habilitation' => $eh->habilitation->nom,
-        'employe' => $eh->employee->prenom . ' ' . $eh->employee->nom,
-    ])->render(), 200)->header('Content-Type', 'text/html');
-}
 
 
 
 
     // GET /api/validations/refuser/{token}
-  public function refuser(Request $request, string $token)
-{
-    $validation = AttributionValidation::where('token', $token)
-        ->where('statut', 'en_attente')
-        ->first();
+    public function refuser(Request $request, string $token)
+    {
+        $validation = AttributionValidation::where('token', $token)
+            ->where('statut', 'en_attente')
+            ->first();
 
-    if (!$validation) {
-        return response(view('validation.already_processed')->render(), 200)
-            ->header('Content-Type', 'text/html');
+        if (!$validation) {
+            return response(view('validation.already_processed')->render(), 200)
+                ->header('Content-Type', 'text/html');
+        }
+
+        $validation->update([
+            'statut' => 'refuse',
+            'confirmed_at' => now(),
+        ]);
+
+        $validation->employeeHabilitation->update(['validation_statut' => 'refuse']);
+        $this->notifyRefus($validation);
+
+        return response(view('validation.refused', [
+            'signataire' => $validation->signataire_nom,
+        ])->render(), 200)->header('Content-Type', 'text/html')->header('ngrok-skip-browser-warning', 'true');;
     }
-
-    $validation->update([
-        'statut'       => 'refuse',
-        'confirmed_at' => now(),
-    ]);
-
-    $validation->employeeHabilitation->update(['validation_statut' => 'refuse']);
-    $this->notifyRefus($validation);
-
-    return response(view('validation.refused', [
-        'signataire' => $validation->signataire_nom,
-    ])->render(), 200)->header('Content-Type', 'text/html');
-}
     public function refusPage()
     {
         $data = session('refus_data');
@@ -207,17 +207,17 @@ class ValidationController extends Controller
             ->send(new ValidationRequestMail($next, $eh));
     }
 
-    // private function notifyRefus(AttributionValidation $validation): void
-    // {
-    //     $recipients = \App\Models\User::whereIn('role', ['RRH', 'RH'])
-    //         ->pluck('email')->toArray();
+    private function notifyRefus(AttributionValidation $validation): void
+    {
+        $recipients = \App\Models\User::whereIn('role', ['RRH', 'RH'])
+            ->pluck('email')->toArray();
 
-    //     foreach ($recipients as $email) {
-    //         Mail::to($email)->send(
-    //             new \App\Mail\ValidationRefusMail($validation)
-    //         );
-    //     }
-    // }
+        foreach ($recipients as $email) {
+            Mail::to($email)->send(
+                new \App\Mail\ValidationRefusMail($validation)
+            );
+        }
+    }
 
 
     public function info(string $token): JsonResponse

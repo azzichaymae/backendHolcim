@@ -2,7 +2,7 @@ import axios from "axios";
 
 const api = axios.create({
     // api.js
-    baseURL: import.meta.env.VITE_API_URL ?? "http://172.16.16.165/api",
+    baseURL: import.meta.env.VITE_API_URL ?? "http://172.16.16.179/api",
     headers: {
         "Content-Type": "application/json",
         Accept: "application/json",

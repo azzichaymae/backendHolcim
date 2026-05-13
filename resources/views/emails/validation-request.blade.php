@@ -117,10 +117,10 @@
 
     <p>Veuillez confirmer ou refuser cette habilitation :</p>
 
-  <a href="{{ url('/api/validations/confirmer/' . $validation->token) }}" class="btn-confirm">
+  <a href="{{ ('https://body-wad-perm.ngrok-free.dev/api/validations/confirmer/' . $validation->token) }}" class="btn-confirm">
   ✓ Confirmer
 </a>
-<a href="{{ url('/api/validations/refuser/' . $validation->token) }}" class="btn-refuse">
+<a href="{{ ('https://body-wad-perm.ngrok-free.dev/api/validations/refuser/' . $validation->token) }}" class="btn-refuse">
   ✗ Refuser
 </a>
 

@@ -323,7 +323,7 @@
                           <span v-html="icons.pdf"></span>
                         </button>
                         <button class="action-btn validate"
-                          v-if="item.validation_statut === 'non_soumis' || item.validation_statut === 'refuse'"
+                          v-if="item.validation_statut === 'non_soumis' "
                           @click="soumettreValidation(item.id)" title="Soumettre pour validation">
                           <span v-html="icons.send"></span>
                         </button>
