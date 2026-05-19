@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Http\Controllers\Api;
-
+use Carbon\Carbon;
 use App\Http\Controllers\Controller;
 use App\Models\Alert;
 use Illuminate\Http\Request;
@@ -9,6 +9,52 @@ use Illuminate\Http\JsonResponse;
 
 class AlertController extends Controller
 {
+
+
+// GET /api/alerts/{periode}
+public function periode(Request $request, int $periode): JsonResponse
+{
+    $query = Alert::with([
+        'employeeHabilitation.employee.service.departement',
+        'employeeHabilitation.habilitation.volet',
+    ])->actives();
+
+    // Restrict Manager to their own service
+    if (auth()->check() && auth()->user()->role === 'Manager') {
+        $managerServiceId = auth()->user()->service_id;
+        $query->whereHas('employeeHabilitation.employee', function ($q) use ($managerServiceId) {
+            $q->where('service_id', $managerServiceId);
+        });
+    }
+
+    // Apply period filter
+    if ($periode === 30) {
+        $query->whereBetween('jours_avant_expiration', [8, 30]);
+    } elseif ($periode === 7) {
+        $query->whereBetween('jours_avant_expiration', [1, 7]);
+    } elseif ($periode === 0) {
+        $query->where('jours_avant_expiration', 0);
+    }
+
+    $alerts = $query
+    ->orderBy('alert_date', 'asc')
+    ->orderBy('jours_avant_expiration', 'asc')
+    ->get()
+    ->map(function ($alert) {
+        $expiration = Carbon::parse($alert->employeeHabilitation->date_expiration);
+        $today = Carbon::today();
+
+        $joursRestants = $today->diffInDays($expiration, false); // negative if expired
+
+        $alert->jours_restants = $joursRestants;
+        $alert->jours_restants_display = $joursRestants > 0 ? $joursRestants : null;
+
+        return $alert;
+    });
+
+    return response()->json($alerts, 200);
+}
+
     // GET /api/alerts
     public function index(Request $request): JsonResponse
     {

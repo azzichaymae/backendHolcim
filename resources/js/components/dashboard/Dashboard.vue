@@ -136,11 +136,11 @@
               </thead>
               <tbody>
                 <tr v-for="row in expirations" :key="row.employee_habilitation_id">
-                  <td class="td-name">{{ row.employee?.nom }} {{ row.employee?.prenom }}</td>
-                  <td>{{ row.employee?.matricule }}</td>
-                  <td>{{ row.habilitation?.nom }}</td>
-                  <td>{{ row.habilitation?.volet?.nom }}</td>
-                  <td>{{ formatDate(row.date_expiration) }}</td>
+                  <td class="td-name">{{ row.employee_habilitation?.employee?.nom }} {{ row.employee_habilitation?.employee?.prenom }}</td>
+                  <td>{{ row.employee_habilitation?.employee?.matricule ?? "Sous-traitant" }}</td>
+                  <td>{{ row.employee_habilitation?.habilitation?.nom }}</td>
+                  <td>{{ row.employee_habilitation?.habilitation?.volet?.nom }}</td>
+                  <td>{{ formatDate(row.employee_habilitation?.date_expiration) }}</td>
                   <td>
                     <span class="jours-badge" :class="{
                       expired: row.jours_restants <= 0,
@@ -211,13 +211,11 @@ const fetchExpirations = async (jours) => {
   expLoading.value = true;
   try {
     // jours=0 means already expired → use statut filter instead
-    const url = jours === 0
-      ? '/employee-habilitations?statut=expirée'
-      : `/employee-habilitations/expiring?jours=${jours}`;
+    const url = `/alerts/${jours}`;
     const { data } = await api.get(url);
     expirations.value = isManager.value
       ? (data.expiring_soon ?? data)
-      : data;
+      : data ;
   } catch (e) {
     console.error(e);
   } finally {
@@ -229,8 +227,8 @@ const fetchExpirations = async (jours) => {
 const fetchTierCounts = async () => {
   try {
     const [r30, r7, r0] = await Promise.all([
-      api.get('/employee-habilitations/expiring?jours=30'),
-      api.get('/employee-habilitations/expiring?jours=7'),
+      api.get('/alerts/30'),
+      api.get('/alerts/7'),
       api.get('/employee-habilitations?statut=expirée'),
     ]);
     tierCounts.value = {

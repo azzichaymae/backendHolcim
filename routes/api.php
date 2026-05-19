@@ -150,6 +150,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::middleware('role:RRH,RH,Manager')->group(function () {
         Route::get('/alerts', [AlertController::class, 'index']);
         Route::get('/alerts/count', [AlertController::class, 'count']);
+        Route::get('/alerts/{periode}', [AlertController::class, 'periode']);
+
         Route::get('/alerts/{alert}', [AlertController::class, 'show']);
         Route::delete('/alerts/{alert}', [AlertController::class, 'destroy']);
     });
