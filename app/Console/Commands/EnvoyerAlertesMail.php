@@ -14,62 +14,47 @@ class EnvoyerAlertesMail extends Command
     protected $signature = 'alertes:envoyer-mail';
     protected $description = 'Envoie les emails pour les alertes du jour';
 
-    public function handle(): void
-    {
-        $alertes = Alert::with([
-            'employeeHabilitation.employee',
-            'employeeHabilitation.habilitation.volet',
-        ])
-            ->whereDate('alert_date', Carbon::today())
-            ->where('statut', 'active')
-            ->whereNull('email_sent_at')
-            ->get();
+   public function handle(): void
+{
+    $alertes = Alert::with([
+        'employeeHabilitation.employee',
+        'employeeHabilitation.habilitation.volet',
+    ])
+        ->where('statut', 'active')
+        ->whereNull('email_sent_at')
+        ->get();
 
-        $sent = 0;
+    $sent = 0;
 
-        foreach ($alertes as $alerte) {
-            $eh = $alerte->employeeHabilitation;
+    foreach ($alertes as $alerte) {
+        $eh = $alerte->employeeHabilitation;
 
-            $recipients = User::whereIn('role', ['RRH'])
-                ->pluck('email')
-                ->toArray();
+        $recipients = User::whereIn('role', ['RRH'])
+            ->pluck('email')
+            ->toArray();
 
-            if (empty($recipients)) {
-                continue;
-            }
-
-            // Centralized loop for 30j, 7j, 0j alerts
-            foreach ([30, 7, 0] as $jours) {
-                $alert = Alert::where('employee_habilitation_id', $eh->id)
-                    ->where('jours_avant_expiration', $jours)
-                    ->whereDate('alert_date', Carbon::today())
-                    ->whereNull('email_sent_at')
-                    ->first();
-
-                if ($alert) {
-                    foreach ($recipients as $recipient) {
-                        Mail::to($recipient)->send(
-                            new HabilitationExpirationMail($eh, $jours)
-                        );
-                    }
-                    \Log::warning('alert.expiration', [
-                        'employee_habilitation_id' => $eh->id,
-                        'jours_avant_expiration' => $jours,
-                        'employee' => $eh->employee->nom_complet ?? '',
-                        'habilitation' => $eh->habilitation->nom ?? '',
-                    ]);
-                    $alert->update(['email_sent_at' => now()]);
-                    $sent++;
-
-                    // Resolve previous tier alerts for same habilitation
-                    Alert::where('employee_habilitation_id', $eh->id)
-                        ->where('jours_avant_expiration', '>', $jours)
-                        ->where('statut', 'active')
-                        ->update(['statut' => 'vu']);
-                }
-            }
+        if (empty($recipients)) {
+            continue;
         }
 
-        $this->info("✅ {$sent} email(s) envoyé(s).");
+        foreach ($recipients as $recipient) {
+            Mail::to($recipient)->send(
+                new HabilitationExpirationMail($eh, $alerte->jours_avant_expiration)
+            );
+        }
+
+        \Log::warning('alert.expiration', [
+            'employee_habilitation_id' => $eh->id,
+            'jours_avant_expiration'   => $alerte->jours_avant_expiration,
+            'employee'                 => $eh->employee->nom_complet ?? '',
+            'habilitation'             => $eh->habilitation->nom ?? '',
+        ]);
+
+        $alerte->update(['email_sent_at' => now()]);
+        $sent++;
     }
+
+    $this->info("✅ {$sent} email(s) envoyé(s).");
+}
+
 }

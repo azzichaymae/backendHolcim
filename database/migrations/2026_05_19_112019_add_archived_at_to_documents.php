@@ -11,7 +11,7 @@ return new class extends Migration {
     public function up(): void
     {
         Schema::table('documents', function (Blueprint $table) {
-            $table->timestamp('archived_at')->nullable()->after('updated_at');
+            $table->boolean('archived')->nullable()->after('updated_at');
         });
     }
 
@@ -21,7 +21,7 @@ return new class extends Migration {
     public function down(): void
     {
         Schema::table('documents', function (Blueprint $table) {
-            //
+            $table->dropColumn('archived');
         });
     }
 };

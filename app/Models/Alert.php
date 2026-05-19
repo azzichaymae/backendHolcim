@@ -53,12 +53,7 @@ class Alert extends Model
     // ── Scopes ─────────────────────────────────────────────
 
    
-
-    public function scopeVues($query)
-    {
-        return $query->where('statut', 'vu');
-    }
-
+ 
     public function scopeExpirationProche($query)
     {
         return $query->where('alert_type', 'expiration_proche');
@@ -78,7 +73,7 @@ class Alert extends Model
 public function scopeActives($query)
 {
     return $query->where('statut', 'active')
-                 ->whereDate('alert_date', '<=', Carbon::today());
+                    ->whereDate('alert_date', '<=', Carbon::today());
 }
 
 public function scopePourAujourdhui($query)
@@ -88,11 +83,7 @@ public function scopePourAujourdhui($query)
 
     // ── Helpers ────────────────────────────────────────────
 
-    public function marquerVue(): void
-    {
-        $this->update(['statut' => 'vu']);
-    }
-
+    
     public function getLibelleAttribute(): string
     {
         $nom = $this->employeeHabilitation->habilitation->nom ?? 'Habilitation';
@@ -111,29 +102,35 @@ public static function genererPourHabilitation(EmployeeHabilitation $eh): void
 {
     $dateExpiration = Carbon::parse($eh->date_expiration);
     $today          = Carbon::today();
+    $joursRestants  = $today->diffInDays($dateExpiration, false);
 
-     if ($dateExpiration->lt($today)) {
-        return;
-    }
+    foreach ([30, 7, 0] as $jours) {
+        $alertDate = $dateExpiration->copy()->subDays($jours);
 
-   foreach ([30, 7, 0] as $jours) {
-    $alertDate = $dateExpiration->copy()->subDays($jours);
+        // Always create the alert record
+        $statut = 'inactive';
 
-    if ($alertDate->gte($today)) {
+        if ($jours == 30 && $joursRestants <= 30 && $joursRestants > 7) {
+            $statut = 'active';
+        } elseif ($jours == 7 && $joursRestants <= 7 && $joursRestants > 0) {
+            $statut = 'active';
+        } elseif ($jours == 0 && $joursRestants == 0) {
+            $statut = 'active';
+        }
+
         self::updateOrCreate(
             [
                 'employee_habilitation_id' => $eh->id,
                 'jours_avant_expiration'   => $jours,
             ],
             [
-                'alert_type'  => 'expiration_proche',
-                'alert_date'  => $alertDate,
-                'statut'      => 'active', // activation controlled by scope date filter
+                'alert_type'    => 'expiration_proche',
+                'alert_date'    => $alertDate->toDateString(),
+                'statut'        => $statut,
                 'email_sent_at' => null,
             ]
         );
     }
-}
 }
 
    
