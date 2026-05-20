@@ -31,7 +31,7 @@ public function periode(Request $request, int $periode): JsonResponse
     if ($periode === 30) {
         $query->whereBetween('jours_avant_expiration', [8, 30]);
     } elseif ($periode === 7) {
-        $query->whereBetween('jours_avant_expiration', [1, 7]);
+        $query->whereBetween('jours_avant_expiration', [1, 8]);
     } elseif ($periode === 0) {
         $query->where('jours_avant_expiration', 0);
     }
