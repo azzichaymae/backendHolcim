@@ -170,9 +170,9 @@
 
             <div class="body-text">
                 Je soussigné M. <span class="bold">{{ $settings->directeur_usine }}</span>,
-                en qualité de {{ $settings->titre_directeur }} de la {{ $settings->site }},
-                par le présent document que les personnes ci-dessous sont habilitées
-                à <span class="bold">{{ $habilitation->nom }}</span>.
+                en qualité de {{ $settings->titre_directeur }} {{ $settings->site }},
+                par le présent document que les personnes ci-dessous sont habilitées en qualité
+            de <span class="bold">{{ $habilitation->nom }}</span>.
             </div>
 
             <div class="section-label" style="margin-top:16px;">•  Personnel Propre</div>

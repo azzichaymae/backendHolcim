@@ -21,19 +21,16 @@ class EmployeesImport
 
         if (empty($rows)) return;
 
-        // First row = headers, normalize to lowercase
-        $headers = array_map(fn($h) => strtolower(trim((string) $h)), $rows[0]);
+         $headers = array_map(fn($h) => strtolower(trim((string) $h)), $rows[0]);
 
         foreach (array_slice($rows, 1) as $index => $row) {
             $lineNumber = $index + 2;
 
-            // Skip completely empty rows
-            if (empty(array_filter($row, fn($v) => $v !== null && $v !== ''))) continue;
+             if (empty(array_filter($row, fn($v) => $v !== null && $v !== ''))) continue;
 
             $data = array_combine($headers, $row);
 
-            // Resolve service by name
-            $serviceName = trim((string) ($data['service'] ?? ''));
+             $serviceName = trim((string) ($data['service'] ?? ''));
             $service = Service::whereRaw('LOWER(nom) = ?', [strtolower($serviceName)])->first();
             if (!$service) {
                 $this->errors[] = "Ligne {$lineNumber} — service introuvable : \"{$serviceName}\"";
@@ -41,18 +38,27 @@ class EmployeesImport
             }
 
             $nom    = strtoupper(trim((string) ($data['nom']    ?? '')));
-            $prenom = ucfirst(strtolower(trim((string) ($data['prenom'] ?? ''))));
-            $email  = trim((string) ($data['email_pro'] ?? ''));
-            $poste  = trim((string) ($data['position']  ?? ''));
-            $type   = strtolower(trim((string) ($data['type']   ?? 'propre')));
+            $prenom = ucfirst(strtolower(trim((string) ($data['prénom'] ?? ''))));
+            $poste  = trim((string) ($data['poste']  ?? ''));
 
-            if (!$nom || !$prenom || !$email || !$poste) {
-                $this->errors[] = "Ligne {$lineNumber} — champs obligatoires manquants (nom, prénom, email_pro, position)";
-                continue;
+             $rawType = trim((string) ($data['type'] ?? ''));
+            $type = $rawType === "PP" ? 'propre' : 'sous-traitant';
+
+             $emailInput = trim((string) ($data['e-mail'] ?? ''));
+            if ($emailInput !== '') {
+                $email = $emailInput;
+            } else {
+                $email = $this->generateEmail($prenom, $nom);
             }
 
-            if (!in_array($type, ['propre', 'sous-traitant'])) {
-                $this->errors[] = "Ligne {$lineNumber} — type invalide : \"{$type}\" (propre ou sous-traitant)";
+            if (!$nom || !$prenom || !$email || !$poste) {
+                $this->errors[] = "Ligne {$lineNumber} — champs obligatoires manquants (nom, prénom, e-mail, poste)";
+                continue;
+            }
+            
+
+            if (!in_array($rawType, ['PP', 'ST'])) {
+                $this->errors[] = "Ligne {$lineNumber} — type invalide : \"{$rawType}\" (propre ou sous-traitant)";
                 continue;
             }
 
@@ -84,8 +90,30 @@ class EmployeesImport
                 $this->updated++;
             } else {
                 Employee::create($payload);
-                $this->imported++;
             }
         }
     }
+
+    /**
+     * Generate a company email from first and last name.
+     */
+    private function generateEmail(string $prenom, string $nom): string
+    {
+        $cleanPrenom = $this->sanitizeForEmail($prenom);
+        $cleanNom    = $this->sanitizeForEmail($nom);
+
+        return strtolower("{$cleanPrenom}.{$cleanNom}@holcim.com");
+    }
+
+    /**
+     * Remove accents and non-alphanumeric characters for email local parts.
+     */
+ private function sanitizeForEmail(string $value): string
+{
+     $value = iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $value);
+     $value = preg_replace('/[^a-zA-Z0-9\-]/u', '', $value);
+
+    return $value;
+}
+
 }

@@ -180,7 +180,6 @@ const icons = {
 
 }
 
-//forgot password script
 const email = ref('')
 const message = ref('')
 const success = ref(false)

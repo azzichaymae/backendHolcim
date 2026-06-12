@@ -34,7 +34,7 @@ export function useInactivityTimer() {
         showWarning.value = false;
 
         warningTimer = setTimeout(() => {
-            showWarning.value = true; // show banner
+            showWarning.value = true; 
         }, WARNING_MS);
 
         timer = setTimeout(logout, TIMEOUT_MS);
@@ -44,7 +44,7 @@ export function useInactivityTimer() {
         events.forEach((e) =>
             window.addEventListener(e, reset, { passive: true }),
         );
-        reset(); // start the first timer
+        reset();  
     };
 
     const stop = () => {

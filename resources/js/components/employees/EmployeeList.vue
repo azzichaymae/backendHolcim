@@ -1,6 +1,5 @@
 <template>
-  <div class="employee-list">
-
+<div class="employee-list-page">
     <!-- ── Header ─────────────────────────────────────── -->
     <div class="page-header">
       <div>
@@ -26,8 +25,8 @@
         <input v-model="filters.search" type="text" placeholder="Rechercher par nom, prénom, matricule..."
           class="search-input" @input="debouncedFetch" />
       </div>
-
-      <select v-model="filters.departement_id" @change="onDepartementChange" class="filter-select" v-if="!isManager">
+<span class="filter-group" v-if="!isManager">
+   <select v-model="filters.departement_id" @change="onDepartementChange" class="filter-select" v-if="!isManager">
         <option value="">Tous les départements</option>
         <option v-for="dep in departements" :key="dep.id" :value="dep.id">
           {{ dep.nom }}
@@ -39,8 +38,7 @@
         <option v-for="svc in filteredServices" :key="svc.id" :value="svc.id">
           {{ svc.nom }}
         </option>
-      </select>
-      <button class="btn-archived" :class="{ active: showArchived }" @click="showArchived = !showArchived" v-if="!isManager">
+      </select><button class="btn-archived" :class="{ active: showArchived }" @click="showArchived = !showArchived" v-if="!isManager">
         <span v-html="icons.archive"></span>
         {{ showArchived ? 'Voir actifs' : 'Voir archivés' }}
       </button>
@@ -48,7 +46,10 @@
         <span v-html="icons.x"></span>
         Réinitialiser
       </button>
-    </div>
+</span>
+      </div>
+      
+   
 
     <!-- ── Loading ────────────────────────────────────── -->
     <div class="loading-state" v-if="loading">
@@ -130,7 +131,8 @@
 
 
     <!-- ── Import Modal ───────────────────────────────── -->
-    <Teleport to="body">
+    
+  </div><Teleport to="body">
       <div v-if="showImportModal" class="import-backdrop" @click.self="closeImportModal">
         <div class="import-dialog">
 
@@ -244,7 +246,6 @@
         </div>
       </div>
     </Teleport>
-  </div>
 </template>
 
 <script setup>
@@ -287,14 +288,12 @@ const filteredServices = computed(() =>
     : services.value
 );
 
-// ── Import state ─────────────────────────────────────
 const showImportModal = ref(false);
 const importFile = ref(null);
 const importing = ref(false);
 const importResult = ref(null);
 const isDragging = ref(false);
 
-// ── Icons ─────────────────────────────────────────────
 const icons = {
   restore: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" 
      viewBox="0 0 24 24" fill="none" stroke="currentColor" 
@@ -315,7 +314,6 @@ const icons = {
   fileExcel: `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>`,
 };
 
-// ── Fetch ─────────────────────────────────────────────
 const fetchEmployees = async () => {
   loading.value = true;
   const endpoint = showArchived.value ? '/employees/archived' : '/employees';
@@ -349,14 +347,12 @@ const fetchReferentials = async () => {
   services.value = svcRes.data;
 };
 
-// ── Debounce search ───────────────────────────────────
 let debounceTimer = null;
 const debouncedFetch = () => {
   clearTimeout(debounceTimer);
   debounceTimer = setTimeout(fetchEmployees, 350);
 };
 
-// ── Filter helpers ────────────────────────────────────
 const onDepartementChange = () => {
   filters.service_id = '';
   fetchEmployees();
@@ -369,7 +365,6 @@ const resetFilters = () => {
   fetchEmployees();
 };
 
-// ── Navigation ────────────────────────────────────────
 const authStore = useAuthStore();
 
 const goToDetail = (id) => {
@@ -378,7 +373,6 @@ const goToDetail = (id) => {
 };
 
 
-// ── Delete ────────────────────────────────────────────
 const confirmDelete = (emp) => {
   deleteTarget.value = emp;
 };
@@ -414,7 +408,6 @@ const forceDelete = async (emp) => {
   }
 };
 
-// ── Import ────────────────────────────────────────────
 const closeImportModal = () => {
   showImportModal.value = false;
   importFile.value = null;
@@ -468,7 +461,6 @@ const downloadTemplate = () => {
   a.click(); URL.revokeObjectURL(url);
 };
 
-//Archived habs
 const showArchivedModal = ref(false);
 const archivedHabs = ref([]);
 const showArchiveHab = async (id) => {

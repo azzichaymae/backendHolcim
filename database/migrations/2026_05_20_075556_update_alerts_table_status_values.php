@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('alerts', function (Blueprint $table) {
-            $table->enum('statut', ['inactive', 'active', 'resolue'])->default('inactive')->change();
+            $table->enum('statut', ['inactive', 'active'])->default('inactive')->change();
         });
     }
 

@@ -1,3 +1,4 @@
+
 /* ── Page ─────────────────────────────────────────────────────────────── */
 .attribution-list { display: flex; flex-direction: column; gap: 16px; }
 
@@ -88,11 +89,11 @@
 .search-input::placeholder { color: #9ca3af; }
 
 .filter-group {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
+   display: flex;
+  gap: 12px;
+  width: 100%;
 }
-
+.filter-group > * { flex: 1; min-width: 0; }
 .filter-select {
   padding: 8px 12px;
   border: 1.5px solid #e8ecf0;
@@ -102,6 +103,8 @@
   background: white;
   outline: none;
   cursor: pointer;
+  width: 100%; /* takes full width of parent */
+  box-sizing: border-box; /* includes padding in width calculation */
 }
 .filter-select:focus { border-color: #1a6b8a; }
 

@@ -4,7 +4,7 @@
     <!-- ── Header ─────────────────────────────────────── -->
     <div class="dashboard-header">
       <div>
-        <h1 class="dash-title">Dashboard</h1>
+        <h1 class="page-title">Dashboard</h1>
         <p class="dash-subtitle">
           {{ isManager ? `${managerService}` : 'Service : Vue globale — tous les services' }}
         </p>
@@ -62,14 +62,15 @@
           </div>
         </div>
 
-         <div class="chart-card">
-          <div class="chart-header">
-            <h3>Alertes par Seuil</h3>
-            <span class="chart-badge">Actives</span>
-          </div>
-          <Bar :data="alertesBarData" :options="barOptions" />
-        </div>
-
+    <div class="chart-card">
+  <div class="chart-header">
+    <h3>Alertes par Seuil</h3>
+    <span class="chart-badge">Actives</span>
+  </div>
+  <div class="alertes-chart-wrap">
+    <Bar :data="alertesBarData" :options="alertesBarOptions" />
+  </div>
+</div>
       </div>
 
       <!-- ── Charts Row 2 ───────────────────────────────── -->
@@ -90,7 +91,7 @@
             <h3>Salariés par Service</h3>
             <span class="chart-badge">Effectifs</span>
           </div>
-          <Bar :data="serviceBarData" :options="barOptions" />
+          <Bar :data="serviceBarData" :options="serviceBarOptions" />
         </div>
 
       </div>
@@ -181,22 +182,18 @@ const loading = ref(true);
 const stats = ref(null);
 const charts = ref(null);
 
-// ── Expiration state ──────────────────────────────────
 const expirations = ref([]);
 const expLoading = ref(false);
 const activeJours = ref(30);
-// Counts per tier — fetched once on mount alongside the 30j data
 const tierCounts = ref({ 30: 0, 7: 0, 0: 0 });
 
 const expirationTabs = computed(() => [
   { jours: 30, label: '30 jours', cls: 'tab-warning', count: tierCounts.value[30] },
   { jours: 7, label: '7 jours', cls: 'tab-urgent', count: tierCounts.value[7] },
-  // { jours: 0, label: 'Expirés', cls: 'tab-expired', count: tierCounts.value[0] },
 ]);
 
 const isManager = computed(() => auth.user?.role === 'Manager');
 
-// ── Icons ─────────────────────────────────────────────
 const icons = {
   employees: `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>`,
   valides: `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`,
@@ -206,11 +203,9 @@ const icons = {
   check: `<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`,
 };
 
-// ── Fetch expiration data for a given tier ────────────
 const fetchExpirations = async (jours) => {
   expLoading.value = true;
   try {
-    // jours=0 means already expired → use statut filter instead
     const url = `/alerts/${jours}`;
     const { data } = await api.get(url);
     expirations.value = isManager.value
@@ -223,20 +218,18 @@ const fetchExpirations = async (jours) => {
   }
 };
 
-// ── Fetch all tier counts in parallel (for badges) ───
 const fetchTierCounts = async () => {
   try {
     const [r30, r7, r0] = await Promise.all([
       api.get('/alerts/30'),
       api.get('/alerts/7'),
-      api.get('/employee-habilitations?statut=expirée'),
+      api.get('/attributions?statut=expire'),
     ]);
     tierCounts.value = {
       30: r30.data.length,
       7: r7.data.length,
       0: r0.data.length,
     };
-    // Seed the initial table data from the already-fetched 30j response
     expirations.value = isManager.value
       ? (r30.data.expiring_soon ?? r30.data)
       : r30.data;
@@ -245,14 +238,12 @@ const fetchTierCounts = async () => {
   }
 };
 
-// ── Tab switch ────────────────────────────────────────
 const switchTab = async (jours) => {
   if (activeJours.value === jours) return;
   activeJours.value = jours;
   await fetchExpirations(jours);
 };
 
-// ── Full page fetch ───────────────────────────────────
 const fetchAll = async () => {
   loading.value = true;
   try {
@@ -270,7 +261,6 @@ const fetchAll = async () => {
   }
 };
 
-// ── Stats cards ───────────────────────────────────────
 const totalHabilitations = computed(() =>
   (stats.value?.habilitations?.valides ?? 0) +
   (stats.value?.habilitations?.expirees ?? 0)
@@ -318,18 +308,9 @@ const statsCards = computed(() => {
       icon: icons.expirees,
       href: '/attributions?statut=expire',
     },
-    // {
-    //   key: 'alerts',
-    //   label: 'Alertes Actives',
-    //   value: s.alerts?.actives ?? 0,
-    //   color: '#f59e0b',
-    //   percent: 100,
-    //   icon: icons.alerts,
-    // },
   ];
 });
 
-// ── Donut chart ───────────────────────────────────────
 const donutLegend = computed(() => {
   if (!charts.value?.statut_breakdown) return [];
   return charts.value.statut_breakdown.map(item => ({
@@ -356,7 +337,6 @@ const donutOptions = {
   maintainAspectRatio: true,
 };
 
-// ── Alertes bar chart ─────────────────────────────────
 const alerts = ref([]);
 const fetchAlerts = async () => {
   try {
@@ -368,7 +348,6 @@ const { data } = await api.get('/employee-habilitations/alertes');
 };
 const alertesBarData = computed(() => {
   try {
-    // Initialisation des compteurs
     const counts = { "30j": 0, "7j": 0, "Aujourd'hui": 0 };
     console.log('Calculating alert tiers from alerts:', alerts.value);
     alerts.value.forEach(i => {
@@ -387,7 +366,7 @@ const alertesBarData = computed(() => {
       datasets: [{
         label: 'Alertes',
         data: Object.values(counts),
-        backgroundColor: ["#f59e0b", "#ef4444", "#6b7280"], // orange, rouge, gris
+        backgroundColor: ["#f59e0b", "#ef4444", "#6b7280"], 
         borderRadius: 6,
         borderSkipped: false,
       }],
@@ -399,7 +378,6 @@ const alertesBarData = computed(() => {
 });
 
 
-// ── Volet bar chart ───────────────────────────────────
 const voletBarData = computed(() => {
   const data = charts.value?.par_volet ?? [];
    return {
@@ -421,7 +399,6 @@ const voletBarData = computed(() => {
   };
 });
 
-// ── Service bar chart ─────────────────────────────────
 const serviceBarData = computed(() => {
   const data = charts.value?.employes_par_service ?? [];
    return {
@@ -436,17 +413,53 @@ const serviceBarData = computed(() => {
   };
 });
 
-// ── Chart options ─────────────────────────────────────
 const barOptions = {
   responsive: true,
   maintainAspectRatio: true,
   plugins: { legend: { display: false } },
   scales: {
-    x: { grid: { display: false } },
-    y: { grid: { color: '#f0f4f8' }, beginAtZero: true, ticks: { precision: 0 } },
+    x: {
+      grid: { display: false },
+      ticks: {
+        maxRotation: 45,     
+        minRotation: 0,
+        font: { size: 11 },
+      },
+    },
+    y: {
+      grid: { color: '#f0f4f8' },
+      beginAtZero: true,
+      ticks: { precision: 0 },
+    },
+  },
+  datasets: {
+    bar: {
+      maxBarThickness: 40,  
+      barThickness: 'flex', 
+    },
+  },
+  layout: {
+    padding: { bottom: 10 }, 
   },
 };
-
+const alertesBarOptions = {
+  responsive: true,
+  maintainAspectRatio: false, 
+  plugins: { legend: { display: false } },
+  scales: {
+    x: { grid: { display: false } },
+    y: {
+      grid: { color: '#f0f4f8' },
+      beginAtZero: true,
+      ticks: { precision: 0 },
+    },
+  },
+  datasets: {
+    bar: {
+      maxBarThickness: 60, 
+    },
+  },
+};
 const voletBarOptions = {
   ...barOptions,
   plugins: { legend: { display: true, position: 'top' } },
@@ -455,8 +468,40 @@ const voletBarOptions = {
     y: { grid: { color: '#f0f4f8' }, beginAtZero: true, ticks: { precision: 0 } },
   },
 };
+const serviceBarOptions = {
+  responsive: true,
+  maintainAspectRatio: true,
+  plugins: { legend: { display: false } },
+  scales: {
+    x: {
+      grid: { display: false },
+      ticks: {
+        maxRotation: 55,
+        minRotation: 30,
+        font: { size: 10 },
+        callback: function(val, index) {
+          const label = this.getLabelForValue(val);
+          return label.length > 12 ? label.substring(0, 12) + '…' : label;
+        },
+      },
+    },
+    y: {
+      grid: { color: '#f0f4f8' },
+      beginAtZero: true,
+      ticks: { precision: 0 },
+    },
+  },
+  datasets: {
+    bar: {
+      maxBarThickness: 30,
+      barThickness: 'flex',
+    },
+  },
+  layout: {
+    padding: { bottom: 20 },
+  },
+};
 
-// ── Helpers ───────────────────────────────────────────
 const formatDate = (dateStr) => {
   if (!dateStr) return '—';
   return new Date(dateStr).toLocaleDateString('fr-FR');

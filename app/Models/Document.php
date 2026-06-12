@@ -21,15 +21,13 @@ class Document extends Model
         'archived',
     ];
 
-    // ── Relations ──────────────────────────────────────────
-
+ 
     public function employeeHabilitation()
     {
         return $this->belongsTo(EmployeeHabilitation::class, 'employee_habilitation_id');
     }
 
-    // ── Accessors ──────────────────────────────────────────
-
+ 
     public function getUrlAttribute(): string
     {
         return Storage::url($this->chemin);

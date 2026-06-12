@@ -19,7 +19,7 @@ class EmployeeHabilitation extends Model
         'date_expiration',
         'type',
         'statut',
-        'organisme_formation',       // ← add
+        'organisme_formation',      
         'date_aptitude_medicale',
             'validation_statut',
 
@@ -28,14 +28,13 @@ class EmployeeHabilitation extends Model
     protected $casts = [
         'date_obtention'         => 'date',
         'date_expiration'        => 'date',
-        'date_aptitude_medicale' => 'date',  // ← add
-        'validation_statut'       => 'string',  // ← add
+        'date_aptitude_medicale' => 'date',  
+        'validation_statut'       => 'string',   
 
     ];
      
 
-    // ── Relations ──────────────────────────────────────────
-
+ 
     public function employee()
     {
         return $this->belongsTo(Employee::class, 'employee_id');
@@ -60,8 +59,7 @@ class EmployeeHabilitation extends Model
 {
     return $this->hasMany(AttributionValidation::class);
 }
-    // ── Accessors ──────────────────────────────────────────
-
+ 
     public function getJoursRestantsAttribute(): int
     {
         return max(0, Carbon::today()->diffInDays($this->date_expiration, false));
@@ -77,8 +75,7 @@ class EmployeeHabilitation extends Model
         return $this->jours_restants <= 30 && !$this->is_expired;
     }
 
-    // ── Helpers ────────────────────────────────────────────
-
+ 
    public function updateStatut(): void
 {
      if (!$this->date_expiration) return; 
@@ -86,8 +83,7 @@ class EmployeeHabilitation extends Model
     $this->save();
 }
 
-    // ── Scopes ─────────────────────────────────────────────
-
+ 
     public function scopeValides($query)
     {
         return $query->where('statut', 'valide');

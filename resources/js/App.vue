@@ -10,12 +10,10 @@ const authStore = useAuthStore();
 let cleanup = null;
 
 onMounted(() => {
-  // Initialize the tab expiry check
-  cleanup = authStore.initTabExpiryCheck();
+   cleanup = authStore.initTabExpiryCheck();
 });
 
 onUnmounted(() => {
-  // Clean up event listener when app unmounts
-  if (cleanup) cleanup();
+   if (cleanup) cleanup();
 });
 </script>

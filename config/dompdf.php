@@ -11,9 +11,8 @@ return [
     | in dompdf_config.inc.php. You can also override the entire config file.
     |
     */
-    'show_warnings' => false,   // Throw an Exception on warnings from dompdf
-
-    'public_path' => null,  // Override the public path if needed
+    'show_warnings' => false,  
+    'public_path' => null,  
 
     /*
      * Dejavu Sans font is missing glyphs for converted entities, turn it off if you need to show € and £.

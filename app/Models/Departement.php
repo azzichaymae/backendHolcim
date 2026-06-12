@@ -13,8 +13,7 @@ class Departement extends Model
 
     protected $fillable = ['nom', 'responsable', 'responsable_email'];
 
-    // ── Relations ──────────────────────────────────────────
-
+ 
     public function services()
     {
         return $this->hasMany(Service::class, 'departement_id');

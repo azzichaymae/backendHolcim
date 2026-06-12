@@ -183,7 +183,6 @@ const deleteTarget = ref(null);
 const form   = reactive({ nom: '' });
 const errors = reactive({ nom: '' });
 
-// ── Icons ─────────────────────────────────────────────
 const icons = {
   plus:   `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>`,
   edit:   `<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>`,
@@ -193,7 +192,6 @@ const icons = {
   star:   `<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>`,
 };
 
-// ── Fetch ─────────────────────────────────────────────
 const fetchVolets = async () => {
   loading.value = true;
   try {
@@ -206,7 +204,6 @@ const fetchVolets = async () => {
   }
 };
 
-// ── Modal ─────────────────────────────────────────────
 const openModal = (volet = null) => {
   editTarget.value = volet;
   form.nom         = volet?.nom ?? '';
@@ -221,7 +218,6 @@ const closeModal = () => {
   errors.nom = '';
 };
 
-// ── Submit ────────────────────────────────────────────
 const submit = async () => {
   errors.nom = '';
   if (!form.nom.trim()) {
@@ -248,7 +244,6 @@ const submit = async () => {
   }
 };
 
-// ── Delete ────────────────────────────────────────────
 const confirmDelete = (volet) => {
   deleteTarget.value = volet;
 };

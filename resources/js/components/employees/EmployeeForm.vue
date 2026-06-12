@@ -222,7 +222,7 @@ const form = reactive({
   prenom: '',
   email_pro: '',
   position: '',
-  type: 'propre',   // ← add
+  type: 'propre',   
   societe: '',
   service_id: '',
 });
@@ -233,13 +233,12 @@ const errors = reactive({
   prenom: '',
   email_pro: '',
   position: '',
-  type: '',   // ← add
+  type: '',  
   societe: '',
   service_id: '',
   global: '',
 });
 
-// ── Icons ─────────────────────────────────────────────
 const icons = {
   building: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-2 8v-3a1 1 0 011-1h2a1 1 0 011 1v3m-4 0h4"/></svg>`,
   truck: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10l2 1m8-11h3l3 4v4h-6V6z"/></svg>`,
@@ -247,14 +246,12 @@ const icons = {
   save: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>`,
 };
 
-// ── Computed ──────────────────────────────────────────
 const fetchPositions = async () => {
   if (!form.service_id) { existingPositions.value = []; return; }
   try {
     const { data } = await api.get('/employees', {
       params: { service_id: form.service_id }
     });
-    // Extract unique non-null positions
     const positions = [...new Set(
       data.map(e => e.position).filter(Boolean)
     )].sort();
@@ -283,7 +280,6 @@ const autoFilledDepartement = computed(() => {
   return svc?.departement?.nom ?? '';
 });
 
-// ── Fetch referentials ────────────────────────────────
 const fetchReferentials = async () => {
   const [depRes, svcRes] = await Promise.all([
     api.get('/departements'),
@@ -293,12 +289,10 @@ const fetchReferentials = async () => {
   services.value = svcRes.data;
 };
 
-// ── Fetch employee (edit mode) ────────────────────────
 const fetchEmployee = async () => {
   const { data } = await api.get(`/employees/${route.params.id}`);
   employee.value = data;
 
-  // Fill form
   form.matricule = data.matricule;
   form.nom = data.nom;
   form.prenom = data.prenom;
@@ -307,12 +301,10 @@ const fetchEmployee = async () => {
   form.service_id = data.service_id;
   form.type = data.type ?? 'propre';
   form.societe = data.societe ?? '';
-  // Pre-select departement for cascading
   selectedDepartement.value = data.service?.departement_id ?? '';
 };
 
 
-// ── Validate ──────────────────────────────────────────
 const clearErrors = () => {
   Object.keys(errors).forEach(k => errors[k] = '');
 };
@@ -332,7 +324,6 @@ const validate = () => {
   return valid;
 };
 
-// ── Submit ────────────────────────────────────────────
 const submit = async () => {
   clearErrors();
 
@@ -362,10 +353,8 @@ const submit = async () => {
   }
 };
 
-// ── Helpers ───────────────────────────────────────────
 const formatDate = (d) => d ? new Date(d).toLocaleDateString('fr-FR') : '—';
 
-// ── Init ──────────────────────────────────────────────
 onMounted(async () => {
   await fetchReferentials();
   if (isEdit.value) await fetchEmployee();

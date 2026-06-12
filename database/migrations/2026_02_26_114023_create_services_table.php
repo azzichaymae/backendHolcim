@@ -14,8 +14,7 @@ return new class extends Migration
             $table->foreignId('departement_id')
                   ->constrained('departements')
                   ->cascadeOnDelete();
-            // responsable_id added later to avoid circular FK
-            $table->timestamps();
+             $table->timestamps();
         });
     }
 

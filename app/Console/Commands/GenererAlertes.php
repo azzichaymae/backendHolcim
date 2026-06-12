@@ -21,8 +21,7 @@ class GenererAlertes extends Command
         foreach ($seuils as $jours) {
             $targetDate = $today->copy()->addDays($jours);
 
-            // Find all valid habilitations expiring exactly on target date
-            $habilitations = EmployeeHabilitation::where('statut', 'valide')
+             $habilitations = EmployeeHabilitation::where('statut', 'valide')
                 ->whereDate('date_expiration', $targetDate)
                 ->get();
 

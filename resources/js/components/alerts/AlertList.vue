@@ -188,8 +188,7 @@ const icons = {
 };
 const expandedEmployees = ref(new Set());
 
-// ── Derived ────────────────────────────────────────────────────────────────
-const expires  = computed(() => rows.value.filter(r => r.jours_restants < 0));
+ const expires  = computed(() => rows.value.filter(r => r.jours_restants < 0));
 const critiques = computed(() => rows.value.filter(r => r.jours_restants >= 0 && r.jours_restants <= 7));
 const proches   = computed(() => rows.value.filter(r => r.jours_restants > 7 && r.jours_restants <= 30));
 
@@ -220,11 +219,10 @@ const filtered = computed(() => {
   return [...list].sort((a, b) => a.jours_restants - b.jours_restants);
 });
 
-// Group filtered rows by employee
-const groupedByEmployee = computed(() => {
+ const groupedByEmployee = computed(() => {
   const map = new Map();
   filtered.value.forEach(row => {
-    if (!row.employee) return; // skip if employee is null
+    if (!row.employee) return; 
     const key = row.employee.id;
     if (!map.has(key)) {
       map.set(key, { employee: row.employee, habilitations: [] });
@@ -235,16 +233,13 @@ const groupedByEmployee = computed(() => {
 });
 
 
-// ── Expand/collapse ────────────────────────────────────────────────────────
-const toggleEmployee = (id) => {
+ const toggleEmployee = (id) => {
   if (expandedEmployees.value.has(id)) expandedEmployees.value.delete(id);
   else expandedEmployees.value.add(id);
-  // trigger reactivity
-  expandedEmployees.value = new Set(expandedEmployees.value);
+   expandedEmployees.value = new Set(expandedEmployees.value);
 };
 
-// ── Helpers ────────────────────────────────────────────────────────────────
-const worstUrgence = (habilitations) => {
+ const worstUrgence = (habilitations) => {
   const min = Math.min(...habilitations.map(r => r.jours_restants));
   if (min < 0)   return 'row-expired';
   if (min <= 7)  return 'row-critical';
@@ -283,8 +278,7 @@ const goToAttribution = (row) => {
   });
 };
 
-// ── API ────────────────────────────────────────────────────────────────────
-const fetchAlertes = async () => {
+ const fetchAlertes = async () => {
   loading.value = true;
   try {
     const { data } = await api.get('/employee-habilitations/alertes');

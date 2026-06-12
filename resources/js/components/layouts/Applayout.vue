@@ -86,7 +86,7 @@
       </header>
 
       <!-- Page content -->
-      <main class="page-content">
+      <main class="page-content" style="padding-bottom:15px">
         <router-view />
         <v-overlay :model-value="logoutAlert" class="align-center justify-center">
           <v-progress-circular color="primary" size="24" indeterminate></v-progress-circular>
@@ -143,7 +143,6 @@ const alertCount = ref(0);
 
 const logoutAlert = ref(false);
 
-// ── Icons (inline SVG) ────────────────────────────────
 const icons = {
   menu: `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>`,
   dashboard: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>`,
@@ -161,7 +160,6 @@ const icons = {
   logout: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>`,
 };
 
-// ── Navigation items ──────────────────────────────────
 const navItems = [
   { name: 'dashboard', label: 'Dashboard', path: '/dashboard', icon: icons.dashboard, roles: ['RRH', 'RH', 'Manager'] },
   { name: 'employees', label: 'Salariés', path: '/employees', icon: icons.employees, roles: ['RRH', 'RH', 'Manager'] },
@@ -172,12 +170,10 @@ const navItems = [
   { name: 'profile', label: 'Profil', path: '/profile', icon: icons.settings, roles: ['RRH', 'RH', 'Manager'] },
 ];
 
-// ── System items ──────────────────────────────────────
 const systemItems = [
   { name: 'settings', label: 'Paramètres', path: '/parametres', icon: icons.settings, roles: ['RRH'] },
 ];
 
-// ── All items combined for page title lookup ──────────
 const allMenuItems = [...navItems, ...systemItems];
 
 const visibleNavItems = computed(() =>
@@ -193,21 +189,17 @@ const canSeeAlerts = computed(() =>
   ['RRH', 'RH', 'Manager'].includes(auth.user?.role)
 );
 
-// ── Page title ────────────────────────────────────────
 const currentPageTitle = computed(() => {
   const item = allMenuItems.find(i => route.path.startsWith(i.path));
   return item?.label ?? 'Dashboard';
 });
 
-// ── User ──────────────────────────────────────────────
 const userInitial = computed(() =>
   auth.user?.nom?.charAt(0).toUpperCase() ?? '?'
 );
 
-// ── Active route ──────────────────────────────────────
 const isActive = (item) => route.path.startsWith(item.path);
 
-// ── Logout ────────────────────────────────────────────
 const handleLogout = async () => {
   logoutAlert.value = true;
   if (await auth.logout()) {
@@ -218,7 +210,6 @@ const handleLogout = async () => {
 const profilePage = async () => {
   router.push({ name: 'profile' })
 }
-// ── Alert count ───────────────────────────────────────
 const fetchAlertCount = async () => {
   try {
 const { data } = await api.get('/employee-habilitations/alertes');
@@ -228,7 +219,6 @@ const { data } = await api.get('/employee-habilitations/alertes');
   }
 };
 
-// ── Close dropdown on outside click ──────────────────
 const handleOutsideClick = (e) => {
   if (!e.target.closest('.user-menu')) {
     userDropdown.value = false;

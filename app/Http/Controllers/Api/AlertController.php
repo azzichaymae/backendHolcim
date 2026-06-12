@@ -19,7 +19,6 @@ public function periode(Request $request, int $periode): JsonResponse
         'employeeHabilitation.habilitation.volet',
     ])->actives();
 
-    // Restrict Manager to their own service
     if (auth()->check() && auth()->user()->role === 'Manager') {
         $managerServiceId = auth()->user()->service_id;
         $query->whereHas('employeeHabilitation.employee', function ($q) use ($managerServiceId) {
@@ -27,8 +26,7 @@ public function periode(Request $request, int $periode): JsonResponse
         });
     }
 
-    // Apply period filter
-    if ($periode === 30) {
+     if ($periode === 30) {
         $query->whereBetween('jours_avant_expiration', [8, 30]);
     } elseif ($periode === 7) {
         $query->whereBetween('jours_avant_expiration', [1, 8]);
@@ -44,7 +42,7 @@ public function periode(Request $request, int $periode): JsonResponse
         $expiration = Carbon::parse($alert->employeeHabilitation->date_expiration);
         $today = Carbon::today();
 
-        $joursRestants = $today->diffInDays($expiration, false); // negative if expired
+        $joursRestants = $today->diffInDays($expiration, false); 
 
         $alert->jours_restants = $joursRestants;
         $alert->jours_restants_display = $joursRestants > 0 ? $joursRestants : null;
@@ -63,8 +61,7 @@ public function periode(Request $request, int $periode): JsonResponse
             'employeeHabilitation.habilitation.volet',
         ]);
 
-        // Auto-restrict Manager to their own service
-        if (auth()->check() && auth()->user()->role === 'Manager') {
+         if (auth()->check() && auth()->user()->role === 'Manager') {
             $managerServiceId = auth()->user()->service_id;
             $query->whereHas('employeeHabilitation.employee', function ($q) use ($managerServiceId) {
                 $q->where('service_id', $managerServiceId);
@@ -105,16 +102,13 @@ public function periode(Request $request, int $periode): JsonResponse
             ->orderBy('jours_avant_expiration', 'asc')
             ->get();
 
-        // ── Group by employee_habilitation_id ──────────────────────────────
-
+ 
         $grouped = $alerts
             ->groupBy('employee_habilitation_id')
             ->map(function ($group) {
-                // Most urgent = smallest jours_avant_expiration
-                $primary = $group->sortBy('jours_avant_expiration')->first();
+                 $primary = $group->sortBy('jours_avant_expiration')->first();
 
-                // statut = 'active' if ANY sibling is still active
-                $anyActive = $group->contains(fn($a) => $a->statut === 'active');
+                 $anyActive = $group->contains(fn($a) => $a->statut === 'active');
 
                 $primary->statut = $anyActive ? 'active' : 'vue';
                 $primary->sibling_ids = $group->pluck('id')->values();

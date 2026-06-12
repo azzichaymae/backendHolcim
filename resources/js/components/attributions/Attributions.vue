@@ -3,7 +3,7 @@
 
     <!-- ── Header ─────────────────────────────────────────────────── -->
     <div class="list-header">
-      <div class="header-left">
+      <div class="header-leftAtt">
         <h1 class="page-title">Associations</h1>
         <p class="page-subtitle">Habilitations attribuées aux employés</p>
       </div>
@@ -319,14 +319,19 @@
 
                     <td>
                       <div class="actions">
-                        <button class="action-btn pdf" @click="docGen(item.id)" title="Générer PDF">
-                          <span v-html="icons.pdf"></span>
+                        <button class="action-btn pdf" @click="previewDocument(item.id)" title="Générer PDF">
+                          <span v-html="icons.eye"></span>
                         </button>
-                        <button class="action-btn validate"
-                          v-if="item.validation_statut === 'non_soumis' "
-                          @click="soumettreValidation(item.id)" title="Soumettre pour validation">
+                       <button 
+                          class="action-btn validate"
+                          v-if="item.validation_statut === 'non_soumis'"
+                          @click="soumettreValidation(item.id)" 
+                          :disabled="item.validation_statut === 'expirée'"
+                          title="Soumettre pour validation"
+                        >
                           <span v-html="icons.send"></span>
                         </button>
+
                         <!-- En cours : bouton cliquable -->
                         <button v-if="item.validation_statut === 'en_cours'" class="action-btn view-validation"
                           @click="voirValidation(item.id)" title="Voir la progression">
@@ -485,6 +490,13 @@
     </v-icon>
   </v-overlay>
 
+    <v-overlay :model-value="previewLoad" class="align-center justify-center">
+    <!-- Loader si en cours -->
+    <v-progress-circular v-if="previewLoad" color="primary" size="32" indeterminate></v-progress-circular>
+
+  </v-overlay>
+
+
 
 
 
@@ -503,7 +515,6 @@ const route = useRoute();
 const authStore = useAuthStore();
 const isManager = computed(() => authStore.user?.role === 'Manager');
 const successSnackbar = ref(false)
-// ── RRH/RH state ──────────────────────────────────────────────────────────
 const attributions = ref([]);
 const volets = ref([]);
 const loading = ref(true);
@@ -513,7 +524,6 @@ const filterType = ref('');
 const filterStatut = ref('');
 const openEmployees = ref({});
 
-// ── Manager state ──────────────────────────────────────────────────────────
 const mgrTab = ref('equipe');
 const equipe = ref([]);
 const loadingEquipe = ref(true);
@@ -528,7 +538,6 @@ const cascadeHabilitations = ref([]);
 const cascadeResults = ref([]);
 const mgrVolets = ref([]);
 
-// ── Icons ──────────────────────────────────────────────────────────────────
 const icons = {
   refresh: `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>`,
   edit: `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>`,
@@ -546,7 +555,6 @@ const icons = {
   emptyBox: `<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>`,
 };
 
-// ── Helpers ────────────────────────────────────────────────────────────────
 const formatDate = (d) => d ? new Date(d).toLocaleDateString('fr-FR') : null;
 
 const joursRestants = (item) => {
@@ -594,7 +602,25 @@ const docGen = async (id) => {
     console.error(e);
   }
 };
-// ── RRH/RH computed ───────────────────────────────────────────────────────
+const previewDocument = async (Habid) => {
+  try {
+    previewLoad.value = true;
+    const { data } = await api.get('/documents/all');
+    const match = data.find(doc => doc.employee_habilitation_id === Habid);
+    const id = match ? match.id : null;
+    const response = await api.get(`/documents/download/${id}`, {
+      responseType: 'blob'
+    });
+    const blob = new Blob([response.data], { type: 'application/pdf' });
+    const url = URL.createObjectURL(blob);
+    window.open(url, '_blank');
+  } catch (e) {
+    console.error(e);
+    alert('Erreur lors de l\'aperçu du document.');
+  } finally {
+    previewLoad.value = false;
+  }
+};
 const filtered = computed(() => {
   let list = attributions.value;
 
@@ -640,7 +666,6 @@ const toggle = (empId) => {
   openEmployees.value[empId] = !openEmployees.value[empId];
 };
 
-// ── Manager helpers ────────────────────────────────────────────────────────
 const mgrValidCount = (emp) => emp.employee_habilitations?.filter(eh => statutClass(eh) === 'valide').length ?? 0;
 const mgrExpiredCount = (emp) => emp.employee_habilitations?.filter(eh => statutClass(eh) === 'expire').length ?? 0;
 const mgrSoonCount = (emp) => emp.employee_habilitations?.filter(eh => statutClass(eh) === 'bientot').length ?? 0;
@@ -655,7 +680,6 @@ const switchMgrTab = (tab) => {
   mgrSearchResults.value = [];
 };
 
-// ── Data fetching ──────────────────────────────────────────────────────────
 const fetchData = async () => {
   loading.value = !logoutAlert.value;
   try {
@@ -684,8 +708,8 @@ const fetchEquipe = async () => {
 const errorSnackbar = ref(false)
 const errorMessage = ref('')
 
-// ── Validation ─────────────────────────────────────────────────────────────
 const logoutAlert = ref(false);
+const previewLoad = ref(false);
 const loadingVal = ref(false);
 
 const soumettreValidation = async (id) => {
@@ -696,10 +720,8 @@ const soumettreValidation = async (id) => {
     await api.post(`/validations/initier/${id}`);
     await fetchData();
 
-    // une fois terminé → remplacer par l’icône
     loadingVal.value = false;
 
-    // fermer automatiquement après 2s
     setTimeout(() => {
       logoutAlert.value = false;
     }, 2000);
@@ -758,7 +780,6 @@ const fetchMgrVolets = async () => {
   mgrVolets.value = data;
 };
 
-// ── Edit association modal ─────────────────────────────────────────────────
 const editMode = ref(null);
 
 const defaultForm = () => ({
@@ -774,7 +795,6 @@ const fetchAndOpenEditModal = async (id) => {
     const association = await api.get(`/employee-habilitations/${id}`);
     editAssociation(association);
 
-    // Clear the query parameter after opening modal
     router.replace({ query: {} });
   } catch (error) {
     console.error('Error fetching association:', error);
@@ -793,7 +813,7 @@ const editAssociation = (association) => {
   form.date_appt_medicale = assocData.date_aptitude_medicale.split('T')[0];
 
   showModal.value = true;
-  editMode.value = route.query.editId ? 'renouvellement' : null; // Si ouvert depuis query param, on présélectionne le mode renouvellement
+  editMode.value = route.query.editId ? 'renouvellement' : null; 
 };
 const closeModal = () => { showModal.value = false; editMode.value  = null; };
 

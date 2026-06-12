@@ -196,15 +196,19 @@
             <!-- List -->
             <div class="org-loading" v-if="depLoading"><div class="st-spinner"></div></div>
             <div class="org-empty" v-else-if="departements.length === 0">Aucun département configuré.</div>
-            <div class="org-list" v-else>
+            <div class="org-list-wrapper" v-else>
+
+            <div class="org-list" >
               <div class="org-item" v-for="dep in departements" :key="dep.id">
                 <template v-if="editingDep?.id === dep.id">
                   <input v-model="editingDep.nom" class="org-input-inline" placeholder="Nom" />
                   <input v-model="editingDep.responsable" class="org-input-inline" placeholder="Responsable" />
                   <input v-model="editingDep.responsable_email" class="org-input-inline" placeholder="Email du responsable" />
-                  <button class="btn-org-action save" @click="saveDepartement" title="Enregistrer">
-                    <span v-html="icons.check"></span>
-                  </button>
+                <button class="btn-org-action save" @click="saveDepartement" 
+  :disabled="savingDep" title="Enregistrer">
+  <span v-if="savingDep" class="st-spinner-sm"></span>
+  <span v-else v-html="icons.check"></span>
+</button>
                   <button class="btn-org-action cancel" @click="editingDep = null" title="Annuler">
                     <span v-html="icons.x"></span>
                   </button>
@@ -227,6 +231,7 @@
                   </div>
                 </template>
               </div>
+            </div>
             </div>
           </div>
 
@@ -257,7 +262,9 @@
             <!-- List -->
             <div class="org-loading" v-if="svcLoading"><div class="st-spinner"></div></div>
             <div class="org-empty" v-else-if="services.length === 0">Aucun service configuré.</div>
-            <div class="org-list" v-else>
+            <div class="org-list-wrapper" v-else>
+
+            <div class="org-list">
               <div class="org-item" v-for="svc in services" :key="svc.id">
                 <template v-if="editingSvc?.id === svc.id">
                   <select v-model="editingSvc.departement_id" class="org-input-inline">
@@ -266,9 +273,11 @@
                   <input v-model="editingSvc.nom" class="org-input-inline" placeholder="Nom" />
                   <input v-model="editingSvc.responsable" class="org-input-inline" placeholder="Responsable" />
                   <input v-model="editingSvc.responsable_email" class="org-input-inline" placeholder="Email du responsable" />
-                  <button class="btn-org-action save" @click="saveService" title="Enregistrer">
-                    <span v-html="icons.check"></span>
-                  </button>
+                  <button class="btn-org-action save" @click="saveService" 
+  :disabled="savingSvc" title="Enregistrer">
+  <span v-if="savingSvc" class="st-spinner-sm"></span>
+  <span v-else v-html="icons.check"></span>
+</button>
                   <button class="btn-org-action cancel" @click="editingSvc = null" title="Annuler">
                     <span v-html="icons.x"></span>
                   </button>
@@ -280,8 +289,9 @@
                   </div>
                   <div class="org-item-meta">
                     <span class="org-dep-badge">{{ svc.departement?.nom }}</span>
-                    <span class="org-count-badge">{{ svc.employees_count ?? 0 }} employé(s)</span>
-                  </div>
+<span class="org-count-badge clickable" @click="openEmpModal(svc)">
+  {{ svc.employees_count ?? 0 }} employé(s)
+</span>                  </div>
                   <div class="org-item-actions">
                     <button class="btn-org-action edit" @click="editingSvc = { ...svc, departement_id: svc.departement_id }" title="Modifier">
                       <span v-html="icons.edit"></span>
@@ -292,6 +302,7 @@
                   </div>
                 </template>
               </div>
+            </div>
             </div>
           </div>
 
@@ -311,7 +322,47 @@
         </div>
       </div>
     </template>
+<!-- ── Employees Modal ─────────────────────────────────────────────────── -->
+<teleport to="body">
+  <div class="emp-modal-backdrop" v-if="empModal.open" @click.self="empModal.open = false">
+    <div class="emp-modal">
+      <div class="emp-modal-header">
+        <div>
+          <div class="emp-modal-title">Employés — {{ empModal.name }}</div>
+          <div class="emp-modal-sub">{{ empModal.employees.length }} employé(s)</div>
+        </div>
+        <button class="emp-modal-close" @click="empModal.open = false">
+          <span v-html="icons.x"></span>
+        </button>
+      </div>
 
+      <div class="emp-modal-body">
+        <div class="emp-modal-loading" v-if="empModal.loading">
+          <div class="st-spinner"></div>
+        </div>
+        <div class="emp-modal-empty" v-else-if="empModal.employees.length === 0">
+          Aucun employé dans ce service.
+        </div>
+        <table class="emp-table" v-else>
+          <thead>
+            <tr>
+              <th>Matricule</th>
+              <th>Nom & Prénom</th>
+              <th>Fonction</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="emp in empModal.employees" :key="emp.id">
+              <td><span class="emp-mat">{{ emp.matricule }}</span></td>
+              <td>{{ emp.prenom }} {{ emp.nom }}</td>
+              <td class="emp-pos">{{ emp.position || '—' }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</teleport>
   </div>
 </template>
 
@@ -320,7 +371,6 @@ import { ref, reactive, onMounted } from 'vue';
 import api from '@/services/api';
 import '@/../css/components/settings/settings.css';
 
-// ── State ──────────────────────────────────────────────────────────────────
 const loading     = ref(true);
 const saving      = ref(false);
 const saveSuccess = ref(false);
@@ -338,7 +388,6 @@ const form = reactive({
   medecin:               '',
 });
 
-// ── Tabs ───────────────────────────────────────────────────────────────────
 const tabs = [
   { key: 'usine',       label: 'Usine',       icon: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>` },
   { key: 'direction',   label: 'Direction',   icon: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>` },
@@ -348,7 +397,6 @@ const tabs = [
   { key: 'medecin',     label: 'Médecin',     icon: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>` },
 ];
 
-// ── Icons ──────────────────────────────────────────────────────────────────
 const icons = {
   checkCircle: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`,
   warning:     `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>`,
@@ -365,7 +413,6 @@ const icons = {
   medical:     `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>`,
 };
 
-// ── Load settings ──────────────────────────────────────────────────────────
 const loadSettings = async () => {
   loading.value = true;
   try {
@@ -387,7 +434,6 @@ const loadSettings = async () => {
   }
 };
 
-// ── Save settings ──────────────────────────────────────────────────────────
 const saveSettings = async () => {
   saving.value      = true;
   saveError.value   = '';
@@ -409,7 +455,6 @@ const saveSettings = async () => {
   }
 };
 
-// ── Départements ──────────────────────────────────────────────────────────
 const departements = ref([]);
 const depLoading   = ref(false);
 const editingDep   = ref(null);
@@ -431,19 +476,24 @@ const addDepartement = async () => {
     newDep.nom = ''; newDep.responsable = ''; newDep.responsable_email = '';
   } catch (e) { alert(e.response?.data?.message ?? 'Erreur'); }
 };
+const savingDep = ref(false);
 
 const saveDepartement = async () => {
+  savingDep.value = true;
   try {
     const { data } = await api.put(`/departements/${editingDep.value.id}`, {
-      nom: editingDep.value.nom,
-      responsable: editingDep.value.responsable,
+      nom:               editingDep.value.nom,
+      responsable:       editingDep.value.responsable,
       responsable_email: editingDep.value.responsable_email,
     });
     const idx = departements.value.findIndex(d => d.id === data.id);
-    if (idx !== -1) departements.value[idx] = data;
+    if (idx !== -1) departements.value[idx] = { ...departements.value[idx], ...data };
     editingDep.value = null;
-    loadDepartements(); 
-  } catch (e) { alert(e.response?.data?.message ?? 'Erreur'); }
+  } catch (e) {
+    alert(e.response?.data?.message ?? 'Erreur');
+  } finally {
+    savingDep.value = false;
+  }
 };
 
 const deleteDepartement = async (dep) => {
@@ -454,7 +504,6 @@ const deleteDepartement = async (dep) => {
   } catch (e) { alert(e.response?.data?.message ?? 'Erreur'); }
 };
 
-// ── Services ───────────────────────────────────────────────────────────────
 const services    = ref([]);
 const svcLoading  = ref(false);
 const editingSvc  = ref(null);
@@ -482,19 +531,25 @@ const addService = async () => {
   } catch (e) { alert(e.response?.data?.message ?? 'Erreur'); }
 };
 
+const savingSvc = ref(false);
+
 const saveService = async () => {
+  savingSvc.value = true;
   try {
     const { data } = await api.put(`/services/${editingSvc.value.id}`, {
-      nom: editingSvc.value.nom,
-      responsable: editingSvc.value.responsable,
-      departement_id: editingSvc.value.departement_id,
+      nom:               editingSvc.value.nom,
+      responsable:       editingSvc.value.responsable,
+      departement_id:    editingSvc.value.departement_id,
       responsable_email: editingSvc.value.responsable_email,
     });
     const idx = services.value.findIndex(s => s.id === data.id);
-    if (idx !== -1) services.value[idx] = data;
+    if (idx !== -1) services.value[idx] = { ...services.value[idx], ...data };
     editingSvc.value = null;
-    loadServices();
-  } catch (e) { alert(e.response?.data?.message ?? 'Erreur'); }
+  } catch (e) {
+    alert(e.response?.data?.message ?? 'Erreur');
+  } finally {
+    savingSvc.value = false;
+  }
 };
 
 const deleteService = async (svc) => {
@@ -504,7 +559,30 @@ const deleteService = async (svc) => {
     services.value = services.value.filter(s => s.id !== svc.id);
   } catch (e) { alert(e.response?.data?.message ?? 'Erreur'); }
 };
+const empModal = reactive({
+  open:      false,
+  loading:   false,
+  name:      '',
+  employees: [],
+});
 
+const openEmpModal = async (entity) => {
+  empModal.open      = true;
+  empModal.loading   = true;
+  empModal.name      = entity.nom;
+  empModal.employees = [];
+
+  try {
+    const { data } = await api.get('/employees', {
+      params: { service_id: entity.id }  
+    });
+    empModal.employees = data;
+  } catch (e) {
+    console.error(e);
+  } finally {
+    empModal.loading = false;
+  }
+};
 onMounted(async () => {
   await loadSettings();
   await Promise.all([loadDepartements(), loadServices()]);
@@ -512,3 +590,15 @@ onMounted(async () => {
 
 
 </script>
+<style scoped>
+
+.st-spinner-sm {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: currentColor;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+</style>

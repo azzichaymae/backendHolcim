@@ -14,24 +14,24 @@ class EmployeeController extends Controller
     {
         $query = Employee::with('service.departement');
 
-        // Auto-restrict Manager to their own service
-        if (auth()->user()->role === 'Manager') {
+         if (auth()->user()->role === 'Manager') {
             $query->where('service_id', auth()->user()->service_id);
         } else {
-            // RRH / RH filters
-            if ($request->has('service_id')) {
+             if ($request->has('service_id')) {
                 $query->where('service_id', $request->service_id);
             }
-
+  if ($request->filled('service_id')) {
+        $query->where('service_id', $request->service_id);
+    }
             if ($request->has('departement_id')) {
                 $query->whereHas('service', function ($q) use ($request) {
                     $q->where('departement_id', $request->departement_id);
                 });
+
             }
         }
 
-        // Search available for all roles
-        if ($request->has('search')) {
+         if ($request->has('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('nom', 'like', "%{$search}%")

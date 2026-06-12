@@ -31,8 +31,7 @@ class Alert extends Model
          'email_sent_at' => 'datetime',
     ];
 
-    // ── Relations ──────────────────────────────────────────
-
+ 
     public function employeeHabilitation()
     {
         return $this->belongsTo(EmployeeHabilitation::class, 'employee_habilitation_id');
@@ -43,15 +42,14 @@ class Alert extends Model
         return $this->hasOneThrough(
             Employee::class,
             EmployeeHabilitation::class,
-            'id',           // FK on employee_habilitations
-            'id',           // FK on employees
-            'employee_habilitation_id', // Local key on alerts
-            'employee_id'   // Local key on employee_habilitations
+            'id',          
+            'id',         
+            'employee_habilitation_id', 
+            'employee_id'    
         );
     }
 
-    // ── Scopes ─────────────────────────────────────────────
-
+ 
    
  
     public function scopeExpirationProche($query)
@@ -81,8 +79,7 @@ public function scopePourAujourdhui($query)
     return $query->whereDate('alert_date', Carbon::today());
 }
 
-    // ── Helpers ────────────────────────────────────────────
-
+ 
     
     public function getLibelleAttribute(): string
     {
@@ -97,8 +94,7 @@ public function scopePourAujourdhui($query)
         };
     }
 
-    // ── Static Factory ─────────────────────────────────────
-public static function genererPourHabilitation(EmployeeHabilitation $eh): void
+ public static function genererPourHabilitation(EmployeeHabilitation $eh): void
 {
     $dateExpiration = Carbon::parse($eh->date_expiration);
     $today          = Carbon::today();
@@ -107,8 +103,7 @@ public static function genererPourHabilitation(EmployeeHabilitation $eh): void
     foreach ([30, 7, 0] as $jours) {
         $alertDate = $dateExpiration->copy()->subDays($jours);
 
-        // Always create the alert record
-        $statut = 'inactive';
+         $statut = 'inactive';
 
         if ($jours == 30 && $joursRestants <= 30 && $joursRestants > 7) {
             $statut = 'active';

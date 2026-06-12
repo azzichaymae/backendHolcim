@@ -21,13 +21,12 @@ class Employee extends Model
         'prenom',
         'email_pro',
         'position',
-        'type',        // ← add
+        'type',       
         'societe',
         'service_id',
     ];
 
-    // ── Relations ──────────────────────────────────────────
-
+ 
     public function service()
     {
         return $this->belongsTo(Service::class, 'service_id');
@@ -38,10 +37,10 @@ class Employee extends Model
         return $this->hasOneThrough(
             Departement::class,
             Service::class,
-            'id',           // FK on services
-            'id',           // FK on departements
-            'service_id',   // Local key on employees
-            'departement_id'// Local key on services
+            'id',           
+            'id',            
+            'service_id',   
+            'departement_id' 
         );
     }
 

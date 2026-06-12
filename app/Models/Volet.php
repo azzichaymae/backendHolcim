@@ -16,8 +16,7 @@ class Volet extends Model
         'description',
     ];
 
-    // ── Relations ──────────────────────────────────────────
-
+ 
     public function habilitations()
     {
         return $this->hasMany(Habilitation::class, 'volet_id');
@@ -25,8 +24,7 @@ class Volet extends Model
 
     
 
-    // ── Accessors ──────────────────────────────────────────
-
+ 
     public function getNombreHabilitationsAttribute(): int
     {
         return $this->habilitations()->count();

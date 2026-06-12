@@ -80,7 +80,7 @@ return [
     'days'           => 14,
     'formatter'      => Monolog\Formatter\JsonFormatter::class,
     'formatter_with' => [
-        'appendNewline' => true,  // ← each log on a new line
+        'appendNewline' => true,   
     ],
 ],
 

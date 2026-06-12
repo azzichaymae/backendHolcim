@@ -13,8 +13,7 @@ use Illuminate\Support\Str;
 
 class DocumentController extends Controller
 {
-     //Get all documents for a specific employee habilitation
-     public function getAllDocuments(): JsonResponse
+      public function getAllDocuments(): JsonResponse
 {
      $user = auth()->user();
 
@@ -42,16 +41,14 @@ class DocumentController extends Controller
         $doc->url = Storage::url($doc->chemin);
 
         if ($doc->type === 'individuelle') {
-            // For individuelle docs, use employeeHabilitation
-            $doc->employee_nom = $doc->employeeHabilitation->employee->nom ?? null;
+             $doc->employee_nom = $doc->employeeHabilitation->employee->nom ?? null;
             $doc->employee_prenom = $doc->employeeHabilitation->employee->prenom ?? null;
             $doc->employee_matricule = $doc->employeeHabilitation->employee->matricule ?? null;
             $doc->habilitation_nom = $doc->employeeHabilitation->habilitation->nom ?? null;
         } elseif ($doc->type === 'note') {
             $habilitation = Habilitation::find($doc->habilitation_id); 
             $doc->habilitation_nom = $habilitation?->nom;
-            // No employee info for notes
-            $doc->employee_nom = null;
+             $doc->employee_nom = null;
             $doc->employee_prenom = null;
             $doc->employee_matricule = null;
         }
@@ -86,15 +83,14 @@ class DocumentController extends Controller
      {
           $request->validate([
                'employee_habilitation_id' => 'required|exists:employee_habilitations,id',
-               'fichier' => 'required|file|mimes:pdf,jpg,jpeg,png|max:5120', // 5MB max
+               'fichier' => 'required|file|mimes:pdf,jpg,jpeg,png|max:5120', 
           ]);
 
           $file = $request->file('fichier');
           $extension = strtoupper($file->getClientOriginalExtension());
           $nom = $file->getClientOriginalName();
 
-          // Generate unique filename to avoid collisions
-          $filename = Str::uuid() . '.' . strtolower($extension);
+           $filename = Str::uuid() . '.' . strtolower($extension);
           $chemin = $file->storeAs('habilitations/documents', $filename, 'public');
 
           $document = Document::create([
@@ -118,11 +114,9 @@ class DocumentController extends Controller
           return response()->json($document, 200);
      }
 
-     // DELETE /api/documents/{id}
-     public function destroy(Document $document): JsonResponse
+      public function destroy(Document $document): JsonResponse
      {
-          // Delete physical file from storage
-          if (Storage::disk('public')->exists($document->chemin)) {
+           if (Storage::disk('public')->exists($document->chemin)) {
                Storage::disk('public')->delete($document->chemin);
           }
 
@@ -140,8 +134,7 @@ class DocumentController extends Controller
         storage_path('app' . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . $document->chemin)
     );
 
-    // File missing — regenerate it
-    if (!file_exists($fullPath)) {
+     if (!file_exists($fullPath)) {
         $eh = $document->employeeHabilitation->load([
             'employee.service.departement',
             'habilitation',
@@ -154,8 +147,7 @@ class DocumentController extends Controller
             'settings' => $settings,
         ])->setPaper('a4', 'portrait');
 
-        // Save with the exact same path stored in DB
-        \Storage::disk('public')->put($document->chemin, $pdf->output());
+         \Storage::disk('public')->put($document->chemin, $pdf->output());
     }
 
     return response()->download($fullPath, $document->nom);

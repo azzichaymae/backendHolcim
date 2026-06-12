@@ -157,7 +157,7 @@
         <!-- Opening paragraph -->
         <div class="body-text">
             Je soussigné M. <span class="bold">{{ $settings->directeur_usine }}</span>,
-            en qualité de {{ $settings->titre_directeur }} de la {{ $settings->site }},
+            en qualité de {{ $settings->titre_directeur }} {{ $settings->site }},
             par le présent document que
             M. <span class="bold">{{ strtoupper($eh->employee->nom) }} {{ $eh->employee->prenom }}</span>
             répond aux conditions suivantes :

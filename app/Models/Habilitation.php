@@ -25,8 +25,7 @@ class Habilitation extends Model
 
    
 
-    // ── Relations ──────────────────────────────────────────
-
+ 
     public function volet()
     {
         return $this->belongsTo(Volet::class, 'volet_id');
@@ -42,15 +41,14 @@ class Habilitation extends Model
         return $this->hasManyThrough(
             Employee::class,
             EmployeeHabilitation::class,
-            'habilitation_id',  // FK on employee_habilitations
-            'id',               // FK on employees
-            'id',               // Local key on habilitations
-            'employee_id'       // Local key on employee_habilitations
+            'habilitation_id',    
+            'id',               
+            'id',                
+            'employee_id'       
         );
     }
 
-    // ── Accessors ──────────────────────────────────────────
-
+ 
     public function getDureeFormationInitialeLibelleAttribute(): string
     {
         return "{$this->duree_formation_initiale} {$this->duree_formation_initiale_unite}";
@@ -66,15 +64,13 @@ class Habilitation extends Model
         return "{$this->duree_de_validite} " . ($this->duree_de_validite > 1 ? 'années' : 'année');
     }
 
-    // ── Scopes ─────────────────────────────────────────────
-
+ 
     
     public function scopeParVolet($query, int $voletId)
     {
         return $query->where('volet_id', $voletId);
     }
 
-    // ── Helpers ────────────────────────────────────────────
-
+ 
    
 }

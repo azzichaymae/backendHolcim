@@ -16,8 +16,7 @@ class HabilitationSeeder extends Seeder
         $engins    = Volet::where('nom', 'Conduite d\'Engins')->first();
 
         $habilitations = [
-            // Sécurité Incendie
-            [
+             [
                 'nom'                            => 'Équipier de Première Intervention',
                 'detail_formation'               => 'Formation de base à la lutte contre l\'incendie',
                 'duree_formation_initiale'        => 7,

@@ -19,16 +19,14 @@ class ValidationController extends Controller
             return response()->json(['message' => 'Validation déjà en cours.'], 409);
         }
 
-        // Delete any previous validation records
-        $employeeHabilitation->validations()->delete();
+         $employeeHabilitation->validations()->delete();
 
         $settings = Setting::getInstance();
         $employee = $employeeHabilitation->employee()->with('service.departement')->first();
         $service = $employee->service;
         $departement = $service->departement;
 
-        // Build the 4 signatories in order
-        $signatories = [
+         $signatories = [
             [
                 'ordre' => 1,
                 'role' => 'employe',
@@ -61,8 +59,7 @@ class ValidationController extends Controller
             ],
         ];
 
-        // Validate all emails exist before starting
-        foreach ($signatories as $s) {
+         foreach ($signatories as $s) {
             if (empty($s['signataire_email'])) {
                 return response()->json([
                     'message' => "Email manquant pour : {$s['signataire_nom']}. Veuillez compléter les paramètres."
@@ -70,8 +67,7 @@ class ValidationController extends Controller
             }
         }
 
-        // Create all validation records
-        foreach ($signatories as $s) {
+         foreach ($signatories as $s) {
             AttributionValidation::create([
                 ...$s,
                 'employee_habilitation_id' => $employeeHabilitation->id,
@@ -80,11 +76,9 @@ class ValidationController extends Controller
             ]);
         }
 
-        // Update attribution status
-        $employeeHabilitation->update(['validation_statut' => 'en_cours']);
+         $employeeHabilitation->update(['validation_statut' => 'en_cours']);
 
-        // Send first email
-        $this->sendNextValidationEmail($employeeHabilitation);
+         $this->sendNextValidationEmail($employeeHabilitation);
 
         return response()->json(['message' => 'Workflow de validation initié.'], 200);
     }
@@ -123,8 +117,7 @@ class ValidationController extends Controller
             $this->sendNextValidationEmail($eh);
         }
 
-        // Return standalone HTML — no Vue needed
-        return response(view('validation.confirmed', [
+         return response(view('validation.confirmed', [
             'signataire' => $validation->signataire_nom,
             'habilitation' => $eh->habilitation->nom,
             'employe' => $eh->employee->prenom . ' ' . $eh->employee->nom,
@@ -192,8 +185,7 @@ class ValidationController extends Controller
         ]);
     }
 
-    // ── Private helpers ────────────────────────────────────────────────────
-    private function sendNextValidationEmail(EmployeeHabilitation $eh): void
+     private function sendNextValidationEmail(EmployeeHabilitation $eh): void
     {
         $next = $eh->validations()
             ->where('statut', 'en_attente')
@@ -231,8 +223,7 @@ class ValidationController extends Controller
     }
     private function regenererDocument(EmployeeHabilitation $eh): void
     {
-        // Get the existing document record for this attribution
-        $document = \App\Models\Document::where('employee_habilitation_id', $eh->id)
+         $document = \App\Models\Document::where('employee_habilitation_id', $eh->id)
             ->where('type', 'individuelle')
             ->latest()
             ->first();
@@ -251,11 +242,9 @@ class ValidationController extends Controller
             'validation' => $validation,
         ])->setPaper('a4', 'portrait');
 
-        // Overwrite the SAME file — same path, same DB record
-        $fullPath = storage_path('app/public/' . $document->chemin);
+         $fullPath = storage_path('app/public/' . $document->chemin);
         $pdf->save($fullPath);
 
-        // Update the document timestamp so we know when it was last regenerated
-        $document->touch();
+         $document->touch();
     }
 }

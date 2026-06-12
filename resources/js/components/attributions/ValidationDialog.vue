@@ -103,12 +103,10 @@ function isCurrentStep(index) {
   return index === currentStepIndex.value
 }
 
-// Maps raw API statut → CSS modifier key
 function resolvedStatut(etape, index) {
   const s = etape.statut
   if (s === "confirme" || s === "confirmé" || s === "validé" || s === "valide") return "confirme"
   if (s === "refuse" || s === "refusé") return "refuse"
-  // en_attente: only the first waiting step is "active", the rest are "inactive"
   if (s === "en_attente") {
     return isCurrentStep(index) ? "en_attente" : "inactif"
   }

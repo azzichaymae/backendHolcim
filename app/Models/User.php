@@ -31,8 +31,7 @@ class User extends Authenticatable
         'password' => 'hashed',
     ];
 
-    // ── Relations ──────────────────────────────────────────
-
+ 
     public function service()
     {
         return $this->belongsTo(Service::class, 'service_id');
@@ -43,15 +42,13 @@ class User extends Authenticatable
         return $this->hasOne(Service::class, 'responsable_id');
     }
 
-    // ── Role Helpers ───────────────────────────────────────
-
+ 
     public function isRRH(): bool { return $this->role === 'RRH'; }
     public function isRH(): bool  { return $this->role === 'RH'; }
 
     public function isManager(): bool { return $this->role === 'Manager'; }
 
-    // ── Scopes ─────────────────────────────────────────────
-
+ 
     public function scopeManagers($query)
     {
         return $query->where('role', 'Manager');

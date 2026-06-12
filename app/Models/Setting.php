@@ -19,8 +19,7 @@ class Setting extends Model
      'email_resp_sante_securite', 
  ];
 
-    // ── Helper — always get the single settings record ────
-    public static function getInstance(): self
+     public static function getInstance(): self
     {
         return self::firstOrFail();
     }

@@ -153,8 +153,8 @@ class DocumentGenerationController extends Controller
 $docDB = Document::create([
     'nom'              => $filename,
     'type'             => 'note',
-    'habilitation_id'  => $habilitation->id, // ← correct field
-    'employee_habilitation_id' => null,       // ← null for notes
+    'habilitation_id'  => $habilitation->id, 
+    'employee_habilitation_id' => null,        
     'chemin'           => $relativePath,
 ]);
         return $pdf->download($filename);

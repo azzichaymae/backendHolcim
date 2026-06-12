@@ -455,7 +455,6 @@ import { useAuthStore } from '@/stores/auth';
 
 const authStore  = useAuthStore();
 const isManager  = computed(() => authStore.user?.role === 'Manager');
-// ── State ──────────────────────────────────────────────────────────────────
 const habilitations = ref([]);
 const volets = ref([]);
 const loading = ref(true);
@@ -463,29 +462,24 @@ const search = ref('');
 const activeVoletId = ref(null);
 const hoveredVolet = ref(null);
 
-// Habilitation modal
 const showModal = ref(false);
 const editTarget = ref(null);
 const submitting = ref(false);
 const deleteTarget = ref(null);
 const deleting = ref(false);
 
-// Volet modal
 const showVoletModal = ref(false);
 const editVoletTarget = ref(null);
 const submittingVolet = ref(false);
 const deleteVoletTarget = ref(null);
 const deletingVolet = ref(false);
 
-// Preview panel
 const selectedHab = ref(null);
 const previewEmployees = ref([]);
 const previewLoading = ref(false);
 
-// Attribution modal
 const attrModal = reactive({ show: false, loading: false, data: null });
 
-// ── Icons ──────────────────────────────────────────────────────────────────
 const icons = {
   chevronLeft: `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>`,
   chevronRight: `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>`,
@@ -505,7 +499,6 @@ const icons = {
   folder: `<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V7z"/></svg>`,
 };
 
-// ── Computed ───────────────────────────────────────────────────────────────
 const filtered = computed(() => {
   let list = habilitations.value;
   if (search.value) {
@@ -541,7 +534,6 @@ const previewStats = computed(() => {
   };
 });
 
-// ── Fetch ──────────────────────────────────────────────────────────────────
 const fetchAll = async () => {
   loading.value = true;
   try {
@@ -556,7 +548,6 @@ const fetchAll = async () => {
   }
 };
 
-// ── Preview ────────────────────────────────────────────────────────────────
 const openPreview = async (hab) => {
   if (selectedHab.value?.id === hab.id) { closePreview(); return; }
   selectedHab.value = hab;
@@ -573,7 +564,6 @@ const openPreview = async (hab) => {
 };
 const closePreview = () => { selectedHab.value = null; previewEmployees.value = []; };
 
-// ── Attribution modal ──────────────────────────────────────────────────────
 const openAttributionModal = async (id) => {
   attrModal.show = true; attrModal.loading = true; attrModal.data = null;
   try {
@@ -584,7 +574,6 @@ const openAttributionModal = async (id) => {
 };
 const closeAttributionModal = () => { attrModal.show = false; attrModal.data = null; };
 
-// ── Helpers ────────────────────────────────────────────────────────────────
 const formatDate = (d) => d ? new Date(d).toLocaleDateString('fr-FR') : '—';
 const initiales = (data) => {
   if (!data?.employee) return '?';
@@ -597,7 +586,6 @@ const expirationClass = (data) => {
   return 'text-green';
 };
 
-// ── Habilitation Modal ─────────────────────────────────────────────────────
 const defaultForm = () => ({
   nom: '', volet_id: '',
   duree_formation_initiale: '', duree_formation_initiale_unite: 'heures',
@@ -687,7 +675,6 @@ const deleteHabilitation = async () => {
   }
 };
 
-// ── Volet Modal ────────────────────────────────────────────────────────────
 const voletForm = reactive({ nom: '', description: '' });
 const voletErrors = reactive({ nom: '' });
 

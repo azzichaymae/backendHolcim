@@ -413,7 +413,6 @@ const fetchProfile = async () => {
   catch (e) { console.error(e); }
 };
 
-// Password
 const showPwdModal = ref(false);
 const changingPwd  = ref(false);
 const pwdSuccess   = ref(false);
@@ -441,7 +440,6 @@ const changePasswordRRH = async () => {
     });
     pwdSuccess.value = true;
 
-    // ── Auto-close after 1.5 seconds ──────────────────
     setTimeout(() => closePwdModal(), 1000);
 
   } catch (err) {
@@ -451,7 +449,6 @@ const changePasswordRRH = async () => {
   }
 };
 
-// Users
 const users = ref([]); const services = ref([]);
 const loadingUsers = ref(false); const savingUser = ref(false);
 const deletingUser = ref(false); const showUserModal = ref(false);

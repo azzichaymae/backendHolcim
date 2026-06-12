@@ -25,15 +25,12 @@ class DashboardController extends Controller
         return $this->globalStats();
     }
 
-    // ── Private : Global Stats (RRH / RH) ─────────────────
-
+ 
     private function globalStats(): JsonResponse
     {
-        // ── Employees ──────────────────────────────────────
-        $totalEmployees = Employee::count();
+         $totalEmployees = Employee::count();
 
-        // ── Habilitations ──────────────────────────────────
-        $habQuery = EmployeeHabilitation::query()
+         $habQuery = EmployeeHabilitation::query()
             ->whereHas('employee', function ($q) {
                 $q->whereNull('deleted_at');  
             });
@@ -43,21 +40,18 @@ class DashboardController extends Controller
         $habilitationsExpirant7j = (clone $habQuery)->expirantDans(7)->count();
         $habilitationsExpAujourdhui = (clone $habQuery)->expirantDans(0)->count();
 
-        // ── Alerts ─────────────────────────────────────────
-        $alertsActives = Alert::actives()->count();
+         $alertsActives = Alert::actives()->count();
         $alertsUrgentes = Alert::urgentes()->count();
         $alerts30j = Alert::actives()->where('jours_avant_expiration', 30)->count();
         $alerts7j = Alert::actives()->where('jours_avant_expiration', 7)->count();
 
-        // ── Chart 1 : Statut breakdown (pie chart) ─────────
-        $statutChart = [
+         $statutChart = [
             ['label' => 'Valides', 'value' => $habilitationsValides, 'color' => '#22c55e'],
             ['label' => 'Expirées', 'value' => $habilitationsExpirees, 'color' => '#ef4444'],
             ['label' => 'Expirant bientôt', 'value' => $habilitationsExpirant30j, 'color' => '#f59e0b'],
         ];
 
-        // ── Chart 2 : Habilitations par volet (bar chart) ──
-        $parVolet = Volet::withCount([
+         $parVolet = Volet::withCount([
             'habilitations as total_attributions' => function ($q) {
                 $q->join('employee_habilitations', 'habilitations.id', '=', 'employee_habilitations.habilitation_id');
             },
@@ -85,15 +79,13 @@ class DashboardController extends Controller
             ];
         });
 
-        // ── Chart 3 : Alertes par seuil (bar chart) ────────
-        $alertesChart = [
+         $alertesChart = [
             ['label' => '30 jours', 'value' => $alerts30j, 'color' => '#f59e0b'],
             ['label' => '7 jours', 'value' => $alerts7j, 'color' => '#f97316'],
             ['label' => "Aujourd'hui", 'value' => $alertsUrgentes, 'color' => '#ef4444'],
         ];
 
-        // ── Chart 4 : Salariés par service (bar chart) ─────
-        $parService = Service::withCount('employees')
+         $parService = Service::withCount('employees')
             ->with('departement')
             ->get()
             ->map(function ($service) {
@@ -103,8 +95,7 @@ class DashboardController extends Controller
                     'total' => $service->employees_count,
                 ];
             });
-        // ── Expiring soon list ──────────────────────────────
-        $expirantBientot = EmployeeHabilitation::with([
+         $expirantBientot = EmployeeHabilitation::with([
             'employee',
             'habilitation.volet',
         ])
@@ -116,8 +107,8 @@ class DashboardController extends Controller
                     'employee_habilitation_id' => $eh->id,
                     'employe' => $eh->employee->prenom . ' ' . $eh->employee->nom,
                     'matricule' => $eh->employee->matricule,
-                    'habilitation' => $eh->habilitation->nom,        // ← string not object
-                    'volet' => $eh->habilitation->volet->nom, // ← string not object
+                    'habilitation' => $eh->habilitation->nom,         
+                    'volet' => $eh->habilitation->volet->nom, 
                     'date_expiration' => $eh->date_expiration->format('d/m/Y'),
                     'jours_restants' => (int) now()->diffInDays($eh->date_expiration, false),
                 ];
@@ -149,17 +140,14 @@ class DashboardController extends Controller
         ], 200);
     }
 
-    // ── Private : Manager Stats ────────────────────────────
-
+ 
     private function managerStats($user): JsonResponse
     {
         $serviceId = $user->service_id;
 
-        // ── Employees ──────────────────────────────────────
-        $totalEmployees = Employee::where('service_id', $serviceId)->count();
+         $totalEmployees = Employee::where('service_id', $serviceId)->count();
 
-        // ── Habilitations ──────────────────────────────────
-        $habQuery = EmployeeHabilitation::whereHas('employee', function ($q) use ($serviceId) {
+         $habQuery = EmployeeHabilitation::whereHas('employee', function ($q) use ($serviceId) {
             $q->where('service_id', $serviceId);
         });
 
@@ -169,8 +157,7 @@ class DashboardController extends Controller
         $habilitationsExpirant7j = (clone $habQuery)->expirantDans(7)->count();
         $habilitationsExpAujourdhui = (clone $habQuery)->expirantDans(0)->count();
 
-        // ── Alerts ─────────────────────────────────────────
-        $alertQuery = Alert::whereHas('employeeHabilitation.employee', function ($q) use ($serviceId) {
+         $alertQuery = Alert::whereHas('employeeHabilitation.employee', function ($q) use ($serviceId) {
             $q->where('service_id', $serviceId);
         });
 
@@ -179,22 +166,19 @@ class DashboardController extends Controller
         $alerts30j = (clone $alertQuery)->actives()->where('jours_avant_expiration', 30)->count();
         $alerts7j = (clone $alertQuery)->actives()->where('jours_avant_expiration', 7)->count();
         
-        // ── Chart 1 : Statut breakdown (pie chart) ─────────
-        $statutChart = [
+         $statutChart = [
             ['label' => 'Valides', 'value' => $habilitationsValides, 'color' => '#22c55e'],
             ['label' => 'Expirées', 'value' => $habilitationsExpirees, 'color' => '#ef4444'],
             ['label' => 'Expirant bientôt', 'value' => $habilitationsExpirant30j, 'color' => '#f59e0b'],
         ];
 
-        // ── Chart 2 : Alertes par seuil ────────────────────
-        $alertesChart = [
+         $alertesChart = [
             ['label' => '30 jours', 'value' => $alerts30j, 'color' => '#f59e0b'],
             ['label' => '7 jours', 'value' => $alerts7j, 'color' => '#f97316'],
             ['label' => "Aujourd'hui", 'value' => $alertsUrgentes, 'color' => '#ef4444'],
         ];
 
-        // ── Expiring soon list ──────────────────────────────
-        $expirantBientot = EmployeeHabilitation::with([
+         $expirantBientot = EmployeeHabilitation::with([
             'employee',
             'habilitation.volet',
         ])

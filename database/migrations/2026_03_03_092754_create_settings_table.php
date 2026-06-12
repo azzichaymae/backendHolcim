@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('resp_sante_securite', 150);
             $table->string('resp_maintenance_elec', 150);
             $table->string('resp_maintenance', 150);
-            $table->string('medecin', 150);              // ← ADD
+            $table->string('medecin', 150);            
             $table->timestamps();
         });
     }

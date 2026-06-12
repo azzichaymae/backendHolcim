@@ -18,8 +18,7 @@ class Service extends Model
         'responsable_email',
     ];
 
-    // ── Relations ──────────────────────────────────────────
-
+ 
     public function departement()
     {
         return $this->belongsTo(Departement::class, 'departement_id');
@@ -40,8 +39,7 @@ class Service extends Model
         return $this->hasMany(User::class, 'service_id');
     }
 
-    // ── Accessors ──────────────────────────────────────────
-
+ 
     public function getNombreEmployesAttribute(): int
     {
         return $this->employees()->count();

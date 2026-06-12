@@ -25,8 +25,7 @@ class EmployeeHabilitationController extends Controller
                'alerts',
           ]);
 
-          // Auto-restrict Manager to their own service
-          if (auth()->user()->role === 'Manager') {
+           if (auth()->user()->role === 'Manager') {
                $managerServiceId = auth()->user()->service_id;
                $query->whereHas('employee', function ($q) use ($managerServiceId) {
                     $q->where('service_id', $managerServiceId);
@@ -92,17 +91,14 @@ class EmployeeHabilitationController extends Controller
                'date_aptitude_medicale' => 'required|date',
           ]);
 
-          // Fetch habilitation to get duration
-          $habilitation = \App\Models\Habilitation::findOrFail($validated['habilitation_id']);
+           $habilitation = \App\Models\Habilitation::findOrFail($validated['habilitation_id']);
 
-          // Auto-calculate date_expiration
-          $dateExpiration = Carbon::parse($validated['date_obtention'])
+           $dateExpiration = Carbon::parse($validated['date_obtention'])
                ->addYears($habilitation->duree_de_validite);
 
           $validated['date_expiration'] = $dateExpiration->toDateString();
 
-          // Auto-calculate statut
-          $validated['statut'] = $dateExpiration->isPast() ? 'expirée' : 'valide';
+           $validated['statut'] = $dateExpiration->isPast() ? 'expirée' : 'valide';
 
           $employeeHabilitation = EmployeeHabilitation::create($validated);
           \Log::info('attribution.created', [
@@ -112,8 +108,7 @@ class EmployeeHabilitationController extends Controller
                'created_by' => auth()->id(),
                'role' => auth()->user()->role,
           ]);
-          // Auto-generate alerts
-          Alert::genererPourHabilitation($employeeHabilitation);
+           Alert::genererPourHabilitation($employeeHabilitation);
 
           $employeeHabilitation->load([
                'employee.departement',
@@ -128,8 +123,7 @@ class EmployeeHabilitationController extends Controller
      // POST /api/employee-habilitations/with-document
      public function storeWithDocument(Request $request): JsonResponse
      {
-          // Validation identique à ton store()
-          $validated = $request->validate([
+           $validated = $request->validate([
                'employee_id' => 'required|exists:employees,id',
                'habilitation_id' => 'required|exists:habilitations,id',
                'date_obtention' => 'required|date',
@@ -137,7 +131,26 @@ class EmployeeHabilitationController extends Controller
                'organisme_formation' => 'required|string|max:150',
                'date_aptitude_medicale' => 'required|date',
           ]);
+           $existingActive = EmployeeHabilitation::where('employee_id', $validated['employee_id'])
+        ->where('habilitation_id', $validated['habilitation_id'])
+        ->where('statut', 'valide')
+        ->first();
 
+   if ($existingActive) {
+        $employee     = \App\Models\Employee::find($validated['employee_id']);
+        $habilitation = \App\Models\Habilitation::find($validated['habilitation_id']);
+
+        return response()->json([
+            'message' => sprintf(
+                '%s %s possède déjà une habilitation active "%s" valide jusqu\'au %s. Utilisez le renouvellement pour mettre à jour.',
+                $employee->prenom,
+                $employee->nom,
+                $habilitation->nom,
+                Carbon::parse($existingActive->date_expiration)->format('d/m/Y')
+            ),
+            'existing_id' => $existingActive->id,
+        ], 422);
+    }
           $habilitation = Habilitation::findOrFail($validated['habilitation_id']);
           $dateExpiration = Carbon::parse($validated['date_obtention'])
                ->addYears($habilitation->duree_de_validite);
@@ -154,14 +167,13 @@ class EmployeeHabilitationController extends Controller
           ]);
           Alert::genererPourHabilitation($employeeHabilitation);
 
-          // Génération PDF mais stockage direct
-          $pdf = Pdf::loadView('pdf.habilitation_individuelle', [
+           $pdf = Pdf::loadView('pdf.habilitation_individuelle', [
                'eh' => $employeeHabilitation,
                'settings' => Setting::getInstance(),
                'validation' => (new ValidationController())->statut($employeeHabilitation)->getData(),
           ])->setPaper('a4', 'portrait');
-
-          $filename = 'Habilitation_' . $employeeHabilitation->id . '_' . now()->format('Ymd') . '.pdf';
+          $isRecyclage = $employeeHabilitation->type === 'recyclage' ? 'Recyclage_' : '';
+          $filename = 'Habilitation_' . $employeeHabilitation->id . '_' . $isRecyclage  . now()->format('Ymd') . '.pdf';
           $relativePath = 'documents/' . $filename;
           $pdf->save(storage_path('app/public/' . $relativePath));
 
@@ -196,8 +208,7 @@ class EmployeeHabilitationController extends Controller
           $mode = $validated['mode'];
           unset($validated['mode']);
 
-          // ── Recalculate date_expiration automatically ──────────
-          $habilitation = $employeeHabilitation->habilitation;
+           $habilitation = $employeeHabilitation->habilitation;
           $dateExpiration = Carbon::parse($validated['date_obtention'])
                ->addYears($habilitation->duree_de_validite);
 
@@ -205,8 +216,7 @@ class EmployeeHabilitationController extends Controller
           $validated['statut'] = $dateExpiration->isPast() ? 'expirée' : 'valide';
 
 
-          // update with mode
-          $oldDocument = Document::where('employee_habilitation_id', $employeeHabilitation->id)
+           $oldDocument = Document::where('employee_habilitation_id', $employeeHabilitation->id)
                ->where('type', 'individuelle')
                ->latest()
                ->first();
@@ -228,13 +238,11 @@ class EmployeeHabilitationController extends Controller
     'mode'                     => $mode,
     'updated_by'               => auth()->id(),
 ]);
-          // Reset alerts
-          Alert::where('employee_habilitation_id', $employeeHabilitation->id)->delete();
+           Alert::where('employee_habilitation_id', $employeeHabilitation->id)->delete();
           Alert::genererPourHabilitation($employeeHabilitation->fresh());
 
 
-          // Generate NEW document (old one stays for archive)
-          $settings = Setting::getInstance();
+           $settings = Setting::getInstance();
           Carbon::setLocale('fr');
 
           $employeeHabilitation->load(['employee', 'habilitation', 'habilitation.volet']);
@@ -255,8 +263,7 @@ class EmployeeHabilitationController extends Controller
                'type' => 'individuelle',
                'chemin' => $relativePath,
           ]);
-          // ── Log the operation ──────────────────────────────────
-          \Log::info('attribution.updated', [
+           \Log::info('attribution.updated', [
                'employee_habilitation_id' => $employeeHabilitation->id,
                'mode' => $mode,
                'updated_by' => auth()->id(),
@@ -269,8 +276,7 @@ class EmployeeHabilitationController extends Controller
      // DELETE /api/employee-habilitations/{id}
      public function destroy(EmployeeHabilitation $employeeHabilitation): JsonResponse
      {
-          // Documents and alerts deleted automatically via cascadeOnDelete
-          $employeeHabilitation->delete();
+           $employeeHabilitation->delete();
 
           return response()->json([
                'message' => 'Habilitation employé supprimée avec succès.'
@@ -287,8 +293,7 @@ class EmployeeHabilitationController extends Controller
                'habilitation.volet',
           ])->expirantDans((int) $jours);
 
-          // Auto-restrict Manager to their own service
-          if (auth()->user()->role === 'Manager') {
+           if (auth()->user()->role === 'Manager') {
                $managerServiceId = auth()->user()->service_id;
                $query->whereHas('employee', function ($q) use ($managerServiceId) {
                     $q->where('service_id', $managerServiceId);
@@ -314,13 +319,13 @@ class EmployeeHabilitationController extends Controller
                ->where('date_expiration', '<=', Carbon::today()->addDays(30))
                ->orderBy('date_expiration')
                ->whereHas('employee', function ($q) {
-                    $q->whereNull('deleted_at'); // exclude trashed employees
+                    $q->whereNull('deleted_at');  
                });
 
           if (auth()->user()->role === 'Manager') {
                $query->whereHas('employee', function ($q) {
                     $q->where('service_id', auth()->user()->service_id)
-                         ->whereNull('deleted_at'); // still enforce not trashed
+                         ->whereNull('deleted_at');  
                });
           }
 
@@ -337,15 +342,7 @@ class EmployeeHabilitationController extends Controller
           return response()->json($results);
      }
 
-
-     // PATCH /api/employee-habilitations/{id}/acknowledge
-     // public function acknowledge(EmployeeHabilitation $employeeHabilitation): JsonResponse
-     // {
-     //      $employeeHabilitation->acknowledge();
-     //      return response()->json(['acknowledged' => true]);
-     // }
-
-     // GET /api/employee-habilitations/{empId}/history
+ 
      public function history($empId): JsonResponse
      {
           $history = EmployeeHabilitation::with(['habilitation.volet'])

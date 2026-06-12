@@ -136,7 +136,7 @@
 }
 
 /* ── Form card ────────────────────────────────────────── */
-.form-card {
+.employee-form-page .form-card {
     background: white;
     border-radius: 14px;
     border: 1px solid #e8ecf0;

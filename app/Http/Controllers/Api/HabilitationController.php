@@ -19,8 +19,7 @@ class HabilitationController extends Controller
             });
         }]);
 
-    // Filter by volet
-    if ($request->has('volet_id')) {
+     if ($request->has('volet_id')) {
         $query->where('volet_id', $request->volet_id);
     }
 

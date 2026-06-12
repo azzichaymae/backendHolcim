@@ -156,37 +156,59 @@
         </div>
 
         <!-- Found employee card -->
-        <div class="found-card" v-if="matriculeFound">
-          <div class="found-top">
-            <div class="found-avatar">{{ initiales(matriculeFound) }}</div>
-            <div class="found-info">
-              <div class="found-name">{{ matriculeFound.prenom }} {{ matriculeFound.nom }}</div>
-              <div class="found-meta">{{ matriculeFound.matricule }} · {{ matriculeFound.position }} · {{
-                matriculeFound.departement?.nom }}</div>
-            </div>
-          </div>
-          <div class="found-fields">
-            <div class="ff-group">
-              <label>Date d'obtention <span class="req">*</span></label>
-              <input type="date" v-model="matriculeFound._date_obtention" :max="today" />
-            </div>
-            <div class="ff-group">
-              <label>Aptitude médicale</label>
-              <input type="date" v-model="matriculeFound._date_aptitude_medicale" />
-            </div>
-            <div class="ff-group">
-              <label>Type</label>
-              <select v-model="matriculeFound._type">
-                <option value="initiale">Initiale</option>
-                <option value="recyclage">Recyclage</option>
-              </select>
-            </div>
-            <button class="btn-add-emp" @click="addEmployee" :disabled="!matriculeFound._date_obtention">
-              <span v-html="icons.plus"></span> Ajouter
-            </button>
+       <div class="found-card" v-if="matriculeFound">
+        <div class="found-top">
+          <div class="found-avatar">{{ initiales(matriculeFound) }}</div>
+          <div class="found-info">
+            <div class="found-name">{{ matriculeFound.prenom }} {{ matriculeFound.nom }}</div>
+            <div class="found-meta">{{ matriculeFound.matricule }} · {{ matriculeFound.position }}</div>
           </div>
         </div>
+
+        <div class="found-fields">
+          <div class="ff-group">
+            <label>Date d'obtention <span class="req">*</span></label>
+            <input type="date" v-model="matriculeFound._date_obtention" :max="today" />
+          </div>
+          <div class="ff-group">
+            <label>Aptitude médicale</label>
+            <input type="date" v-model="matriculeFound._date_aptitude_medicale" />
+          </div>
+          <div class="ff-group">
+            <label>Type</label>
+            <select v-model="matriculeFound._type">
+              <option value="initiale">Initiale</option>
+              <option value="recyclage">Recyclage</option>
+            </select>
+          </div>
+        </div>
+
+
+  <div class="sig-section">
+    <div class="sig-section-title">
+      <span v-html="icons.users"></span>
+      Signataires du workflow
+    </div>
+    <div class="sig-grid" v-if="matriculeFound._signataires && matriculeFound._signataires.length > 0">
+      <label v-for="sig in matriculeFound._signataires" :key="sig.key" class="sig-item">
+        <input type="checkbox" v-model="sig.selected" />
+        <div class="sig-info">
+          <span class="sig-role">{{ sig.label }}</span>
+          <span class="sig-name">{{ sig.nom }}</span>
+        </div>
+      </label>
+    </div>
+  </div>
+  <button class="btn-add-emp" @click="addEmployee" :disabled="!matriculeFound._date_obtention">
+    <span v-html="icons.plus"></span> Ajouter
+  </button>
+        </div>
+
+
+
+
       </div>
+ 
 
       <!-- Employee list -->
       <div class="emp-list" v-if="form.employees.length > 0">
@@ -195,29 +217,46 @@
         </div>
         <div class="emp-row" v-for="(emp, idx) in form.employees" :key="emp.id">
           <div class="er-identity">
-            <div class="er-avatar">{{ initiales(emp) }}</div>
-            <div>
-              <div class="er-name">{{ emp.prenom }} {{ emp.nom }}</div>
-              <div class="er-mat">{{ emp.matricule }}</div>
-            </div>
-          </div>
+    <div class="er-avatar">{{ initiales(emp) }}</div>
+    <div>
+      <div class="er-name">{{ emp.prenom }} {{ emp.nom }}</div>
+      <div class="er-mat">{{ emp.matricule }}</div>
+    </div>
+  </div>
           <div class="er-fields">
-            <div class="ff-group">
-              <label>Date d'obtention</label>
-              <input type="date" v-model="emp._date_obtention" :max="today" />
-            </div>
-            <div class="ff-group">
-              <label>Aptitude médicale</label>
-              <input type="date" v-model="emp._date_aptitude_medicale" />
-            </div>
-            <div class="ff-group">
-              <label>Type</label>
-              <select v-model="emp._type">
-                <option value="initiale">Initiale</option>
-                <option value="recyclage">Recyclage</option>
-              </select>
-            </div>
-          </div>
+    <div class="ff-group">
+      <label>Date d'obtention</label>
+      <input type="date" v-model="emp._date_obtention" :max="today" />
+    </div>
+    <div class="ff-group">
+      <label>Aptitude médicale</label>
+      <input type="date" v-model="emp._date_aptitude_medicale" />
+    </div>
+    <div class="ff-group">
+      <label>Type</label>
+      <select v-model="emp._type">
+        <option value="initiale">Initiale</option>
+        <option value="recyclage">Recyclage</option>
+      </select>
+    </div>
+  </div>
+ <div class="er-sig-summary" @click="toggleSigEdit(idx)">
+    <span class="sig-count-badge">
+      {{ emp._signataires.filter(s => s.selected).length }}/4 signataires
+    </span>
+    <span class="sig-edit-arrow">{{ openSigEdit === idx ? '▲' : '▼' }}</span>
+  </div>
+  <div class="er-sig-edit" v-if="openSigEdit === idx">
+    <div class="sig-grid">
+      <label v-for="sig in emp._signataires" :key="sig.key" class="sig-item">
+        <input type="checkbox" v-model="sig.selected" />
+        <div class="sig-info">
+          <span class="sig-role">{{ sig.label }}</span>
+          <span class="sig-name">{{ sig.nom }}</span>
+        </div>
+      </label>
+    </div>
+  </div>
           <button class="btn-remove" @click="removeEmployee(idx)">
             <span v-html="icons.trash"></span>
           </button>
@@ -404,12 +443,10 @@ const searchByMatricule = async () => {
   searchingMatricule.value = true;
 
   try {
-    // Send the raw query string, not just a number
     const { data } = await api.get('/employees', { params: { search: query } });
 
-    // Try to find exact match by matricule OR fallback to first match
     let emp = data.find(e => e.matricule == query);
-    if (!emp) emp = data[0]; // take first match if searching by name/email
+    if (!emp) emp = data[0];
 
     if (!emp) {
       matriculeError.value = `Aucun employé trouvé pour "${query}"`;
@@ -425,8 +462,9 @@ const searchByMatricule = async () => {
       ...emp,
       _date_obtention: '',
       _date_aptitude_medicale: '',
-      _type: 'initiale'
-    };
+      _type: 'initiale',
+      _signataires: buildSignataires(emp), // ← attach per employee
+  };
     matriculeInput.value = '';
   } catch {
     matriculeError.value = 'Erreur lors de la recherche.';
@@ -436,25 +474,35 @@ const searchByMatricule = async () => {
 };
 
 
-const addEmployee = () => { if (!matriculeFound.value?._date_obtention) return; form.employees.push({ ...matriculeFound.value }); matriculeFound.value = null; };
+const addEmployee = () => { if (!matriculeFound.value?._date_obtention) return;
+   form.employees.push({ ...matriculeFound.value }); 
+   matriculeFound.value = null; 
+  console.log(form.employees);};
 const removeEmployee = (idx) => form.employees.splice(idx, 1);
 
 const submitAll = async () => {
-  submitting.value = true; submitError.value = ''; submitSuccess.value = '';
+  submitting.value = true;
+  submitError.value = '';
+  submitSuccess.value = '';
   const results = { ok: 0, errors: [] };
+
   for (const emp of form.employees) {
     try {
       await api.post('/employee-habilitations/with-document', {
-        employee_id: emp.id,
-        habilitation_id: form.habilitation_id,
-        date_obtention: emp._date_obtention,
-        date_aptitude_medicale: emp._date_aptitude_medicale,
-        organisme_formation: form.organisme_formation,
-        type: emp._type,
+        employee_id:             emp.id,
+        habilitation_id:         form.habilitation_id,
+        date_obtention:          emp._date_obtention,
+        date_aptitude_medicale:  emp._date_aptitude_medicale,
+        organisme_formation:     form.organisme_formation,
+        type:                    emp._type,
+        signataires:             emp._signataires 
+          .filter(s => s.selected)
+          .map(s => ({ key: s.key, ordre: s.ordre })),
       });
-
       results.ok++;
-    } catch (e) { results.errors.push(`${emp.prenom} ${emp.nom} : ${e.response?.data?.message ?? 'Erreur'}`); }
+    } catch (e) {
+      results.errors.push(`${emp.prenom} ${emp.nom} : ${e.response?.data?.message ?? 'Erreur'}`);
+    }
   }
   submitting.value = false;
   if (!results.errors.length) {
@@ -481,6 +529,50 @@ const fetchHabilitations = async (id) => {
   finally { loadingHabilitations.value = false; }
 };
 
+const parametres = ref(null);
+const openSigEdit = ref(null);
+
+const toggleSigEdit = (idx) => {
+  openSigEdit.value = openSigEdit.value === idx ? null : idx;
+};
+
+const buildSignataires = (emp) => [
+  {
+    key: 'manager_service',
+    label: 'Responsable de service',
+    nom: emp.service?.responsable ?? '—',
+    ordre: 1,
+    selected: true,
+  },
+  {
+    key: 'manager_departement',
+    label: 'Responsable de département',
+    nom: emp.service?.departement?.responsable ?? '—',
+    ordre: 2,
+    selected: true,
+  },
+  {
+    key: 'resp_sst',
+    label: 'Responsable Santé Sécurité',
+    nom: parametres.value?.resp_sante_securite ?? '—',
+    ordre: 3,
+    selected: true,
+  },
+  {
+    key: 'directeur',
+    label: 'Directeur d\'usine',
+    nom: parametres.value?.directeur_usine ?? '—',
+    ordre: 4,
+    selected: true,
+  },
+];
+const fetchParametres = async () => {
+  const { data } = await api.get('/parametres');
+  parametres.value = data;
+};
 watch(() => form.volet_id, (id) => { if (id) fetchHabilitations(id); });
-onMounted(fetchVolets);
+onMounted(() => {
+  fetchVolets();
+  fetchParametres();
+});
 </script>
