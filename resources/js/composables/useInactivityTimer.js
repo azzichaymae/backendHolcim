@@ -2,8 +2,8 @@ import { useAuthStore } from "@/stores/auth";
 import { useRouter } from "vue-router";
 import { ref } from "vue";
 
-const TIMEOUT_MS = 15 * 60 * 1000; // 15 minutes — change as needed
-const WARNING_MS = 14 * 60 * 1000; // warn at 14 min
+const TIMEOUT_MS = 15 * 60 * 1000; 
+const WARNING_MS = 14 * 60 * 1000; 
 
 let timer = null;
 let warningTimer = null;

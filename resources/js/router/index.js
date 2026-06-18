@@ -1,10 +1,8 @@
 import { createRouter, createWebHistory } from "vue-router";
 import { useAuthStore } from "@/stores/auth";
 
-// Layouts
 import AppLayout from "@/components/layouts/AppLayout.vue";
 
-// Pages
 import Login from "@/components/auth/Login.vue";
 import Dashboard from "@/components/dashboard/Dashboard.vue";
 import EmployeeList from "@/components/employees/EmployeeList.vue";
@@ -20,7 +18,6 @@ import Referentiel from "../components/habilitations/Referentiel.vue";
 import ValidationConfirm from "@/components/validation/ValidationConfirm.vue";
 import ValidationRefuse from "@/components/validation/ValidationRefuse.vue";
 const routes = [
-    // Public
     { path: "/login", component: Login, name: "login" },
 
     {
@@ -34,7 +31,6 @@ const routes = [
         name: "validation.refuser",
     },
 
-    // Protected — wrapped in AppLayout
     {
         path: "/",
         component: AppLayout,
@@ -93,7 +89,6 @@ const routes = [
         ],
     },
 
-    // Catch all — redirect to dashboard
     { path: "/:pathMatch(.*)*", redirect: "/dashboard" },
 ];
 
@@ -102,7 +97,6 @@ const router = createRouter({
     routes,
 });
 
-// Navigation guard
 router.beforeEach((to, from, next) => {
     const auth = useAuthStore();
 

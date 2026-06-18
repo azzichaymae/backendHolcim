@@ -21,7 +21,7 @@ export const useAuthStore = defineStore("auth", {
 
             this.token = data.token;
             this.user = data.user;
-            this.tokenTimestamp = Date.now(); // Set timestamp
+            this.tokenTimestamp = Date.now(); 
 
             localStorage.setItem("token", data.token);
             localStorage.setItem("user", JSON.stringify(data.user));

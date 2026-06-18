@@ -8,7 +8,6 @@ export function useSelectLoading() {
   const setLoading = (key, state) => {
     if (state) loadingSelects.value.add(key);
     else        loadingSelects.value.delete(key);
-    // trigger reactivity
     loadingSelects.value = new Set(loadingSelects.value);
   };
 

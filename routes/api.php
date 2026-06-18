@@ -16,19 +16,7 @@ use App\Http\Controllers\Api\DocumentGenerationController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\ValidationController;
 
-// ── Public routes ──────────────────────────────────────
 Route::post('/auth/login', [AuthController::class, 'login']);
-// Route::get(
-//     '/validations/confirmer/{token}',
-//     [ValidationController::class, 'confirmer']
-// );
-// Route::get(
-//     '/validations/refuser/{token}',
-//     [ValidationController::class, 'refuser']
-// );
-// Route::get('/validations/info/{token}', [ValidationController::class, 'info']);
-
-// Public validation routes — accessible from email links on any device
 Route::get('/validations/confirmer/{token}', [ValidationController::class, 'confirmer'])
     ->name('validation.confirm');
 Route::get('/validations/refuser/{token}',   [ValidationController::class, 'refuser'])
@@ -37,8 +25,8 @@ Route::get('/validations/refuser/{token}',   [ValidationController::class, 'refu
 Route::post('/auth/request-password-reset', [AuthController::class, 'requestReset']);
 Route::post('/auth/rrh/reset-password/{userId}', [AuthController::class, 'rrhResetPassword'])
     ->middleware('auth:sanctum', 'role:RRH');
-// ── Protected routes ───────────────────────────────────
-Route::middleware('auth:sanctum')->group(function () {
+
+    Route::middleware('auth:sanctum')->group(function () {
 
     Route::post('/auth/logout', [AuthController::class, 'logout']);
     Route::get('/auth/me', [AuthController::class, 'me']);
@@ -98,11 +86,9 @@ Route::middleware('auth:sanctum')->group(function () {
     // ── Employee Habilitations ─────────────────────────
 
     Route::middleware('role:RRH,RH,Manager')->group(function () {
-        // Static routes first
         Route::get('/employee-habilitations/expiring', [EmployeeHabilitationController::class, 'expiring']);
         Route::get('/employee-habilitations/alertes', [EmployeeHabilitationController::class, 'alertes']);
 
-        // Collection + item routes after
         Route::get('/employee-habilitations', [EmployeeHabilitationController::class, 'index']);
         Route::get('/employee-habilitations/{employeeHabilitation}', [EmployeeHabilitationController::class, 'show']);
         Route::get('/employee-habilitations/{empId}/history', [EmployeeHabilitationController::class, 'history']);

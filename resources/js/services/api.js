@@ -1,7 +1,6 @@
 import axios from "axios";
 
 const api = axios.create({
-    // api.js
     baseURL: import.meta.env.VITE_API_URL ?? "http://172.16.16.224/api",
     headers: {
         "Content-Type": "application/json",
@@ -9,7 +8,6 @@ const api = axios.create({
     },
 });
 
-// Attach token automatically to every request
 
 api.interceptors.request.use((config) => {
     const token = localStorage.getItem("token");
